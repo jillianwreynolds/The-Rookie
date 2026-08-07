@@ -1,7 +1,10 @@
 name|type|data|command|depend|seed|path|time|size|bytes|format|repository|iteration|parent|children|seconds|warnings|error
 transcript_list|stem|ffc11fe7db4d19e4|48bc4c42922b185f|2c530c1562a7fbd1|-708734344||t20671.9569689712s|s1465b|1465|rds|local|vector|||0.001||
 transcripts_raw|stem|f4acc48a513e1734|65fe8d6c8dfc6a2f|7ea481edb4564d58|272862483||t20671.9793704078s|s2040643b|2040643|rds|local|vector|||5.575||
+transcripts_html|stem|5b21e4374e67e964|4609a0e414d62b90|2d4163abccc06768|-593131035||t20672.2223077462s|s1945472b|1945472|rds|local|vector|||9.563||
 rename_transcripts|function|aafa45f59f2aab26
-.Random.seed|object|035cfb2e2f1e244f
+.Random.seed|object|e4b25fe981694e7d
 characters|object|d7c9129597072d5e
-transcripts|stem|dd9bc427343e86d9|e03c2e5c7a999e84|8055ec20ec81efa4|223575563||t20672.0095486335s|s2026686b|2026686|rds|local|vector|||0.03||
+rename_transcripts_html|function|2c5163c596321091
+parse_episode_html|function|7b641a702597e373
+transcripts|stem|f1115b6e862e7527|2063d9ad29cadb80|62d0ca8a58a86add|223575563||t20672.2350311237s|s5717744b|5717744|rds|local|vector|||0.19||

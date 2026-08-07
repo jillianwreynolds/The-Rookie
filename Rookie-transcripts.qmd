@@ -6,25 +6,93 @@ format: html
 ```{r}
 source('R/Rookie-vars.R')
 tar_load(transcripts)
+tar_load(transcripts_html)
+```
+
+```{r}
+transcripts_html
+transcripts
+```
+
+```{r}
+transcripts |> count(season)
 ```
 
 ```{r}
 
 transcripts |> 
-  mutate(count_Chen = str_count(transcript, "CHEN"), .keep = "unused") |> 
-  arrange(desc(count_Chen))
+  mutate(
+    count_Chen = str_count(transcript, "(?<!MRS\\.\\s)(?<!Mrs\\.\\s)CHEN"),
+    .keep = "unused",
+    .after = title
+  ) |> 
+  arrange(count_Chen) |> 
+  select(1:6)
 
 transcripts |> 
-  mutate(count_Chen = str_count(transcript, "(?<!MRS\\.\\s)CHEN"), .keep = "unused") |> 
-  arrange(desc(count_Chen))
-
-transcripts |> 
-  mutate(count_Chen = str_count(transcript, "(?<!MRS\\.\\s)CHEN"), .keep = "unused") |> 
+  mutate(count_Chen = str_count(transcript, "(?<!MRS\\.\\s)(?<!Mrs\\.\\s)CHEN"), .keep = "unused") |> 
   mutate(ep_ID = as_factor(ep_ID) |> fct_reorder(count_Chen) |> fct_rev()) |>
   ggplot(aes(ep_ID, count_Chen)) +
   geom_col() + 
   theme_light() +
   theme(axis.text.x = element_text(angle = 90, hjust = 0.5, vjust = 0.5))
+
+```
+
+```{r}
+transcripts |> 
+  mutate(
+    Chen_mentions = str_count(transcript, "(?<!Mrs\\.\\s)Chen"),
+    .after = title
+  ) |> 
+  select(1:6)
+
+transcripts |> 
+  mutate(
+    count_Chen = str_count(transcript, "(?<!MRS\\.\\s)(?<!Mrs\\.\\s)CHEN"),
+    Chen_mentions = str_count(transcript, "(?<!Mrs\\.\\s)Chen"),
+    .keep = "unused"
+  ) |> 
+  # mutate(ep_ID = as_factor(ep_ID) |> fct_reorder(count_Chen) |> fct_rev()) |>
+  ggplot() +
+  geom_point(aes(episode_number, count_Chen), color = "blue") + 
+  geom_point(aes(episode_number, Chen_mentions), color = "red") +
+  geom_smooth(aes(episode_number, count_Chen), color = "blue") +
+  geom_smooth(aes(episode_number, Chen_mentions), color = "red") + 
+  # geom_line(aes(ep_ID, count_Chen, group = 1), color = "blue") +
+  # geom_line(aes(ep_ID, Chen_mentions, group = 1), color = "red") +
+  theme_light() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 0.5, vjust = 0.5))
+
+```
+
+```{r}
+
+transcripts |> 
+  mutate(
+    murder = str_count(transcript, "(M|m)urder[(s|ed)]?\\s"),
+    stabbing = str_count(transcript, "(S|s)tab[s|bing|bed]?\\s") +
+      str_count(transcript, "(K|k)nifed"),
+    assault = str_count(transcript, "(A|a)ssault[ed]?\\s"),
+    suicide = str_count(transcript, "(S|s)uicid(e|al)"),
+    .after = title
+  )
+
+transcripts |> 
+  mutate(
+    murder = str_count(transcript, "(M|m)urder[(s|ed)]?\\s"),
+    stabbing = str_count(transcript, "(S|s)tab[s|bing|bed]?\\s") +
+      str_count(transcript, "(K|k)nifed"),
+    assault = str_count(transcript, "(A|a)ssault[ed]?\\s"),
+    suicide = str_count(transcript, "(S|s)uicid(e|al)"),
+    .after = title
+  ) |> 
+  ggplot(aes(x = ep_ID)) +
+  geom_point(aes(y = murder), color = "black") +
+  geom_point(aes(y = stabbing), color = "red") +
+  geom_point(aes(y = assault), color = "blue") +
+  geom_point(aes(y = suicide), color = "darkgreen") +
+  labs(x = "Episode", y = "Number of Mentions")
 
 ```
 

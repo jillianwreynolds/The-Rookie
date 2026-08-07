@@ -1,0 +1,30 @@
+---
+title: "Rookie-transcripts"
+format: html
+---
+
+```{r}
+source('R/Rookie-vars.R')
+tar_load(transcripts)
+```
+
+```{r}
+
+transcripts |> 
+  mutate(count_Chen = str_count(transcript, "CHEN"), .keep = "unused") |> 
+  arrange(desc(count_Chen))
+
+transcripts |> 
+  mutate(count_Chen = str_count(transcript, "(?<!MRS\\.\\s)CHEN"), .keep = "unused") |> 
+  arrange(desc(count_Chen))
+
+transcripts |> 
+  mutate(count_Chen = str_count(transcript, "(?<!MRS\\.\\s)CHEN"), .keep = "unused") |> 
+  mutate(ep_ID = as_factor(ep_ID) |> fct_reorder(count_Chen) |> fct_rev()) |>
+  ggplot(aes(ep_ID, count_Chen)) +
+  geom_col() + 
+  theme_light() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 0.5, vjust = 0.5))
+
+```
+

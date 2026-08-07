@@ -26,3 +26,28 @@ rename_transcripts <- function(season) {
   file.rename(paste0(beginning, x), new_name)
   })
 }
+
+rename_transcripts_html <- function(season) {
+  
+  beginning <- paste0(
+    "data/The-Rookie/html/Season-",
+    season,
+    "/"
+  )
+  
+  file_list <- list.files(paste0(beginning))
+  
+  walk(file_list, \(x) {
+    
+    clean_name <- x |>
+      str_remove_all("\"") |>
+      str_extract(".+(?=(:|\\s)(T|t)ranscript)")
+    
+    new_name <- paste0(
+      beginning,
+      clean_name,
+      ".html"
+    )
+    file.rename(paste0(beginning, x), new_name)
+  })
+}

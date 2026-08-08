@@ -80,5 +80,15 @@ list(
           str_remove_all("\\[[^]]+\\]"),
         .before = pdf
       )
+  ),
+  tar_target(
+    transcripts_clean,
+    {
+      clean_transcripts(transcripts) |> 
+        write_parquet("data/The-Rookie/transcripts_clean.parquet")
+      "data/The-Rookie/transcripts_clean.parquet"
+    },
+    format = "file",
+    packages = "arrow"
   )
 )

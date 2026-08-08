@@ -96,3 +96,28 @@ transcripts |>
 
 ```
 
+```{r}
+
+transcripts |> 
+  mutate(
+    count_Chen = str_count(transcript, "(?<!MRS\\.\\s)(?<!Mrs\\.\\s)CHEN"),
+    .keep = "unused",
+    .after = title
+  ) |> 
+  select(1:6) |> 
+  group_by(season) |> 
+  summarise(sum = sum(count_Chen), avg = mean(count_Chen))
+
+```
+
+```{r}
+transcripts$transcript |> str_which("H(enry|ENRY)\\sN(olan|OLAN)")
+
+transcripts$transcript |> str_which("M(rs|RS)\\.\\sN(olan|OLAN)")
+
+transcripts$transcript |> str_which("S(arah|ARAH)\\sN(olan|OLAN)")
+
+transcripts$transcript |> str_which("S(arah|ARAH)")
+
+```
+

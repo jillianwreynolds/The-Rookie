@@ -7,6 +7,8 @@ format: html
 source('R/Rookie-vars.R')
 tar_load(transcripts)
 tar_load(transcripts_html)
+tar_load(transcripts_clean)
+transcripts_clean <- open_dataset(transcripts_clean, format = "parquet")
 ```
 
 ```{r}
@@ -119,5 +121,164 @@ transcripts$transcript |> str_which("S(arah|ARAH)\\sN(olan|OLAN)")
 
 transcripts$transcript |> str_which("S(arah|ARAH)")
 
+```
+
+```{r}
+transcripts |> 
+  filter(season == 1, episode == 1) |> 
+  unnest_tokens(word, transcript, to_lower = FALSE, drop = FALSE)
+```
+
+```{r}
+transcripts |> 
+  filter(episode_number == 1) |> 
+  select(transcript)  %>% 
+  .[[1]]
+```
+
+```{r}
+
+transcripts |> 
+  filter(episode_number == 1) |> 
+  mutate(
+    transcript = str_remove_all(transcript, "\\s*[-–]?\\s*\\[[^]]+\\]\\s*[-–]?\\s*\n*") |>
+      str_remove_all("\\s*[-–]?\\s*\\([^)]+\\)\\s*[-–]?\\s*\n*") |>
+      str_replace_all("\n{3,}", "\n\n") |> 
+      str_split("\n\n")
+  ) |> 
+  unnest(transcript) |> 
+  mutate(
+    transcript = str_remove(transcript, "^[\\s\\-–]*"),
+    rowID = row_number(),
+    type = case_when(
+      str_detect(transcript, "(INT|EXT)\\.") ~ 
+      "scene_heading",
+      str_detect(transcript, "[A-Z]+[:punct:]*[A-Z]+$") ~ "caption",
+      str_detect(
+        transcript,
+        "^[A-Z][A-Z]+(?:[,/]\\s*[A-Z]+|\\sand\\s[A-Z]+)+(?=[A-Z\\d]{1}[a-z\\d\'\\s-]+)"
+      ) ~ "dialogue_multi_speaker",
+      str_detect(
+        transcript, "^[A-Z][A-Z\\s]+(?=[A-Z]{1}[a-z\\d\'\\s-]+)"
+      ) ~ "dialogue"
+    ),
+    speaker = if_else(
+      type == "dialogue" | type == "dialogue_multi_speaker",
+      str_extract(
+        transcript,
+        "^[A-Z][A-Z\\s,/]+(?:\\sand\\s[A-Z]+)*(?=[A-Z\\d]{1}[a-z\\d\'\\s-]+)"
+      ),
+      NA_character_
+    ),
+    transcript = if_else(
+      type == "dialogue" | type == "dialogue_multi_speaker",
+      str_remove(
+        transcript,
+        "^[A-Z][A-Z\\s,/]+(?:\\sand\\s[A-Z]+)*(?=[A-Z\\d]{1}[a-z\\d\'\\s-]+)"
+      ),
+      transcript
+    ),
+    scene = case_when(
+      type == "scene_heading" & str_detect(transcript, "EXT\\.") ~ "EXT",
+      type == "scene_heading" & str_detect(transcript, "INT\\.") ~ "INT"
+    )
+  ) |> 
+  separate_longer_delim(speaker, delim = regex("(,\\s|\\sand\\s|/)")) |> 
+  select(type, speaker, scene, transcript)
+```
+
+```{r}
+transcripts |> 
+  filter(episode_number == 6) |> 
+  mutate(
+    transcript = str_remove_all(transcript, "\\s*[-–]?\\s*\\[[^]]+\\]\\s*[-–]?\\s*\n*") |>
+      str_remove_all("\\s*[-–]?\\s*\\([^)]+\\)\\s*[-–]?\\s*\n*") |>
+      str_replace_all("\n{3,}", "\n\n") |> 
+      str_split("\n\n")
+  ) |> 
+  unnest(transcript) |> 
+  mutate(
+    transcript = str_remove(transcript, "^[\\s\\-–]*"),
+    rowID = row_number(),
+    type = case_when(
+      str_detect(transcript, "(INT|EXT)\\.") ~ 
+      "scene_heading",
+      str_detect(transcript, "[A-Z]+[:punct:]*[A-Z]+$") ~ "caption",
+      str_detect(
+        transcript,
+        "^[A-Z][A-Z]+(?:[,/]\\s*[A-Z]+|\\sand\\s[A-Z]+)+(?=\"|[A-Z\\d]{1}[a-z\\d\'\\s-]+)"
+      ) ~ "dialogue_multi_speaker",
+      str_detect(
+        transcript, "^[A-Z][A-Z\\s]+(?=\"|[A-Z\\d]{1}[a-z\\d\'\\s-]+)"
+      ) ~ "dialogue",
+      TRUE ~ "other"
+    ),
+    speaker = if_else(
+      type == "dialogue" | type == "dialogue_multi_speaker",
+      str_extract(
+        transcript,
+        "^[A-Z][A-Z\\s,/\\.]+(?:\\sand\\s[A-Z]+)*(?=\"|[A-Z\\d\"]{1}[a-z\\d\'\\s-]+)"
+      ),
+      NA_character_
+    ),
+    transcript = if_else(
+      type == "dialogue" | type == "dialogue_multi_speaker",
+      str_remove(
+        transcript,
+        "^[A-Z][A-Z\\s,/\\.]+(?:\\sand\\s[A-Z\"]+)*(?=\"|[A-Z\\d\"]{1}[a-z\\d\'\\s-]+)"
+      ),
+      transcript
+    ),
+    scene = case_when(
+      type == "scene_heading" & str_detect(transcript, "EXT\\.") ~ "EXT",
+      type == "scene_heading" & str_detect(transcript, "INT\\.") ~ "INT"
+    )
+  ) |> 
+  separate_longer_delim(speaker, delim = regex("(,\\s|\\sand\\s|/)")) |> 
+  select(type, speaker, scene, transcript)
+```
+
+```{r}
+transcripts |> 
+  filter(episode_number == 6) |> 
+  mutate(
+    transcript = str_remove_all(transcript, "\\s*[-–]?\\s*\\[[^]]+\\]\\s*[-–]?\\s*\n*") |>
+      str_remove_all("\\s*[-–]?\\s*\\([^)]+\\)\\s*[-–]?\\s*\n*") |>
+      str_replace_all("\n{3,}", "\n\n")
+  )  %>% 
+  .[[6]] |> 
+  str_sub(26800, 27467)
+```
+
+
+```{r}
+transcripts |> 
+  filter(episode_number == 6) |> 
+  mutate(
+    transcript = str_remove_all(transcript, "\\s*[-–]?\\s*\\[[^]]+\\]\\s*[-–]?\\s*") |>
+      str_remove_all("\\s*[-–]?\\s*\\([^)]+\\)\\s*[-–]?\\s*") |>
+      str_replace_all("\n{3,}", "\n\n") |> 
+      str_split("\n\n")
+  ) |> 
+  unnest(transcript) |> 
+  pull(transcript)
+```
+
+```{r}
+
+transcripts_clean |> 
+  filter(type == "other") |> 
+  group_by(season) |>
+  count(type) |> 
+  collect()
+
+```
+
+```{r}
+transcripts_clean |> 
+  filter(type == "other") |>
+  mutate(start = str_sub(transcript, 1, 60)) |>
+  count(start, sort = TRUE) |>
+  collect()
 ```
 

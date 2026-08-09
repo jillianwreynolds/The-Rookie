@@ -2,6 +2,7 @@ source("renv/activate.R")
 
 options(defaultPackages = c(
   getOption("defaultPackages"),
-  "tidyverse", "rlang", "glue", "targets",
+  "tidyverse", "rlang", "glue",
+  "targets", "arrow",
   "tidytext"
 ))

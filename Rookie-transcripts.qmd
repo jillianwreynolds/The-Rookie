@@ -137,7 +137,7 @@ transcripts |>
 ```
 
 ```{r}
-
+#| label: clean-S1E1
 transcripts |> 
   filter(episode_number == 1) |> 
   mutate(
@@ -188,6 +188,8 @@ transcripts |>
 ```
 
 ```{r}
+#| label: clean-S1E6
+
 transcripts |> 
   filter(episode_number == 6) |> 
   mutate(
@@ -239,6 +241,7 @@ transcripts |>
 ```
 
 ```{r}
+#| label: check-string
 transcripts |> 
   filter(episode_number == 6) |> 
   mutate(
@@ -252,6 +255,7 @@ transcripts |>
 
 
 ```{r}
+#| label: check-rows
 transcripts |> 
   filter(episode_number == 6) |> 
   mutate(
@@ -265,7 +269,7 @@ transcripts |>
 ```
 
 ```{r}
-
+#| label: count-other
 transcripts_clean |> 
   filter(type == "other") |> 
   group_by(season) |>
@@ -275,10 +279,132 @@ transcripts_clean |>
 ```
 
 ```{r}
+#| label: check-other
+
 transcripts_clean |> 
   filter(type == "other") |>
   mutate(start = str_sub(transcript, 1, 60)) |>
+  group_by(season, episode) |> 
   count(start, sort = TRUE) |>
+  arrange(season, episode) |> 
   collect()
+
+```
+
+```{r}
+#| label: captions
+# captions
+
+"ONE MONTH LATER"
+"DAY \\d"
+
+```
+
+```{r}
+#| label: list-patterns
+
+dialogue_patterns <- c(
+  "^[A-Z][A-Z\\s]+(?=[A-Z]{1}[a-z]+)",    # regular
+  "^[A-Z][A-Z\\s]+(?=\\d)",               # digit
+  "^[A-Z][A-Z\\s]+(?=\")",                # quotation mark
+  "^[A-Z][A-Z\\.\\s]+[A-Z]{1}[a-z]+",     # titles (Mrs/Mr/Dr)
+  "^", # OK
+  "^[A-Z][A-Z\\s]+(?=([A-Z]{1}\\.)+\\s)", # acronyms
+  # Irish Mc/Mac
+  "^[A-Z][A-Z\\s]+(?=[A-Z]{1}[a-z:\\s]+)" # end speaker with colon\\s
+  
+)
+
+matches_any <- function(x, patterns) {
+  map(patterns, \(p) str_detect(x, p)) |>
+    reduce(`|`)
+}
+
+patterns_names <- c(
+  "[A-Z][A-Z\\s]+",            # regular
+  # multiple speakers separated by comma
+  # multiple speakers separated by "and"
+  # multiple speakers separated by comma and &
+  "[A-Z][A-Z\\.\\s]+",         # titles
+  # D.S. Caradine / M.E. Lowell
+  # R.J.
+  "[A-Z][a-z]+[A-Z]+",    # Irish surnames
+  "[A-Z]+\'s\\s[A-Z]+",        # possessive (e.g., Wendell's mom)
+  "([A-Z]+\\.)+",               # name with periods (e.g., WILL.I.AM)
+                               # name with apostrophe (e.g., D'Andre)
+                               # name with hyphen/dash
+                               # name that is or starts with acronym
+                               # call sign
+  "[:alnum:][A-Z\\s]+"         # digit CHECKED
+                               # 	911 OPERATOR
+)
+
+patterns_separators <- c(
+                       # regular (nothing)
+  "(?=:\\s)?",          # colon and space
+  "(?=\\.\\s)?"         # leftover whitespace
+  
+)
+
+patterns_dialogue_start <- c(
+ "(?=[A-Z][a-z\\s]*)",    # regular
+ "(?=\\d+)",           # digit
+ "(?=\")",             # quotation mark
+ "(?=[A-Z][a-z\']+)",  # contraction
+ "(?=[A-Z][a-z\,]+)",  # word then comma
+ "(?=OK[\\.\,])",      # "OK."
+ "(?=[A-Z]\\.)",       # acronyms w/ letters separated by period
+ 
+ "(?=\\$)",             # dollar sign CHECKED
+ 
+                       # list (A, ...)
+ "(?=[\\.]{3})",       # starts with ellipsis CHECKED
+ "(?=♪\\s)",           # music
+)
+
+patterns <- crossing(
+  name = patterns_names,
+  sep = patterns_separators,
+  start = patterns_dialogue_start
+) |>
+  mutate(pattern = str_c("^", name, sep, start)) |>
+  pull(pattern)
+
+patterns
+
+```
+
+```{r}
+#| label: clean
+
+transcripts |> 
+  filter(season == 1, episode == 2) |> 
+  clean_transcripts() |> 
+  filter(type == "other") |> 
+  select(type, speaker, transcript)
+
+transcripts |> 
+  filter(season == 3, episode == 8) |> 
+  clean_transcripts() |> 
+  filter(type == "other") |> 
+  select(type, speaker, transcript) |> 
+  mutate(matched = case_when(
+    str_detect(transcript, "^[A-Z][A-Z]+(?=\\$)") ~ "yes",
+    str_detect(transcript, "^[A-Z][A-Z\\s]+(?=[\\.]{3})") ~ "yes",
+    str_detect(transcript, "^[:alnum:][A-Z\\s]+(?=[A-Z][a-z\\s]*)") ~ "yes",
+    TRUE ~ "no"
+  ))
+
+```
+
+```{r}
+transcripts_clean |> 
+  filter(type == "other") |>
+  mutate(start = str_sub(transcript, 1, 60)) |>
+  group_by(season, episode) |> 
+  count(start, sort = TRUE) |>
+  arrange(season, episode) |> 
+  filter(str_detect(start, "'")) |> 
+  collect() 
 ```
 

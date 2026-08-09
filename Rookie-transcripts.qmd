@@ -351,7 +351,7 @@ patterns_dialogue_start <- c(
  "(?=\\d+)",           # digit
  "(?=\")",             # quotation mark
  "(?=[A-Z][a-z\']+)",  # contraction
- "(?=[A-Z][a-z\,]+)",  # word then comma
+ "(?=[A-Z][a-z,]+)",  # word then comma
  "(?=OK[\\.\,])",      # "OK."
  "(?=[A-Z]\\.)",       # acronyms w/ letters separated by period
  
@@ -389,9 +389,9 @@ transcripts |>
   filter(type == "other") |> 
   select(type, speaker, transcript) |> 
   mutate(matched = case_when(
-    str_detect(transcript, "^[A-Z][A-Z]+(?=\\$)") ~ "yes",
-    str_detect(transcript, "^[A-Z][A-Z\\s]+(?=[\\.]{3})") ~ "yes",
-    str_detect(transcript, "^[:alnum:][A-Z\\s]+(?=[A-Z][a-z\\s]*)") ~ "yes",
+    # str_detect(transcript, "^[A-Z][A-Z]+(?=\\$)") ~ "yes",
+    # str_detect(transcript, "^[A-Z][A-Z\\s]+(?=[\\.]{3})") ~ "yes",
+    # str_detect(transcript, "^[A-Z0-9][A-Z\\s]+(?=[A-Z][a-z\\s-]+)") ~ "yes",
     TRUE ~ "no"
   ))
 
@@ -406,5 +406,198 @@ transcripts_clean |>
   arrange(season, episode) |> 
   filter(str_detect(start, "'")) |> 
   collect() 
+```
+
+```{r}
+#| label: examples
+
+examples <- read_csv("
+example
+NOLANThanks
+CHEN, NOLAN, WESTYes
+BISHOP and LOPEZShut
+CHEN, NOLAN, & WESTAnd
+DR. SAWYER
+MRS. LOPEZHello
+McAVOYTook
+MacEXAMPLEHello
+WENDELL’S MOMCan
+WILL.I.AMExcuse
+D'ANDRESee?
+J-BAGMom
+S.W.A.T. LEADERThey're
+6-MARY-100Copy
+3EYEZW-W-What?
+NOLANThanks
+BRADFORD/CHEN: Yeah.
+CHEN7-ADAM-19
+NOLAN\"They\"?
+3EYEZIt's not
+CHENI'm example
+CHENDon’t example
+NOLANI, um I do have a,
+NOLANYou, um example
+LOPEZA, I had
+CHENOK. How's
+CHENOK, example
+WESTL.A.P.D.
+WESTLAPD
+BISHOP$21,000
+NOLAN...I think
+RODGE♪ You") |> 
+  mutate(
+    rowID = row_number(),
+    type = case_when(
+      rowID %in% 1:15  ~ "name",
+      rowID %in% 16:17 ~ "sep",
+      rowID %in% 18:32 ~ "start"
+    )
+  ) |> 
+  relocate(type, .after = example)
+
+examples
+
+```
+
+```{r}
+
+examples |> 
+  mutate(
+    
+  )
+
+```
+
+```{r}
+#| label: test
+
+name_patterns <- c(
+  "^[A-Z]{2,}",                    # NOLAN, CHEN
+  "^(?:DR|MRS|MR)\\.[\\s]?[A-Z]+", # DR. SAWYER, MRS. LOPEZ
+  "^Mc[A-Z][A-Z]+",                 # McAVOY
+  "^Mac[A-Z][A-Z]+",                # MacEXAMPLE
+  "^[A-Z]+\\'S\\s[A-Z]+",           # WENDELL'S MOM
+  "^[A-Z]+\\.[A-Z]+\\.[A-Z]+",      # WILL.I.AM
+  "^D\\'[A-Z]+",                    # D'ANDRE
+  "^[A-Z]\\-[A-Z]+",                # J-BAG
+  "^S\\.W\\.A\\.T\\.\\s[A-Z]+",     # S.W.A.T. LEADER
+  "^\\d\\-[A-Z]+\\-\\d+",           # 6-MARY-100
+  "^\\d[A-Z]+"                      # 3EYEZ
+)
+
+separator_patterns <- c(
+  "",          # nothing - NOLANThanks
+  ":\\s",      # colon space - BRADFORD/CHEN: Yeah
+  "/",         # slash - BRADFORD/CHEN
+  ","          # comma - CHEN, NOLAN
+)
+
+dialogue_start_patterns <- c(
+  "[A-Z][a-z]",   # Thanks, Hello
+  "[a-z]",         # yeah
+  "\\d",           # 7-ADAM-19, $300, 3EYEZ
+  "\"",            # "They"?
+  "\\$",           # $21,000
+  "\\.\\.\\.",     # ...I think
+  "[A-Z]{2,}",     # LAPD
+  "[A-Z]\\.",      # L.A.P.D
+  "OK",            # OK. How's, OK, example
+  "[A-Z],",        # A, I had
+  "♪",             # ♪ You
+  "[A-Z]\\s"       # I, um
+)
+
+matches_any <- function(x, patterns) {
+  map(patterns, \(p) str_detect(x, p)) |>
+    reduce(`|`)
+}
+
+all_patterns <- crossing(
+  name = name_patterns,
+  sep = separator_patterns,
+  start = dialogue_start_patterns
+) |>
+  mutate(pattern = str_c(name, sep, start)) |>
+  pull(pattern)
+
+test <- transcripts |> 
+  mutate(
+      transcript = str_remove_all(transcript, "\\s*[-–]?\\s*\\[[^]]+\\]\\s*[-–]?\\s*\n*") |>
+        str_remove_all("\\s*[-–]?\\s*\\([^)]+\\)\\s*[-–]?\\s*\n*") |>
+        str_replace_all("\n{3,}", "\n\n") |> 
+        str_split("\n\n")
+    ) |> 
+    unnest(transcript) |> 
+    mutate(
+      transcript = str_remove(transcript, "^[\\s\\-–]*"),
+      rowID = row_number(),
+      type = case_when(
+        str_detect(transcript, "^(INT|EXT)\\.") ~ "scene_heading",
+        str_detect(transcript, "^[A-Z][A-Z\\s\\d:,\\.!-]+$") ~ "caption",
+        matches_any(transcript, all_patterns) ~ "dialogue",
+        TRUE ~ "other"
+      ),
+      scene = case_when(
+        type == "scene_heading" & str_detect(transcript, "EXT\\.") ~ "EXT",
+        type == "scene_heading" & str_detect(transcript, "INT\\.") ~ "INT"
+      )
+    )
+
+test |> write_parquet("data/The-Rookie/test.parquet")
+test <- open_dataset("data/The-Rookie/test.parquet")
+
+```
+
+```{r}
+test |> 
+  filter(type == "other") |>
+  # filter(str_detect(transcript, "CARADINE")) |>
+  # filter(ep_ID == 1 & str_starts(transcript, "L")) |>
+  select(season, episode, type, transcript) |> 
+  collect()
+
+test |> 
+  filter(season == 1, episode == 1, str_starts(transcript, "L")) |> 
+  collect()
+```
+
+```{r}
+#| label: test2
+
+full_pattern <- "^[A-Z0-9][A-Z0-9\\s\\.\\-\\'&,/]+(?=[\"$♪'\\.a-z]|\\d(?![-A-Z]))"
+
+transcripts |> 
+  mutate(
+    transcript = str_remove_all(transcript, "\\s*[-–]?\\s*\\[[^]]+\\]\\s*[-–]?\\s*\n*") |>
+      str_remove_all("\\s*[-–]?\\s*\\([^)]+\\)\\s*[-–]?\\s*\n*") |>
+      str_replace_all("\n{3,}", "\n\n") |> 
+      str_split("\n\n")
+  ) |> 
+  unnest(transcript) |> 
+  mutate(
+    transcript = str_remove(transcript, "^[\\s\\-–]*"),
+    rowID = row_number(),
+    type = case_when(
+      str_detect(transcript, "^(INT|EXT)\\.") ~ "scene_heading",
+      str_detect(transcript, "^[A-Z][A-Z\\s\\d:,\\.!-]+$") ~ "caption",
+      str_detect(transcript, full_pattern) ~ "dialogue"
+    ),
+    scene = case_when(
+      type == "scene_heading" & str_detect(transcript, "EXT\\.") ~ "EXT",
+      type == "scene_heading" & str_detect(transcript, "INT\\.") ~ "INT"
+    )
+  ) |> write_parquet("data/The-Rookie/test2.parquet")
+
+test2 <- open_dataset("data/The-Rookie/test2.parquet")
+
+```
+
+```{r}
+
+test2 |> 
+  filter(is.na(type)) |> 
+  select(season, episode, type, transcript) |> 
+  collect()
+
 ```
 

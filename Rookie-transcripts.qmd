@@ -296,7 +296,12 @@ transcripts_clean |>
 # captions
 
 "ONE MONTH LATER"
-"DAY \\d"
+"DAY 2"
+"DAY 4"
+"97 MINUTES EARLIER"
+"6 WEEKS LATER"
+"TO BE CONTINUED…"
+"12 HOURS EARLIER"
 
 ```
 
@@ -571,6 +576,7 @@ transcripts |>
     transcript = str_remove_all(transcript, "\\s*[-–]?\\s*\\[[^]]+\\]\\s*[-–]?\\s*\n*") |>
       str_remove_all("\\s*[-–]?\\s*\\([^)]+\\)\\s*[-–]?\\s*\n*") |>
       str_replace_all("\n{3,}", "\n\n") |> 
+      str_replace_all("[^\n]\n{1}(?=[A-Z])", "\n\n") |>
       str_split("\n\n")
   ) |> 
   unnest(transcript) |> 
@@ -579,6 +585,7 @@ transcripts |>
     rowID = row_number(),
     type = case_when(
       str_detect(transcript, "^(INT|EXT)\\.") ~ "scene_heading",
+      str_detect(transcript, "PATROL\\sCAR") ~ "scene_heading",
       str_detect(transcript, "^[A-Z][A-Z\\s\\d:,\\.!-]+$") ~ "caption",
       str_detect(transcript, full_pattern) ~ "dialogue"
     ),
@@ -593,11 +600,10 @@ test2 <- open_dataset("data/The-Rookie/test2.parquet")
 ```
 
 ```{r}
-
+#| label: type-na
 test2 |> 
   filter(is.na(type)) |> 
   select(season, episode, type, transcript) |> 
   collect()
 
 ```
-

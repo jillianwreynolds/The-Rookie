@@ -4,6 +4,7 @@ clean_transcripts <- function(tbl) {
       transcript = str_remove_all(transcript, "\\s*[-–]?\\s*\\[[^]]+\\]\\s*[-–]?\\s*\n*") |>
         str_remove_all("\\s*[-–]?\\s*\\([^)]+\\)\\s*[-–]?\\s*\n*") |>
         str_replace_all("\n{3,}", "\n\n") |> 
+        str_replace_all("[^\n]\n{1}(?=[A-Z])", "\n\n") |>
         str_split("\n\n")
     ) |> 
     unnest(transcript) |> 

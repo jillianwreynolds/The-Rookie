@@ -1,0 +1,28 @@
+Character analysis
+
+Count how many lines each character speaks per episode and track trends over seasons
+Find each character's most frequently used words (excluding stop words)
+Detect which characters speak to each other most by looking for patterns like CHEN\n\nNOLAN in close proximity
+Find the longest speech any character gives in a single turn
+
+Episode structure
+
+Extract all scene headings (INT./EXT.) and count scenes per episode
+Detect which locations appear most frequently across the series
+Find episodes that take place mostly at night vs day based on scene headings
+Count how many scenes each character appears in
+
+Language patterns
+
+Find all words spoken in all-caps (shouting/emphasis) within dialogue
+Extract all questions asked by each character using ?
+Find the most common words in stage directions vs dialogue
+Detect foreign language words or phrases
+Find all instances of radio codes like 7-Adam-15 and see which ones appear most
+
+Harder challenges
+
+Parse out every scene as its own unit — heading, stage directions, and dialogue — into a structured tibble
+Build a network of which characters share scenes together
+Detect emotional intensity by finding episodes with the most exclamation marks per line of dialogue
+Find all callback phrases or running jokes that recur across episodes

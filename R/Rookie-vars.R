@@ -48,3 +48,22 @@ characters <- tribble(
     too_many = "merge"
   ) |> 
   mutate(caps = str_to_upper(last_name))
+
+all_caps_start_words <- c(
+  "LAPD", "LAP-",
+  "UCLA",
+  "FBI",
+  "ADT",
+  "AJ",
+  "MDMA",
+  "VARDA",
+  "IBAN"
+)
+
+previously <- c(
+  "Previously on ...",
+  "Previously on \"The Rookie\"",
+  "Previously on \"The Rookie\"..",
+  "Previously on \"The Rookie\"...",
+  "Previously on \"The Rookie\" and \"The Rookie: Feds\".."
+)

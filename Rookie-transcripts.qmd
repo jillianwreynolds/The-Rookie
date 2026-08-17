@@ -573,10 +573,15 @@ full_pattern <- "^[A-Z0-9][A-Z0-9\\s\\.\\-\\'&,/]+(?=[\"$♪'\\.a-z]|\\d(?![-A-Z
 
 transcripts |> 
   mutate(
-    transcript = str_remove_all(transcript, "\\s*[-–]?\\s*\\[[^]]+\\]\\s*[-–]?\\s*\n*") |>
+    transcript = transcript |> 
+      str_remove_all("\\s*[-–]?\\s*\\[[^]]+\\]\\s*[-–]?\\s*\n*") |>
       str_remove_all("\\s*[-–]?\\s*\\([^)]+\\)\\s*[-–]?\\s*\n*") |>
       str_replace_all("\n{3,}", "\n\n") |> 
-      str_replace_all("[^\n]\n{1}(?=[A-Z])", "\n\n") |>
+      str_replace_all("[^\n]\n{1}(?=[^\n])", "\n\n") |>
+      str_replace_all("(\u201c|\u201d)", "\"") |>
+      str_replace_all("\u2018|\u2019", "'") |>
+      str_remove_all("\u2028") |> 
+      # Cleaning needs to go before splitting
       str_split("\n\n")
   ) |> 
   unnest(transcript) |> 
@@ -587,11 +592,14 @@ transcripts |>
       str_detect(transcript, "^(INT|EXT)\\.") ~ "scene_heading",
       str_detect(transcript, "PATROL\\sCAR") ~ "scene_heading",
       str_detect(transcript, "^[A-Z][A-Z\\s\\d:,\\.!-]+$") ~ "caption",
-      str_detect(transcript, full_pattern) ~ "dialogue"
+      str_detect(transcript, full_pattern) ~ "dialogue",
+      str_detect(transcript, all_caps_pattern) ~ "dialogue",
+      str_detect(transcript, "Previously on (\"The Rookie\"|THE\\sROOKIE)") ~ "other"
     ),
     scene = case_when(
       type == "scene_heading" & str_detect(transcript, "EXT\\.") ~ "EXT",
-      type == "scene_heading" & str_detect(transcript, "INT\\.") ~ "INT"
+      type == "scene_heading" & str_detect(transcript, "INT\\.") ~ "INT",
+      type == "scene_heading" & str_detect(transcript, "PATROL\\sCAR") ~ "shop"
     )
   ) |> write_parquet("data/The-Rookie/test2.parquet")
 
@@ -601,6 +609,7 @@ test2 <- open_dataset("data/The-Rookie/test2.parquet")
 
 ```{r}
 #| label: type-na
+
 test2 |> 
   filter(is.na(type)) |> 
   select(season, episode, type, transcript) |> 

@@ -60,6 +60,11 @@ all_caps_start_words <- c(
   "IBAN"
 )
 
+all_caps_pattern <- str_c(
+  "^[A-Z]+(",
+  all_caps_start_words |> str_flatten(collapse = "|"),
+  ")"
+)
 previously <- c(
   "Previously on ...",
   "Previously on \"The Rookie\"",

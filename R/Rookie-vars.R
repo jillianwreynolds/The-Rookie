@@ -50,6 +50,7 @@ characters <- tribble(
   mutate(caps = str_to_upper(last_name))
 
 all_caps_start_words <- c(
+  "OK",
   "LAPD", "LAP-",
   "UCLA",
   "FBI",
@@ -61,7 +62,7 @@ all_caps_start_words <- c(
 )
 
 all_caps_pattern <- str_c(
-  "^[A-Z]+(",
+  "^([A-Z]+|[A-Z][a-z]{1,2}[A-Z]+)(",
   all_caps_start_words |> str_flatten(collapse = "|"),
   ")"
 )

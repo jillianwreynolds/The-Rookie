@@ -569,7 +569,12 @@ test |>
 ```{r}
 #| label: test2
 
-full_pattern <- "^[A-Z0-9][A-Z0-9\\s\\.\\-\\'&,/]+(?=[\"$♪'\\.a-z]|\\d(?![-A-Z]))"
+full_pattern <- paste(
+  "^[A-Z0-9][A-Z0-9\\s\\.\\-\\'#&,/]+(?=[\"$♪'\\.a-z]|[A-Z]\\s|\\d(?![-A-Z#]))",
+  "^ACTOR![A-Z]+(?=[\"$♪'\\.a-z]|[A-Z]\\s|\\d(?![-A-Z]))",
+  "^[A-Z][a-z]{1,2}[A-Z]+(?=[\"$♪'\\.a-z]|[A-Z]\\s|\\d(?![-A-Z#]))",
+  sep = "|"
+)
 
 transcripts |> 
   mutate(
@@ -591,17 +596,20 @@ transcripts |>
     type = case_when(
       str_detect(transcript, "^(INT|EXT)\\.") ~ "scene_heading",
       str_detect(transcript, "PATROL\\sCAR") ~ "scene_heading",
-      str_detect(transcript, "^[A-Z][A-Z\\s\\d:,\\.!-]+$") ~ "caption",
-      str_detect(transcript, full_pattern) ~ "dialogue",
+      str_detect(transcript, "^[A-Z][A-Z\\s\\d:,\\.!-]+$") ~ "all_caps",
+      str_detect(transcript, "^ACTOR![A-Z]+") ~ "dialogue_recorded",
       str_detect(transcript, all_caps_pattern) ~ "dialogue",
-      str_detect(transcript, "Previously on (\"The Rookie\"|THE\\sROOKIE)") ~ "other"
+      str_detect(transcript, full_pattern) ~ "dialogue",
+      str_detect(transcript, "Previously\\son\\s(\"The Rookie\"|THE\\sROOKIE|\\.{3})") ~ "other"
     ),
     scene = case_when(
       type == "scene_heading" & str_detect(transcript, "EXT\\.") ~ "EXT",
       type == "scene_heading" & str_detect(transcript, "INT\\.") ~ "INT",
       type == "scene_heading" & str_detect(transcript, "PATROL\\sCAR") ~ "shop"
     )
-  ) |> write_parquet("data/The-Rookie/test2.parquet")
+  ) |> 
+  filter_out(transcript == "") |> 
+  write_parquet("data/The-Rookie/test2.parquet")
 
 test2 <- open_dataset("data/The-Rookie/test2.parquet")
 
@@ -611,7 +619,7 @@ test2 <- open_dataset("data/The-Rookie/test2.parquet")
 #| label: type-na
 
 test2 |> 
-  filter(is.na(type)) |> 
+  filter(is.na(type)) |>
   select(season, episode, type, transcript) |> 
   collect()
 

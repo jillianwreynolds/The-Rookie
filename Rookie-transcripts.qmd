@@ -17,6 +17,41 @@ transcripts
 ```
 
 ```{r}
+#| label: epID-in-file-name
+#| eval: false
+
+transcript_info <- transcripts |> 
+  select(season, episode, title) |> 
+  mutate(
+    across(1:2, as.character),
+    across(1:2, \(x) if_else(str_detect(x, "^\\d$"), paste0("0", x), x)),
+    prefix = str_c(season, "x", episode, "_")
+  )
+
+files <- tibble(
+  file_name = list.files("data/The-Rookie", recursive = TRUE)
+) |> 
+  mutate(title = str_extract(file_name, "(?<=\\d/).+(?=\\.(pdf|html))"))
+
+transcript_info <- transcript_info |> 
+  left_join(files, by = join_by(title)) |> 
+  mutate(
+    new_name = str_c(prefix, title)
+  )
+
+transcript_info |> 
+  mutate(
+    old_path = file.path("data/The-Rookie", file_name),
+    new_path = file.path("data/The-Rookie", dirname(file_name), str_c(new_name, ".", tools::file_ext(file_name)))
+  ) |> 
+  pwalk(\(old_path, new_path, ...) {
+    if (file.exists(old_path)) file.rename(old_path, new_path)
+  })
+
+```
+
+
+```{r}
 transcripts |> count(season)
 ```
 

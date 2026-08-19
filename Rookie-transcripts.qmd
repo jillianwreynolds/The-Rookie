@@ -12,7 +12,6 @@ transcripts_clean <- open_dataset(transcripts_clean, format = "parquet")
 ```
 
 ```{r}
-transcripts_html
 transcripts
 ```
 
@@ -50,6 +49,20 @@ transcript_info |>
 
 ```
 
+```{r}
+#| label: html-to-text
+#| eval: false
+
+transcripts |>
+  mutate(label = str_c("=== S", season, "E", episode, " ", title, " ===")) |>
+  rowwise() |>
+  mutate(block = str_c(label, transcript, sep = "\n\n")) |>
+  ungroup() |>
+  pull(block) |>
+  str_flatten(collapse = "\n\n---\n\n") |>
+  writeLines("data/The-Rookie/all_transcripts.txt")
+
+```
 
 ```{r}
 transcripts |> count(season)
@@ -327,20 +340,6 @@ transcripts_clean |>
 ```
 
 ```{r}
-#| label: captions
-# captions
-
-"ONE MONTH LATER"
-"DAY 2"
-"DAY 4"
-"97 MINUTES EARLIER"
-"6 WEEKS LATER"
-"TO BE CONTINUED…"
-"12 HOURS EARLIER"
-
-```
-
-```{r}
 #| label: list-patterns
 
 dialogue_patterns <- c(
@@ -605,9 +604,9 @@ test |>
 #| label: test2
 
 full_pattern <- paste(
-  "^[A-Z0-9][A-Z0-9\\s\\.\\-\\'#&,/]+(?=[\"$♪'\\.a-z]|[A-Z]\\s|\\d(?![-A-Z#]))",
-  "^ACTOR![A-Z]+(?=[\"$♪'\\.a-z]|[A-Z]\\s|\\d(?![-A-Z]))",
-  "^[A-Z][a-z]{1,2}[A-Z]+(?=[\"$♪'\\.a-z]|[A-Z]\\s|\\d(?![-A-Z#]))",
+  "^[A-Z0-9][A-Z0-9\\s\\.\\-\\'#&,/]+(?=[\"$♪'\\.a-z]|[A-Z][\\s-]|\\d(?![-A-Z#]))",
+  "^ACTOR![A-Z]+(?=[\"$♪'\\.a-z]|[A-Z][\\s-]|\\d(?![-A-Z]))",
+  "^[A-Z][a-z]{1,2}[A-Z]+(?=[\"$♪'\\.a-z]|[A-Z][\\s-]|\\d(?![-A-Z#]))",
   sep = "|"
 )
 
@@ -625,25 +624,25 @@ transcripts |>
       str_split("\n\n")
   ) |> 
   unnest(transcript) |> 
+  filter_out(transcript == "") |> 
   mutate(
     transcript = str_remove(transcript, "^[\\s\\-–]*"),
     rowID = row_number(),
     type = case_when(
-      str_detect(transcript, "^(INT|EXT)\\.") ~ "scene_heading",
+      str_detect(transcript, "(INT|EXT)(\\.|,)") ~ "scene_heading",
       str_detect(transcript, "PATROL\\sCAR") ~ "scene_heading",
-      str_detect(transcript, "^[A-Z][A-Z\\s\\d:,\\.!-]+$") ~ "all_caps",
       str_detect(transcript, "^ACTOR![A-Z]+") ~ "dialogue_recorded",
       str_detect(transcript, all_caps_pattern) ~ "dialogue",
       str_detect(transcript, full_pattern) ~ "dialogue",
       str_detect(transcript, "Previously\\son\\s(\"The Rookie\"|THE\\sROOKIE|\\.{3})") ~ "other"
     ),
     scene = case_when(
-      type == "scene_heading" & str_detect(transcript, "EXT\\.") ~ "EXT",
-      type == "scene_heading" & str_detect(transcript, "INT\\.") ~ "INT",
+      type == "scene_heading" & str_detect(transcript, "EXT") ~ "EXT",
+      type == "scene_heading" & str_detect(transcript, "INT") ~ "INT",
       type == "scene_heading" & str_detect(transcript, "PATROL\\sCAR") ~ "shop"
     )
   ) |> 
-  filter_out(transcript == "") |> 
+  mutate(line = row_number(), .by = c(season, episode)) |> 
   write_parquet("data/The-Rookie/test2.parquet")
 
 test2 <- open_dataset("data/The-Rookie/test2.parquet")
@@ -653,9 +652,32 @@ test2 <- open_dataset("data/The-Rookie/test2.parquet")
 ```{r}
 #| label: type-na
 
-test2 |> 
+test2 |>
   filter(is.na(type)) |>
-  select(season, episode, type, transcript) |> 
+  select(season, episode, line, type, transcript) |>
   collect()
 
 ```
+
+```{r}
+
+test2 |>
+  collect() |>
+  mutate(
+    next_transcript = lead(transcript),
+    next_type = lead(type),
+    prev_type = lag(type)
+  ) |>
+  filter(
+    # Rows that look like orphaned speaker names:
+    # short, all-caps, no dialogue text detected
+    type == "dialogue" & !str_detect(transcript, "[a-z\"'♪$]") |
+    # Rows with dialogue but no speaker detected:
+    is.na(type) & prev_type == "dialogue"
+  ) |>
+  select(rowID, season, episode, line, prev_type, type, next_type, transcript, next_transcript) |> 
+  slice_head(n = 40) |> 
+  vis_miss()
+
+```
+

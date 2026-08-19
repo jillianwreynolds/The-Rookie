@@ -30,7 +30,7 @@ join_pdf_html <- function(df_pdf, df_html) {
     ) |> 
     arrange(season, episode) |> 
     mutate(
-      episode_number = row_number(), 
+      ep_number = row_number(), 
       ep_ID = str_c(season, episode, sep = "x"),
       .before = season
     ) |> 

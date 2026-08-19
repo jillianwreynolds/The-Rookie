@@ -1,11 +1,13 @@
 name|type|data|command|depend|seed|path|time|size|bytes|format|repository|iteration|parent|children|seconds|warnings|error
 transcripts_html|stem|cc47dcdbb739b9ba|c0f862592bc73dd4|4777816f85c21c6e|-593131035||t20684.9689172598s|s1937060b|1937060|rds|local|vector|||5.843||
+transcript_list|stem|2a8f19342b55c5af|09b86b859bebb759|2c530c1562a7fbd1|-708734344||t20684.9703009757s|s1758b|1758|rds|local|vector|||0.002||
+transcripts_raw|stem|c4113ae836f38951|87dc940829a05384|826a9a25d5882610|272862483||t20684.9703677468s|s2031906b|2031906|rds|local|vector|||5.57||
 rename_transcripts|function|aafa45f59f2aab26
 dispatch_names|object|21ce442521118c33
 read_pdfs|function|0218cfb0e7ac9ff7
 dispatch_pattern|object|adec13f61df547dd
 all_caps_start_words|object|d0cd30d327e54591
-.Random.seed|object|3427c8b1f2f32ccf
+.Random.seed|object|88087d18ce942571
 characters|object|d7c9129597072d5e
 all_caps_pattern|object|f60e65b80b3c9689
 rename_transcripts_html|function|2c5163c596321091
@@ -13,8 +15,6 @@ captions|object|9446563449f07c85
 clean_transcripts|function|e3e29cf4ff7c4340
 previously|object|ad7f01517ef08590
 parse_episode_html|function|fa15eef46090d624
-join_pdf_html|function|6c1193936699b249
-transcript_list|stem|2a8f19342b55c5af|09b86b859bebb759|2c530c1562a7fbd1|-708734344||t20684.9703009757s|s1758b|1758|rds|local|vector|||0.002||
-transcripts_raw|stem|c4113ae836f38951|87dc940829a05384|826a9a25d5882610|272862483||t20684.9703677468s|s2031906b|2031906|rds|local|vector|||5.57||
-transcripts|stem|f1115b6e862e7527|ed64b20e8f80d368|8b0e85d3b06d5ede|223575563||t20684.97037671s|s5717744b|5717744|rds|local|vector|||0.233||
-transcripts_clean|stem|8c9f0efa430144a0|1d276e8cfe7803d8|b4803cd66840a93b|1545621223|data/The-Rookie/transcripts_clean.parquet|t20684.9705004394s|s1544736224b|1544736224|file|local|vector|||10.649||
+join_pdf_html|function|b24c41cba0bf4bbc
+transcripts|stem|88a000e94b097c81|ed64b20e8f80d368|d7bb3408593233bb|223575563||t20684.9747078491s|s5717742b|5717742|rds|local|vector|||0.213||
+transcripts_clean|stem|7defe10f27ca0f9e|1d276e8cfe7803d8|a9d1635518a5c519|1545621223|data/The-Rookie/transcripts_clean.parquet|t20684.9748308249s|s1544736202b|1544736202|file|local|vector|||10.584||

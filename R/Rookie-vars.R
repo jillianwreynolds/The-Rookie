@@ -73,3 +73,14 @@ previously <- c(
   "Previously on \"The Rookie\"...",
   "Previously on \"The Rookie\" and \"The Rookie: Feds\".."
 )
+
+captions <- c(
+  "OPENING TITLES: THE ROOKIE",
+  "ONE MONTH LATER",
+  "DAY 2",
+  "DAY 4",
+  "97 MINUTES EARLIER",
+  "6 WEEKS LATER",
+  "TO BE CONTINUED…",
+  "12 HOURS EARLIER"
+)

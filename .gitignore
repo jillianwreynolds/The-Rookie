@@ -5,3 +5,7 @@
 
 *_files
 *html
+*parquet
+
+data/The-Rookie/Season-*
+data/The-Rookie/html/

@@ -1,3 +1,54 @@
+preview_columns <- c(
+  "season",
+  "episode",
+  "line",
+  "type",
+  "transcript"
+)
+
+captions <- c(
+  "OPENING TITLES: THE ROOKIE",
+  "ONE MONTH LATER",
+  "\"DAY 2\"",
+  "\"DAY 4\"",
+  "97 MINUTES EARLIER",
+  "6 WEEKS LATER",
+  "TO BE CONTINUED...",
+  "12 HOURS EARLIER"
+)
+
+all_caps_start_words <- c(
+  "OK",
+  "LAPD", "LAP-",
+  "UCLA",
+  "FBI",
+  "ADT",
+  "AJ",
+  "MDMA",
+  "VARDA",
+  "IBAN"
+)
+
+all_caps_pattern <- str_c(
+  "^([A-Z]+|[A-Z][a-z]{1,2}[A-Z]+)(",
+  all_caps_start_words |> str_flatten(collapse = "|"),
+  ")"
+)
+
+dispatch_names <- c(
+  "911\\sDISPATCHER",
+  "9-1-1\\sDISPATCH",
+  "9-1-1\\sOPERATOR",
+  "9-1-1",
+  "911\\sOPERATOR"
+) 
+
+dispatch_pattern <- str_c(
+  "^(",
+  dispatch_names |> str_flatten(collapse = "|"),
+  ")"
+)
+
 characters <- tribble(
   ~name,             ~gender,
   "John Nolan",       "M",
@@ -48,39 +99,3 @@ characters <- tribble(
     too_many = "merge"
   ) |> 
   mutate(caps = str_to_upper(last_name))
-
-all_caps_start_words <- c(
-  "OK",
-  "LAPD", "LAP-",
-  "UCLA",
-  "FBI",
-  "ADT",
-  "AJ",
-  "MDMA",
-  "VARDA",
-  "IBAN"
-)
-
-all_caps_pattern <- str_c(
-  "^([A-Z]+|[A-Z][a-z]{1,2}[A-Z]+)(",
-  all_caps_start_words |> str_flatten(collapse = "|"),
-  ")"
-)
-previously <- c(
-  "Previously on ...",
-  "Previously on \"The Rookie\"",
-  "Previously on \"The Rookie\"..",
-  "Previously on \"The Rookie\"...",
-  "Previously on \"The Rookie\" and \"The Rookie: Feds\".."
-)
-
-captions <- c(
-  "OPENING TITLES: THE ROOKIE",
-  "ONE MONTH LATER",
-  "DAY 2",
-  "DAY 4",
-  "97 MINUTES EARLIER",
-  "6 WEEKS LATER",
-  "TO BE CONTINUED…",
-  "12 HOURS EARLIER"
-)

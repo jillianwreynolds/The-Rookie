@@ -15,6 +15,12 @@ transcripts_to_lines <- function(tbl) {
         str_replace_all("(\u201c|\u201d)", "\"") |>
         str_replace_all("\u2018|\u2019", "'") |>
         str_remove_all("\u2028") |> 
+        str_remove(                   # remove title block info
+          "^(THE\\sROOKIE[\\s\\S]+?\"[^\"\\n]+\"[^\\S\\n]*\\n+|[\\s\\n]+)"
+        ) |> 
+        str_remove(
+          "^(THE\\sROOKIE[\\s\\S]+?\"[^\"\\n]+\"[^\\S\\n]*\\n+|[\\s\\n]+)"
+        ) |> 
         str_split("\n")
     ) |> 
     unnest(transcript) |> 

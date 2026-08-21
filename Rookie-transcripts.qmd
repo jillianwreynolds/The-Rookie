@@ -1293,5 +1293,73 @@ transcripts_clean |>
 
 ```
 
+```{r}
+
+transcripts_clean |>
+  select(
+    season, episode, type,
+    speaker, speaker_start, speaker_end,
+    transcript
+  ) |> 
+  collect() |> 
+  filter(speaker_end %in% str_to_upper(characters$last_name)) |> 
+  count(speaker_end, sort = TRUE)
+
+transcripts_clean |>
+  select(
+    season, episode, type,
+    speaker, speaker_start, speaker_end,
+    transcript
+  ) |> 
+  collect() |> 
+  filter(speaker_end %in% str_to_upper(characters$last_name)) |> 
+  count(season, sort = TRUE)
+
+sum_lines <- transcripts_clean |>
+  select(
+    season, episode, type,
+    speaker, speaker_start, speaker_end,
+    transcript
+  ) |> 
+  collect() |> 
+  filter(speaker_end %in% str_to_upper(characters$last_name)) |> 
+  filter(speaker_end %in% c("NOLAN", "CHEN", "BRADFORD", "HARPER", "GREY", "LOPEZ")) |> 
+  group_by(season) |>
+  count(speaker_end) |> 
+  mutate(
+    season = as.character(season),
+    speaker_end = fct_reorder(speaker_end, desc(n)),
+    sum = sum(n),
+    prop = n / sum(n) * 100
+)
+
+sum_lines |> 
+  ggplot() +
+  geom_point(aes(season, n, color = speaker_end, group = speaker_end)) +
+  geom_line(aes(season, n, color = speaker_end, group = speaker_end)) +
+  # geom_point(aes(season, sum, color = speaker_end, group = speaker_end), shape = "square") +
+  scale_color_viridis_d(end = 0.9) +
+  theme_light()
+
+```
+
+```{r}
+
+transcripts_clean |> 
+  filter(type == "dialogue") |> 
+  group_by(season, episode) |> 
+  count(episode) |> 
+  collect() |> 
+  group_by(season) |> 
+  summarise(mean = mean(n)) |> 
+  mutate(season = as_factor(season)) |> 
+  ggplot(aes(season, mean)) +
+  geom_point() +
+  theme_light() +
+  labs(
+    x = "Season",
+    y = "Mean Number of Dialogue Lines"
+  )
+
 ```
 

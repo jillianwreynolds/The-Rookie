@@ -10,6 +10,11 @@
 #'
 #' @examples
 peek_match <- function(string, pattern, before = 50, after = 50) {
+  
+  if (!str_detect(string, pattern)) {
+    return(message("Pattern not detected in string"))
+  }
+  
   string |>
     str_extract_all(
       str_c("(?s).{0,", before, "}", pattern, ".{0,", after, "}")
@@ -34,11 +39,7 @@ peek_match <- function(string, pattern, before = 50, after = 50) {
 #' @examples
 #' transcripts_clean |> peek_rows(transcript, "CDC MEDIC")
 #' 
-peek_rows <- function(tbl, col, pattern, before = 2, after = 2, show_col) {
-  
-  if (inherits(tbl, "ArrowObject")) {
-    tbl <- tbl |> collect()
-  }
+peek_rows <- function(tbl, col, pattern, show_col, before = 2, after = 2) {
   
   col <- enquo(col)
   show_col <- enquo(show_col)
@@ -76,4 +77,32 @@ peek_rows <- function(tbl, col, pattern, before = 2, after = 2, show_col) {
       pattern = pattern
     )
 
+}
+
+#' Peek at first and last lines of episodes
+#'
+#' @param tbl A tibble or ArrowObject with transcripts split into lines.
+#' @param first The number of lines at the beginning of each episode to show.
+#' @param last The number of lines from the end of each episode to show.
+#'
+#' @returns A tibble showing some number of the first and/or the last lines of episodes.
+#' @export
+#'
+#' @examples
+peek_first_last_lines <- function(tbl, first = 2, last = 2) {
+  
+  selected <- tbl |> select(season, episode, line, transcript)
+  
+  if (inherits(tbl, "ArrowObject")) {
+    out <- selected |> 
+      collect() |> 
+      group_by(season, episode)
+  }
+  
+  if (last == 0) {
+    out |> filter(line %in% c(1:first))
+  } else {
+    out |> filter(line %in% c(1:first, (max(line) - (last - 1)):max(line)))
+  }
+  
 }

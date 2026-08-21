@@ -40,6 +40,92 @@ transcripts_to_lines <- function(tbl) {
 #' 
 clean_transcripts <- function(tbl) {
   
+  speaker_name_patterns <- c(
+    "^[A-Z0-9][A-Z0-9\\s\\.\\-\\'#&,/]+$",
+    # "^ACTOR![A-Z]+$",
+    "^[A-Z][a-z]{1,2}[A-Z]+$"
+  ) |> 
+    str_flatten(collapse = "|")
+  
+  tbl |> 
+    mutate(
+      transcript = transcript |> 
+        # Move <i> from middle to beginning of word
+        str_replace_all("(\\w+)<i>", "<i>\\1") |> 
+        # remove ":\\s" separating name and dialogue; names from lower to upper
+        str_replace("(^[A-Z0-9][A-Z0-9\\s\\.\\-\\'#&,/]+):\\s", "\\1") |> 
+        str_replace(
+          "^([A-Z][a-zA-Z0-9\\s#/,]+):\\s",
+          \(x) str_remove(str_to_upper(x), ":\\s")
+        ) |> 
+        # remove descriptions denoted by [] and ()
+        str_remove_all("(?<=[A-Z])\\s?\\([^)]+\\)\\s?") |>
+        str_remove_all("(?<=[A-Z])\\s?\\[[^]]+\\]\\s?") |> 
+        str_remove_all("(?=\\s?)\\([^\\)]+\\)\\s?") |> 
+        str_remove_all("(?=\\s?)\\[[^]]+\\]\\s?"),
+      type = case_when(
+        str_detect(transcript, "Previously") &
+          str_detect(transcript, "(?i)Rookie")        ~ "previously",
+        str_detect(transcript, "\u266a")              ~ "lyrics",
+        transcript %in% captions                      ~ "caption",
+        str_detect(transcript, "(INT|EXT)(\\.|,)")    ~ "scene_heading",
+        str_detect(transcript, "PATROL\\sCAR")        ~ "scene_heading",
+        str_detect(transcript, other_type_patterns)   ~ "other"
+      ),
+      is_speaker = if_else(
+        is.na(type),
+        str_detect(transcript, speaker_name_patterns),
+        FALSE
+      ),
+      is_break = is_speaker | !is.na(type),
+      group_id = cumsum(is_break),
+      .by = c(season, episode)
+    ) |>
+    summarise(
+      speaker = first(transcript[is_speaker]),
+      transcript = transcript[!is_speaker] |> str_flatten(collapse = " "),
+      type = first(type),
+      .by = c(season, episode, group_id)
+    ) |> 
+    mutate(
+      type = replace_when(type, !is.na(speaker) ~ "dialogue"),
+      line = row_number(),
+      .by = c(season, episode)
+    ) |>
+    select(-group_id) |>
+    relocate(c(line, type), .after = episode) |> 
+    # clean "Previously on..."
+    mutate(transcript = transcript |> replace_when(
+      type == "previously" & 
+        !str_detect(transcript, "Feds") ~ "Previously on \"The Rookie\"",
+      type == "previously" & str_detect(transcript, "Feds") 
+        ~ "Previously on \"The Rookie\" and \"The Rookie: Feds\""
+    )) |> 
+    separate_wider_regex(
+      speaker,
+      patterns = c(
+        speaker_start = "^[A-Za-z0-9'-\\.]+\\s?[A-Z]*",
+        speaker_end   = "\\s[A-Za-z'-0-9]+$"
+      ),
+      too_few = "align_start",
+      cols_remove = FALSE
+    ) |> 
+    mutate(
+      speaker_end = if_else(is.na(speaker_end), speaker_start, speaker_end),
+      speaker_start = case_when(
+        str_equal(speaker_start, speaker_end) ~ NA_character_,
+        .default = speaker_start
+      )
+    )
+}
+
+
+# str_detect(transcript, speaker_name_patterns) ~ "speaker_name"
+# str_detect(transcript, "^ACTOR![A-Z]+")       ~ "dialogue_recorded",
+# str_detect(transcript, speaker_name_patterns) ~ "dialogue"
+
+clean_transcripts_newer <- function(tbl) {
+  
   tbl |> 
     mutate(
       transcript = transcript |> 

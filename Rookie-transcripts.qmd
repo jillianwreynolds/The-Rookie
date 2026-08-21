@@ -1004,7 +1004,7 @@ transcripts_lines |>
 
 transcripts_lines |> 
   select(season, episode, transcript) |> 
-  filter(str_detect(transcript, "\u2018")) |> 
+  # filter(str_detect(transcript, "\u2018")) |> 
   collect()
 
 ```
@@ -1106,8 +1106,192 @@ test4 |>
 
 transcripts_clean |> group_by(season, episode) |> count(episode) |> collect()
 
+transcripts_html$transcript |> str_trunc(100)
+
 peek_first_last_lines(transcripts_clean) |> 
-  filter(season == 2, episode %in% 5) |>
-  print(n=20)
+  filter(line == 1) |> 
+  print(n=144)
+
+peek_first_last_lines(transcripts_clean) |> 
+  filter(line %in% 1:2) |> 
+  print(n=288)
+
+peek_first_last_lines(transcripts_clean, 3) |> 
+  filter(line %in% 1:3) |> 
+  print(n=432)
+
+peek_first_last_lines(transcripts_clean, 3) |> 
+  # filter(season == 1, episode %in% 1:5) |>
+  filter(line %in% 1:3) |>
+  filter_out(str_detect(transcript, "Season\\s\\d,\\s(E|e)pisode\\s\\d")) |>
+  # print(n=70)
+  # print(n=144)
+  print(n=288)
+
+```
+
+```{r}
+transcripts |> pull(html) |> str_trunc(100)
+
+transcripts |> 
+  select(season, episode, html) |> 
+  mutate(html = html |> 
+           str_replace_all("(\u201c|\u201d)", "\"") |>
+           str_replace_all("\u2018|\u2019", "'") |>
+           str_remove_all("\u2028")
+  ) |> 
+  mutate(
+    cut = html |> str_remove(
+      "^(THE\\sROOKIE[\\s\\S]+?\"[^\"\\n]+\"[^\\S\\n]*\\n+|[\\s\\n]+)"
+    ) |> 
+      str_remove("^(THE\\sROOKIE[\\s\\S]+?\"[^\"\\n]+\"[^\\S\\n]*\\n+|[\\s\\n]+)")
+  )
+```
+
+```{r}
+
+transcripts_lines |> 
+  select(season, episode, transcript) |> 
+  filter(season == 2, episode == 5) |> 
+  collect() |> 
+  filter_out(str_starts(transcript, "<i>")) |> 
+  mutate(type = case_when(str_detect(transcript, "(INT|EXT)\\.") ~ "scene_heading")) |> 
+  pivot_wider(id_cols = transcript, names_from = "^[A-Z]+(?=[A-Z][a-z[:punct:])")
+
+transcripts_clean |> 
+  filter(season == 2, episode == 5) |> 
+  collect() |> 
+  mutate(
+    type = case_when(str_detect(transcript, "(INT|EXT)\\.") ~ "scene_heading"),
+    is_speaker = if_else(
+      is.na(type),
+      str_detect(transcript, "^[A-Z][A-Z0-9\\s\\.\\-\\'#&,/]+$"),
+      FALSE
+    ),
+    is_break = is_speaker | !is.na(type),
+    group_id = cumsum(is_break)
+  ) |> 
+  summarise(
+    speaker = first(transcript[is_speaker]),
+    transcript = transcript[!is_speaker] |> str_flatten(collapse = " "),
+    type = first(type),
+    .by = c(season, episode, group_id)
+  ) |> 
+  mutate(line = row_number(), type = replace_when(type, !is.na(speaker) ~ "dialogue")) |> 
+  select(-group_id) |> 
+  relocate(c(line, type), .after = episode)
+
+transcripts_lines |> 
+  filter(season == 2, episode == 5) |> 
+  collect() |> 
+  filter_out(str_starts(transcript, "<i>")) |> 
+  mutate(line = row_number()) |> 
+  mutate(
+    type = case_when(str_detect(transcript, "(INT|EXT)\\.") ~ "scene_heading"),
+    is_speaker = if_else(is.na(type), str_detect(transcript, "^[A-Z][A-Z0-9\\s\\.\\-\\'#&,/]+$"), FALSE),
+    group_id = cumsum(is_speaker)
+  ) |> 
+  summarise(
+    line = first(line),
+    speaker = first(transcript[is_speaker]),
+    transcript = transcript[!is_speaker] |> str_flatten(collapse = " "),
+    type = first(type),
+    .by = c(season, episode, group_id)
+  ) |> 
+  select(-group_id) |> 
+  filter(is.na(type) & str_detect(transcript, "INT|EXT"))
+
+```
+
+```{r}
+
+transcripts_clean |> 
+  count(type) |> 
+  collect()
+
+transcripts_clean |> 
+  count(speaker) |> 
+  collect()
+
+transcripts_clean |> 
+  select(season, episode, type, transcript) |> 
+  collect() |> 
+  filter(str_detect(transcript, "(INT|EXT)(\\.|,)|PATROL\\sCAR")) |> 
+  nrow()
+
+transcripts_clean |> 
+  select(season, episode, type, transcript) |> 
+  filter(type == "previously") |> 
+  collect()
+
+transcripts_clean |> 
+  select(season, episode, type, transcript, speaker) |> 
+  filter(str_detect(transcript, "Previously")) |> 
+  collect()
+
+# transcripts_clean |> 
+#   select(season, episode, type, transcript, speaker) |> 
+#   filter(season == 2, episode == 1) |> 
+#   collect()
+
+# transcripts_clean |> 
+#   select(season, episode, type, speaker, transcript) |>
+#   filter(type == "lyrics") |> 
+#   collect()
+# 
+transcripts_lines |>
+  select(season, episode, transcript) |>
+  filter(season == 2, episode == 1) |>
+  collect()
+
+# transcripts_lines |> 
+#   select(season, episode, transcript) |> 
+#   filter(season == 2, episode == 11) |>
+#   collect()
+
+transcripts_lines |> 
+  select(season, episode, transcript) |> 
+  filter(str_detect(transcript, "Previously") & str_detect(transcript, "(?i)Rookie")) |>
+  collect() |> 
+  semi_join(
+    transcripts_clean |> 
+      select(season, episode, type, transcript) |> 
+      filter(type == "previously") |> 
+      collect(), 
+    by = join_by(season, episode)
+  )
+
+```
+
+```{r}
+
+transcripts_clean |> 
+  select(season, episode, type, speaker, transcript) |> 
+  collect() |> 
+  separate_wider_regex(
+    speaker,
+    patterns = c(
+      speaker_start = "^[A-Za-z0-9'-\\.]+\\s?[A-Z]*",
+      speaker_end   = "\\s[A-Za-z'-0-9]+$"
+    ),
+  too_few = "align_start",
+  cols_remove = FALSE
+  ) |> 
+  mutate(
+    speaker_end = if_else(is.na(speaker_end), speaker_start, speaker_end),
+    speaker_start = case_when(
+      str_equal(speaker_start, speaker_end) ~ NA_character_,
+      .default = speaker_start
+    )
+  )
+
+# "^[A-Za-z0-9\\.'\\s]+\\s?[[A-Z#\\d]+]?"
+# "^[A-Za-z0-9'-\.]+\s?[A-Z]+"
+
+# speaker_start = "^[A-Z]+[\\s[A-Z\\s]]+",
+#       speaker_end   = "[A-Z]*\\s[A-Z]+$"
+
+```
+
 ```
 

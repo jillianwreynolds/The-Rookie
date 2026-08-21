@@ -7,7 +7,9 @@ format: html
 source('R/Rookie-vars.R')
 tar_load(transcripts)
 tar_load(transcripts_html)
+tar_load(transcripts_lines)
 tar_load(transcripts_clean)
+transcripts_lines <- open_dataset(transcripts_lines, format = "parquet")
 transcripts_clean <- open_dataset(transcripts_clean, format = "parquet")
 ```
 
@@ -696,5 +698,416 @@ test2 |>
   slice_head(n = 40) |> 
   vis_miss()
 
+```
+
+```{r}
+#| label: test3
+
+test3 <- transcripts_clean |> 
+  mutate(
+    type = replace_when(
+      type, 
+      str_detect(transcript, "\u266a") ~ "lyrics"
+    )
+  )
+
+```
+
+```{r}
+#| label: count-type
+
+test3 |> count(type) |> collect()
+
+```
+
+```{r}
+#| label: type-na
+
+test3 |> 
+  filter(is.na(type)) |> 
+  select(all_of(preview_columns)) |> 
+  collect()
+
+```
+
+```{r}
+
+transcripts_html |> 
+  mutate(
+    transcript = transcript |> 
+      str_remove_all("<i>(?=\u266a)")
+  )
+
+```
+
+```{r}
+#| label: test-first-last-lines
+
+transcripts_clean |> 
+  select(ep_ID, line, transcript) |> 
+  collect() |> 
+  group_by(ep_ID) |> 
+  filter(line %in% c(1, 2, max(line) - 1, max(line)))
+
+```
+
+```{r}
+#| label: test2a
+
+full_pattern <- paste(
+  "^[A-Z0-9][A-Z0-9\\s\\.\\-\\'#&,/]+(?=[\"$♪'\\.a-z]|[A-Z][\\s-]|\\d(?![-A-Z#]))",
+  "^ACTOR![A-Z]+(?=[\"$♪'\\.a-z]|[A-Z][\\s-]|\\d(?![-A-Z]))",
+  "^[A-Z][a-z]{1,2}[A-Z]+(?=[\"$♪'\\.a-z]|[A-Z][\\s-]|\\d(?![-A-Z#]))",
+  sep = "|"
+)
+
+transcripts |> 
+  mutate(
+    transcript = transcript |> 
+      str_replace_all("\n{3,}", "\n\n") |> 
+      str_replace_all("[^\n]\n{1}(?=[^\n])", "\n\n") |>
+      str_replace_all("(\u201c|\u201d)", "\"") |>
+      str_replace_all("\u2018|\u2019", "'") |>
+      str_remove_all("\u2028") |> 
+      # Cleaning needs to go before splitting
+      str_split("\n\n")
+  ) |> 
+  unnest(transcript) |> 
+  mutate(
+    transcript = transcript |> 
+      str_remove_all("\\s*[-–]?\\s*\\[[^]]+\\]\\s*[-–]?\\s*\n*") |>
+      str_remove_all("\\s*[-–]?\\s*\\([^)]+\\)\\s*[-–]?\\s*\n*") |>
+      str_remove("^[\\s\\-–]*")
+  ) |> 
+  filter_out(transcript == "") |> 
+  mutate(
+    rowID = row_number(),
+    transcript = transcript |> 
+      str_replace("(^[A-Z0-9][A-Z0-9\\s\\.\\-\\'#&,/]+):\\s", "\\1") |> 
+      str_replace(
+        "^([A-Z][a-zA-Z0-9\\s#/,]+):\\s",
+        \(x) str_remove(str_to_upper(x), ":\\s")
+      ),
+    type = case_when(
+      transcript %in% captions ~ "caption",
+      str_detect(transcript, "(INT|EXT)(\\.|,)") ~ "scene_heading",
+      str_detect(transcript, "PATROL\\sCAR") ~ "scene_heading",
+      str_detect(transcript, "^ACTOR![A-Z]+") ~ "dialogue_recorded",
+      str_detect(transcript, all_caps_pattern) ~ "dialogue",
+      str_detect(transcript, full_pattern) ~ "dialogue",
+      str_detect(transcript, "Previously\\son\\s(\"?The Rookie\"?|THE\\sROOKIE|\\.{3})") ~ "other"
+    ),
+    scene = case_when(
+      type == "scene_heading" & str_detect(transcript, "EXT") ~ "EXT",
+      type == "scene_heading" & str_detect(transcript, "INT") ~ "INT",
+      type == "scene_heading" & str_detect(transcript, "PATROL\\sCAR") ~ "shop"
+    )
+  ) |> 
+  mutate(line = row_number(), .by = c(season, episode), .after = episode) |> 
+  write_parquet("data/The-Rookie/test2a.parquet")
+
+test2a <- open_dataset("data/The-Rookie/test2a.parquet")
+
+```
+
+```{r}
+test2a |> count(type) |> collect()
+```
+
+```{r}
+test2a |> 
+  filter(is.na(type)) |> 
+  select(all_of(preview_columns)) |> 
+  collect()
+
+test2a |> 
+  filter(is.na(type)) |> 
+  select(all_of(preview_columns)) |> 
+  group_by(season, episode) |> 
+  count() |> 
+  collect()
+```
+
+```{r}
+
+test2a |> 
+  select(all_of(preview_columns)) |> 
+  filter(
+    str_detect(transcript, "BRADFORD/CHEN:\\sYeah") |
+      str_detect(transcript, "^Man:") |
+      str_detect(transcript, "^Man\\s#2:\\s")
+  ) |> 
+  collect() |> 
+  mutate(
+    transcript = transcript |> 
+      str_replace("(^[A-Z0-9][A-Z0-9\\s\\.\\-\\'#&,/]+):\\s", "\\1") |> 
+      str_replace(
+        "^([A-Z][a-zA-Z0-9\\s#/,]+):\\s",
+        \(x) str_remove(str_to_upper(x), ":\\s")
+      )
+  )
+
+test2a |> 
+  select(all_of(preview_columns)) |> 
+  collect() |> 
+  filter(type == "dialogue", str_starts(transcript, "MAN"))
+
+```
+
+```{r}
+#| label: rm-italics
+
+transcripts_html$transcript[8] |> 
+  str_remove_all("<i>(?=Previously\\son\\s(\"?The Rookie\"?|THE\\sROOKIE|\\.{3}).+?[</i>])") |> 
+  str_remove_all("(?<=Previously\\son\\s(\"?The Rookie\"?|THE\\sROOKIE|\\.{3}).+?)</i>")
+
+```
+
+```{r}
+transcripts_lines |> 
+  select(season, episode, transcript) |> 
+  filter(str_detect(
+          transcript,
+          "Previously\\son\\s(\"?The Rookie\"?|THE\\sROOKIE)"
+        )) |> 
+  collect()
+```
+
+```{r}
+transcripts_lines |> 
+  select(season, episode, transcript) |> 
+  collect() |> 
+  mutate(
+    type = case_when(
+      transcript %in% captions ~ "caption",
+      str_detect(
+        transcript,
+        "Previously\\son\\s(\"?The Rookie\"?|THE\\sROOKIE)"
+      ) ~ "previously"
+    ),
+    transcript = if_else(
+      type == "previously",
+      transcript |> 
+        str_remove("\\.{3}") |> 
+        str_remove_all("</?i>") |> 
+        str_remove(":$") |>
+        str_replace("(?<=\\s)The\\sRookie|THE\\sROOKIE", "\"The Rookie\"") |> 
+        str_remove("ANNOUNCER"),
+      transcript
+    )
+  ) |> 
+  filter(type == "previously" | type == "caption")
+
+transcripts_lines |> 
+  select(season, episode, transcript) |>  
+  filter(str_detect(
+          transcript,
+          "Previously\\son\\s(\"?The Rookie\"?|THE\\sROOKIE)"
+        )) |> 
+  collect() |> 
+  mutate(
+    transcript = transcript |> 
+      str_replace(
+        "^.+Previously\\son\\s(\"?The Rookie\"?|THE\\sROOKIE)[\\.{3}|:]?",
+        "Previously on \"The Rookie\""
+      ) |> 
+      str_remove("\\.{3}")
+  ) 
+
+transcripts_lines |> 
+  select(season, episode, transcript) |>  
+  filter(str_detect(
+          transcript,
+          "Previously\\son\\s(\"?The Rookie\"?|THE\\sROOKIE)"
+        )) |> 
+  collect() |> 
+  mutate(
+    transcript = transcript |> 
+      str_remove("\\.{3}") |> 
+      str_remove_all("</?i>") |> 
+      str_remove(":$") |>
+      str_replace("(?<=\\s)The\\sRookie|THE\\sROOKIE", "\"The Rookie\"") |> 
+      str_remove("ANNOUNCER")
+  )
+```
+
+```{r}
+#| label: lyrics 
+
+transcripts_lines |> 
+  select(season, episode, transcript) |> 
+  collect() |> 
+  mutate(
+    type = case_when(
+      str_detect(transcript, "\u266a") ~ "lyrics",
+      transcript %in% captions ~ "caption"
+    ),
+    transcript = case_when(
+      type == "lyrics" ~ transcript |> 
+        str_remove_all("</?i>"),
+      .default = transcript
+    )
+  ) |> 
+  mutate(
+    transcript = transcript |> 
+      str_split("\u266a{2}|(\u266a\\s/\\s\u266a)")
+  ) |> 
+  unnest(transcript) |> 
+  mutate(transcript = transcript |> str_remove_all("\u266a\\s?")) |> 
+  filter(type == "lyrics")
+
+# |> 
+#   mutate(split = transcript |> str_split("\u266a{2}|(\u266a\\s/\\s\u266a)")) |> 
+#   unnest(split) |> 
+#   relocate(type, .after = last_col()) |> 
+#   mutate(split = split |> str_remove_all("\u266a\\s?"))
+
+```
+
+```{r}
+#| label: brackets-parentheses
+
+transcripts_lines |> 
+  select(season, episode, transcript) |> 
+  filter(str_detect(transcript, "[\\(\\)\\[\\]]")) |> 
+  collect() |> 
+  mutate(
+    edited = transcript |> 
+      str_remove_all("(?=\\s?)\\([^\\)]+\\)\\s?") |> 
+      str_remove_all("(?=\\s?)\\[[^]]+\\]\\s?")
+  ) |> 
+  filter_out(str_starts(transcript, "<i>")) |> 
+  filter(season == 2, episode == 7, str_starts(transcript, "CHEN")) |> 
+  mutate(
+    edited = str_remove(edited, "(?<=[A-Z])\\s{1}(?=[\"$♪\'\\.a-z]|[A-Z][\\s-]|\\d(?![-A-Z#]))")
+  )
+
+
+transcripts_lines |> 
+  select(season, episode, transcript) |> 
+  filter(str_detect(transcript, "[\\(\\)\\[\\]]")) |> 
+  collect() |> 
+  mutate(
+    edited = transcript |> 
+      str_remove_all("(?<=[A-Z])\\s?\\([^)]+\\)\\s?") |>
+      str_remove_all("(?<=[A-Z])\\s?\\[[^]]+\\]\\s?") |> 
+      str_remove_all("(?=\\s?)\\([^\\)]+\\)\\s?") |> 
+      str_remove_all("(?=\\s?)\\[[^]]+\\]\\s?")
+  ) |> 
+  filter_out(str_starts(transcript, "<i>")) |> 
+  filter(str_detect(transcript, "<i>"))
+
+```
+
+```{r}
+#| label: unicode
+
+transcripts_lines |> 
+  select(season, episode, transcript) |> 
+  filter(str_detect(transcript, "\u2018")) |> 
+  collect()
+
+```
+
+```{r}
+#| label: transcripts-clean
+
+tar_load(transcripts_clean)
+transcripts_clean <- open_dataset(transcripts_clean, format = "parquet")
+
+transcripts_clean |> 
+  select(season, episode, type, transcript) |> 
+  count(type) |> 
+  collect()
+
+transcripts_clean |> 
+  select(season, episode, type, transcript) |> 
+  filter(is.na(type)) |> 
+  collect()
+
+clean_w_italics <- transcripts_clean |> 
+  select(ep_number, season, episode, line, type, transcript) |> 
+  filter(str_detect(transcript, "</?i>")) |> 
+  collect() |> 
+  mutate(edited = transcript |> str_remove_all("</?i>"))
+
+clean_w_italics
+
+```
+
+```{r}
+#| label: test4
+
+test4 <- transcripts_lines |> 
+  select(season, episode, transcript) |> 
+  collect() |> 
+  mutate(
+    # remove ":\\s" separating name and dialogue; converts lower to upper
+    transcript = transcript |> 
+      str_replace("(^[A-Z0-9][A-Z0-9\\s\\.\\-\\'#&,/]+):\\s", "\\1") |> 
+      str_replace(
+        "^([A-Z][a-zA-Z0-9\\s#/,]+):\\s",
+        \(x) str_remove(str_to_upper(x), ":\\s")
+      ) |> 
+      # remove descriptions denoted by [] and ()
+      str_remove_all("(?<=[A-Z])\\s?\\([^)]+\\)\\s?") |>
+      str_remove_all("(?<=[A-Z])\\s?\\[[^]]+\\]\\s?") |> 
+      str_remove_all("(?=\\s?)\\([^\\)]+\\)\\s?") |> 
+      str_remove_all("(?=\\s?)\\[[^]]+\\]\\s?")
+  ) |> 
+  mutate(
+    # identify "Previously on..."
+    type = case_when(
+      str_detect(
+        transcript,
+        "Previously\\son\\s(\"?The Rookie\"?|THE\\sROOKIE)"
+      ) ~ "previously",
+      # identify song lyrics
+      str_detect(transcript, "\u266a") ~ "lyrics"
+    ),
+    # clean "Previously on..." lines; remove "</?i>"
+    transcript = case_when(
+      type == "previously" ~ transcript |> 
+        str_remove("\\.{3}") |> 
+        str_remove_all("</?i>") |> 
+        str_remove(":$") |>
+        str_replace("(?<=\\s)The\\sRookie|THE\\sROOKIE", "\"The Rookie\"") |> 
+        str_remove("ANNOUNCER"),
+      .default = transcript
+    )
+  ) |> 
+  filter_out(str_starts(transcript, "<i>")) |> 
+  mutate(
+    type = case_when(
+      transcript %in% captions ~ "caption",
+      str_detect(transcript, "(INT|EXT)(\\.|,)") ~ "scene_heading",
+      str_detect(transcript, "PATROL\\sCAR") ~ "scene_heading",
+      str_detect(transcript, "^ACTOR![A-Z]+") ~ "dialogue_recorded",
+      str_detect(transcript, all_caps_pattern) ~ "dialogue",
+      str_detect(transcript, full_pattern) ~ "dialogue",
+      .default = type
+    )
+  ) |> 
+  filter_out(transcript == "") |> 
+  mutate(transcript = transcript |> str_remove_all("</?i>"))
+
+```
+
+```{r}
+test4 |> 
+  count(type)
+  # filter(is.na(type))
+  # filter(type == "previously")
+  # filter(type == "caption")
+```
+
+```{r}
+#| label: first-last-lines
+
+transcripts_clean |> group_by(season, episode) |> count(episode) |> collect()
+
+peek_first_last_lines(transcripts_clean) |> 
+  filter(season == 2, episode %in% 5) |>
+  print(n=20)
 ```
 

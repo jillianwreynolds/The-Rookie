@@ -1,5 +1,7 @@
 # Load packages required to define the pipeline:
 library(targets)
+library(arrow)
+library(gt)
 
 tar_option_set(
   packages = c("tidyverse")
@@ -22,13 +24,23 @@ list(
     transcripts, join_pdf_html(transcripts_raw, transcripts_html)
   ),
   tar_target(
+    transcripts_lines,
+    {
+      transcripts_to_lines(transcripts) |>
+        write_parquet("data/The-Rookie/transcripts_lines.parquet")
+      "data/The-Rookie/transcripts_lines.parquet"
+    },
+    format = "file"
+  ),
+  tar_target(
     transcripts_clean,
     {
-      clean_transcripts(transcripts) |> 
+      open_dataset(transcripts_lines) |>
+        collect() |>
+        clean_transcripts() |>
         write_parquet("data/The-Rookie/transcripts_clean.parquet")
       "data/The-Rookie/transcripts_clean.parquet"
     },
-    format = "file",
-    packages = "arrow"
+    format = "file"
   )
 )

@@ -39,9 +39,9 @@ transcripts_to_lines <- function(tbl) {
 #' @examples
 #' 
 clean_transcripts <- function(tbl) {
+  
   tbl |> 
     mutate(
-      # remove ":\\s" separating name and dialogue; converts lower to upper
       transcript = transcript |> 
         # scoot <i> from middle to beginning of word
         str_replace_all("(\\w+)<i>", "<i>\\1") |> 
@@ -84,8 +84,9 @@ clean_transcripts <- function(tbl) {
     ) |> 
     unnest(transcript) |> 
     mutate(transcript = transcript |> str_remove_all("\u266a\\s?")) |> 
-    # filter_out(str_starts(transcript, "<i>")) |> 
+    filter_out(transcript == "" | str_starts(transcript, "<i>")) |>
     mutate(line = row_number(), .by = c(season, episode), .after = episode)
+  
 }
 
 clean_transcripts_err <- function(tbl) {

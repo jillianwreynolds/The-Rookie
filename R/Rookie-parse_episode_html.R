@@ -31,12 +31,13 @@ parse_episode_html <- function(folder_path = "data/The-Rookie/html") {
   tibble(
     html_path = file_list,
     transcript = map_chr(file_list, possibly(parse_single, otherwise = NA_character_))
+    # original = map_chr(file_list, possibly(parse_single, otherwise = NA_character_))
   ) |> 
     mutate(
       html_path = basename(html_path) |> 
         str_remove("\\.html") |> 
-        str_remove("^\\d+x\\d+_"),
-      transcript = str_remove(transcript, "^[\\s\\S]+?\"[^\"]+\"\n{1,2}")
+        str_remove("^\\d+x\\d+_")  #,
+      # transcript = str_remove(original, "^[\\s\\S]+?\"[^\"]+\"\n{1,2}")
     ) |> 
     rename(title = html_path)
 

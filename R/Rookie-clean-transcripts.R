@@ -1,4 +1,24 @@
 clean_transcripts <- function(tbl) {
+#' Split transcripts into lines
+#'
+#' Splits transcripts line by line. First
+#' @param tbl 
+#'
+#' @returns
+#' @export
+#'
+#' @examples
+transcripts_to_lines <- function(tbl) {
+  
+  tbl |> 
+    mutate(
+      transcript = str_split(html, "\n")
+    ) |> 
+    unnest(transcript) |> 
+    filter_out(transcript == "")
+  
+}
+
   
   lookahead <- "(?=[\"$♪\'\\.a-z]|[A-Z][\\s-]|\\d(?![-A-Z#]))"
   

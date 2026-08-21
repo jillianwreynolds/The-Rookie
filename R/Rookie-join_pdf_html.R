@@ -1,6 +1,6 @@
 #' Title
 #'
-#' Join pdf and html transcripts; extract season, episode, title. Number episodes and create ep_ID
+#' Join pdf and html transcripts; extract season, episode, title. Number episodes and create `ep_ID`.
 #' @param df_pdf 
 #' @param df_html 
 #'
@@ -35,12 +35,6 @@ join_pdf_html <- function(df_pdf, df_html) {
       .before = season
     ) |> 
     left_join(df_html, by = join_by(title)) |> 
-    rename(pdf = transcript.x, html = transcript.y) |> 
-    mutate(
-      transcript = str_remove_all(html, "<i>[\\s\\S]+?</i>") |> 
-        str_remove_all("\\([^)]+\\)") |>
-        str_remove_all("\\[[^]]+\\]"),
-      .before = pdf
-    )
+    rename(pdf = transcript.x, html = transcript.y)
   
 }

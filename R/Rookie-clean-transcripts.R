@@ -43,6 +43,9 @@ clean_transcripts <- function(tbl) {
     mutate(
       # remove ":\\s" separating name and dialogue; converts lower to upper
       transcript = transcript |> 
+        # scoot <i> from middle to beginning of word
+        str_replace_all("(\\w+)<i>", "<i>\\1") |> 
+        # remove ":\\s" separating name and dialogue; names from lower to upper
         str_replace("(^[A-Z0-9][A-Z0-9\\s\\.\\-\\'#&,/]+):\\s", "\\1") |> 
         str_replace(
           "^([A-Z][a-zA-Z0-9\\s#/,]+):\\s",

@@ -7,7 +7,8 @@ preview_columns <- c(
 )
 
 captions <- c(
-  "OPENING TITLES: THE ROOKIE",
+  "OPENING TITLESTHE ROOKIE",
+  "NINE MONTHS LATER",
   "ONE MONTH LATER",
   "\"DAY 2\"",
   "\"DAY 4\"",
@@ -34,6 +35,10 @@ all_caps_pattern <- str_c(
   "^([A-Z]+|[A-Z][a-z]{1,2}[A-Z]+)(",
   all_caps_start_words |> str_flatten(collapse = "|"),
   ")"
+)
+
+other_type_patterns <- c(
+  "^CLIPS\\sFROM.+\"FREE\\sFALL"
 )
 
 italicized_titles <- c(
@@ -76,7 +81,9 @@ italicized_titles <- c(
   "The Ring",
   "Scream",
   "Blair Witch Project",
-  "THDOH"
+  "THDOH",
+  "Dead Bastards MC", #2x4
+  "Willy Wonka"
 )
 
 dispatch_names <- c(

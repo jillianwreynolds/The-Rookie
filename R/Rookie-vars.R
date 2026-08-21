@@ -19,6 +19,7 @@ captions <- c(
 
 all_caps_start_words <- c(
   "OK",
+  "NO",
   "LAPD", "LAP-",
   "UCLA",
   "FBI",

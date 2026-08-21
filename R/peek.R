@@ -41,6 +41,10 @@ peek_match <- function(string, pattern, before = 50, after = 50) {
 #' 
 peek_rows <- function(tbl, col, pattern, show_col, before = 2, after = 2) {
   
+  if (inherits(tbl, "ArrowObject")) {
+    tbl <- tbl |> collect()
+  }
+  
   col <- enquo(col)
   show_col <- enquo(show_col)
   

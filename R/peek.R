@@ -34,13 +34,14 @@ peek_match <- function(string, pattern, before = 50, after = 50) {
 #' @examples
 #' transcripts_clean |> peek_rows(transcript, "CDC MEDIC")
 #' 
-peek_rows <- function(tbl, col, pattern, before = 2, after = 2) {
+peek_rows <- function(tbl, col, pattern, before = 2, after = 2, show_col) {
   
-  if (inherits(transcripts_clean, "ArrowObject")) {
+  if (inherits(tbl, "ArrowObject")) {
     tbl <- tbl |> collect()
   }
   
   col <- enquo(col)
+  show_col <- enquo(show_col)
   
   hits <- tbl |>
     mutate(.row = row_number()) |>
@@ -53,11 +54,26 @@ peek_rows <- function(tbl, col, pattern, before = 2, after = 2) {
     unique() |>
     sort()
   
-  tbl |>
+  out <- tbl |>
     mutate(.row = row_number()) |>
     slice(context_rows) |>
     mutate(
       .match = .row %in% hits
+    ) 
+  
+  if (!quo_is_missing(show_col)) {
+    out <- out |> select(!!show_col)
+  }
+  
+  out |> 
+    gt() |> 
+    tab_style(
+      style = cell_text(color = "black"),
+      locations = list(cells_column_spanners(), cells_body())
+    ) |> 
+    tab_style_body(
+      style = cell_fill(color = "#ADFF2F50"),
+      pattern = pattern
     )
 
 }

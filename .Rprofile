@@ -5,5 +5,6 @@ options(defaultPackages = c(
   "tidyverse", "rlang", "glue", "regexplain",
   "targets", "arrow",
   "rvest", "xml2", "tidytext",
-  "gt"
+  "gt",
+  "shiny"
 ))

@@ -26,6 +26,14 @@ clean_transcripts <- function(tbl) {
     filter_out(transcript == "") |> 
     mutate(
       rowID = row_number(),
+      # remove ":\\s" separating name and dialogue; converts lower to upper
+      transcript = transcript |> 
+        str_replace("(^[A-Z0-9][A-Z0-9\\s\\.\\-\\'#&,/]+):\\s", "\\1") |> 
+        str_replace(
+          "^([A-Z][a-zA-Z0-9\\s#/,]+):\\s",
+          \(x) str_remove(str_to_upper(x), ":\\s")
+        ),
+      # categorize lines by type 
       type = case_when(
         transcript %in% captions ~ "caption",
         str_detect(

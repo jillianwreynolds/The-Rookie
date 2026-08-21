@@ -629,12 +629,13 @@ transcripts |>
     transcript = str_remove(transcript, "^[\\s\\-–]*"),
     rowID = row_number(),
     type = case_when(
+      transcript %in% captions ~ "caption",
       str_detect(transcript, "(INT|EXT)(\\.|,)") ~ "scene_heading",
       str_detect(transcript, "PATROL\\sCAR") ~ "scene_heading",
       str_detect(transcript, "^ACTOR![A-Z]+") ~ "dialogue_recorded",
       str_detect(transcript, all_caps_pattern) ~ "dialogue",
       str_detect(transcript, full_pattern) ~ "dialogue",
-      str_detect(transcript, "Previously\\son\\s(\"The Rookie\"|THE\\sROOKIE|\\.{3})") ~ "other"
+      str_detect(transcript, "Previously\\son\\s(\"?The Rookie\"?|THE\\sROOKIE|\\.{3})") ~ "other"
     ),
     scene = case_when(
       type == "scene_heading" & str_detect(transcript, "EXT") ~ "EXT",
@@ -642,10 +643,17 @@ transcripts |>
       type == "scene_heading" & str_detect(transcript, "PATROL\\sCAR") ~ "shop"
     )
   ) |> 
-  mutate(line = row_number(), .by = c(season, episode)) |> 
+  mutate(line = row_number(), .by = c(season, episode), .after = episode) |> 
   write_parquet("data/The-Rookie/test2.parquet")
 
 test2 <- open_dataset("data/The-Rookie/test2.parquet")
+
+```
+
+```{r}
+#| label: count-type
+
+test2 |> count(type) |> collect()
 
 ```
 
@@ -658,6 +666,15 @@ test2 |>
   collect()
 
 ```
+
+```{r}
+test2 |> 
+  filter(str_detect(transcript, "^Previously\\son\\s")) |> 
+  select(season, episode, line, type, transcript) |> 
+  collect() |> 
+  print(n=38)
+```
+
 
 ```{r}
 

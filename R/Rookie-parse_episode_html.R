@@ -13,6 +13,8 @@ parse_episode_html <- function(folder_path = "data/The-Rookie/html") {
           xml_text(node)
         } else if (xml_name(node) == "i") {
           str_c("<i>", html_text2(node), "</i>")
+        } else if (xml_name(node) == "br") {
+          "\n"
         } else {
           html_text2(node)
         }

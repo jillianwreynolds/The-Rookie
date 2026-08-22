@@ -98,6 +98,22 @@ clean_transcripts <- function(tbl) {
     ) |>
     select(-group_id) |>
     relocate(c(line, type), .after = episode) |> 
+    mutate(
+      speaker = speaker |> 
+        str_replace("^V/O", "VOICEOVER"),
+      # specify different types of dialogue
+      type = type |> 
+        replace_when(
+          str_detect(speaker, "\\s(AND)\\b|&\\s") ~ "dialogue_multi",
+          str_detect(speaker, "[A-Z]+,\\s[A-Z]+") ~ "dialogue_multi",
+          str_detect(speaker, "(BRADFORD/JAKE)|(CHEN/SAVA)") ~ "dialogue_UC",
+          str_detect(speaker, str_flatten(aliases$pattern, "|")) 
+          ~ "dialogue_alias",
+          str_detect(speaker, "[A-Z]+/[A-Z]+") ~ "dialogue_multi"
+        ),
+      speaker = speaker |> 
+        replace_values(from = aliases$pattern, to = aliases$name)
+    ) |> 
     # clean "Previously on..."
     mutate(transcript = transcript |> replace_when(
       type == "previously" & !str_detect(transcript, "Feds") 

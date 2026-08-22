@@ -9,13 +9,23 @@ preview_columns <- c(
 captions <- c(
   "OPENING TITLESTHE ROOKIE",
   "NINE MONTHS LATER",
+  "TWO WEEKS LATER",
   "\"ONE MONTH LATER\"",
   "\"DAY 2\"",
   "\"DAY 4\"",
   "97 MINUTES EARLIER",
   "6 WEEKS LATER",
   "TO BE CONTINUED...",
-  "12 HOURS EARLIER"
+  "12 HOURS EARLIER",
+  "EMERGENCY ALERT",
+  "BALLISTIC MISSILE THREAT",
+  "INBOUND TO LOS ANGELES",
+  "SEEK IMMEDIATE SHELTER",
+  "IMPACT IN 29 MINUTES",
+  "THIS IS NOT A DRILL",
+  "IN TRAILER",
+  "DETECTIVES' BULLPEN",
+  "THREE MONTHS LATER"
 )
 
 all_caps_start_words <- c(
@@ -39,7 +49,10 @@ all_caps_pattern <- str_c(
 
 other_scene_headings <- c(
   "CLIPS FROM SEASON 1, EPISODE 20, \"FREE FALL\" ",
+  "PAYNE'S HOUSE - NIGHT",
+  "AERIAL VIEW OF CARAVAN ESCORTED BY 2 POLICE UNITS",
   "OUTSIDE, TRAILER PARK",
+  "RECORDING",
   "LOPEZ/EVERS HOME, NIGHT - BEDROOM",
   "CEMETERY, DAY - REBECCA ARMSTRONG'S GRAVESITE",
   "RESIDENTIAL STREET, DAY",
@@ -48,25 +61,20 @@ other_scene_headings <- c(
 )
 
 other_type_patterns <- c(
-  "^CLIPS\\sFROM.+\"FREE\\sFALL"
+  "FADE TO LATER",
+  "OVERHEAD VIEW OF CARAVAN"
 )
 
-alias_patterns <- c(
-  "AURORA/DEBBIE",
-  "FREEMAN/YOUNG",
-  "KAILEY/NADIA",
-  "ZACH/IGOR"
-) |> 
-  str_flatten(collapse = "|")
+
 
 aliases <- tribble(
-  ~name,      ~alias,   ~type,
-  "BRADFORD", "JAKE",   "UC",
-  "CHEN",     "SAVA",   "UC",
-  "DEBBIE",   "AURORA", "alias",
-  "FREEMAN",  "YOUNG",  "alias",
-  "KAILEY",   "NADIA",  "alias",
-  "ZACH",     "IGOR",   "alias"
+  ~name,      ~alias,   ~type,    ~pattern,
+  "BRADFORD", "JAKE",   "UC",     "BRADFORD/JAKE",
+  "CHEN",     "SAVA",   "UC",     "CHEN/SAVA",
+  "DEBBIE",   "AURORA", "alias",  "AURORA/DEBBIE",
+  "FREEMAN",  "YOUNG",  "alias",  "FREEMAN/YOUNG",
+  "KAILEY",   "NADIA",  "alias",  "KAILEY/NADIA",
+  "ZACH",     "IGOR",   "alias",  "ZACH/IGOR"
 )
 
 italicized_titles <- c(

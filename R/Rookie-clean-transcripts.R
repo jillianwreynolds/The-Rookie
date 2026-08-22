@@ -70,6 +70,7 @@ clean_transcripts <- function(tbl) {
         transcript %in% captions                      ~ "caption",
         str_detect(transcript, "(INT|EXT)(\\.|,)")    ~ "scene_heading",
         str_detect(transcript, "PATROL\\sCAR")        ~ "scene_heading",
+        str_detect(stranscript, "MID-WILSHIRE\\sSTATION") ~ "scene_heading",
         str_detect(transcript, other_type_patterns)   ~ "other"
       ),
       is_speaker = if_else(
@@ -123,7 +124,9 @@ clean_transcripts <- function(tbl) {
         type == "scene_heading" & str_detect(transcript, "INT") ~ "INT",
         type == "scene_heading" & str_detect(transcript, "EXT") ~ "EXT",
         type == "scene_heading" & 
-          str_detect(transcript, "PATROL\\sCAR") ~ "shop"
+          str_detect(transcript, "PATROL\\sCAR") ~ "shop",
+        type == "scene_heading" & 
+          str_detect(stranscript, "MID-WILSHIRE\\sSTATION") ~ "station",
       )
     )
 }

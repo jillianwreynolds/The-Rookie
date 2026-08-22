@@ -5,10 +5,9 @@ library(DT)
 
 tar_config_yaml()
 tar_load(transcripts)
-tar_load(transcripts_clean)
 transcripts <- transcripts |> select(season, episode, title)
 transcripts_clean <- open_dataset(
-  "../data/The-Rookie/transcripts_clean.parquet", format = "parquet"
+  here::here("data/The-Rookie/transcripts_clean.parquet"), format = "parquet"
 ) |> 
   left_join(transcripts, by = join_by(season, episode))
 
@@ -51,20 +50,20 @@ ui <- fluidPage(
   fluidRow(
     # column(0),
     column(6, DTOutput("episodes")),
-    column(6)
+    column(2),
+    column(4,
+           selectInput("type_filter", "Type of line", line_types),
+           selectInput("count_var", "Count", count_vars),
+           selectInput("group_var", "By", c("season", "episode", "none")),
+           radioButtons("by_char", "And by character?", c("No", "Yes"))
+    )
   ),
   h2("EDA"),
-  # h3("Count :"),
   fluidRow(
-    column(4, selectInput("count_var", "Count", count_vars)),
-    column(4, selectInput("group_var", "By", c("season", "episode", "none"))),
-    column(4, radioButtons("by_char", "And by character?", c("No", "Yes")))
+    column(6, DTOutput("counts_char")),
+    column(6, renderPlot("plot"))
   ),
-  # DTOutput("counts"),
-  # h4("Type"),
-  # DTOutput("counts_type"),
-  selectInput("type_filter", "Type of line", line_types),
-  DTOutput("counts_char")
+  
 )
 
 
@@ -140,15 +139,20 @@ server <- function(input, output, session) {
       tbl <- tbl |> filter(type == input$type_filter)
     }
     tbl <- tbl |> group_by(across(all_of(group_cols)))
-    if (count_var == "none") {
+    if (input$count_var == "none") {
       tbl <- tbl |> count()
     } else {
       tbl <- tbl |> count(.data[[input$count_var]])
     }
-    tbl() |> 
+    tbl |> 
       collect() |> 
       clean_cols()
   })
+  
+  output$plot <- renderPlot({
+    
+  })
+
 }
 
 shinyApp(ui, server)

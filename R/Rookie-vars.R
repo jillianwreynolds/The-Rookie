@@ -9,7 +9,7 @@ preview_columns <- c(
 captions <- c(
   "OPENING TITLESTHE ROOKIE",
   "NINE MONTHS LATER",
-  "ONE MONTH LATER",
+  "\"ONE MONTH LATER\"",
   "\"DAY 2\"",
   "\"DAY 4\"",
   "97 MINUTES EARLIER",
@@ -37,8 +37,36 @@ all_caps_pattern <- str_c(
   ")"
 )
 
+other_scene_headings <- c(
+  "CLIPS FROM SEASON 1, EPISODE 20, \"FREE FALL\" ",
+  "OUTSIDE, TRAILER PARK",
+  "LOPEZ/EVERS HOME, NIGHT - BEDROOM",
+  "CEMETERY, DAY - REBECCA ARMSTRONG'S GRAVESITE",
+  "RESIDENTIAL STREET, DAY",
+  "NEWS CLIP - DECEMBER 5, 2022, COAST GUARD SEARCH FOR MISSING OFFICER",
+  "VIDEO CALL WITH INTERVIEWER, ABIGAIL, JENSEN ACKLES, JARED PADALECKI"
+)
+
 other_type_patterns <- c(
   "^CLIPS\\sFROM.+\"FREE\\sFALL"
+)
+
+alias_patterns <- c(
+  "AURORA/DEBBIE",
+  "FREEMAN/YOUNG",
+  "KAILEY/NADIA",
+  "ZACH/IGOR"
+) |> 
+  str_flatten(collapse = "|")
+
+aliases <- tribble(
+  ~name,      ~alias,   ~type,
+  "BRADFORD", "JAKE",   "UC",
+  "CHEN",     "SAVA",   "UC",
+  "DEBBIE",   "AURORA", "alias",
+  "FREEMAN",  "YOUNG",  "alias",
+  "KAILEY",   "NADIA",  "alias",
+  "ZACH",     "IGOR",   "alias"
 )
 
 italicized_titles <- c(

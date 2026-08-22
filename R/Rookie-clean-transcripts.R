@@ -86,7 +86,7 @@ clean_transcripts <- function(tbl) {
       .by = c(season, episode)
     ) |>
     summarise(
-      speaker = first(transcript[is_speaker]),
+      speaker = first(transcript[is_speaker] |> str_trim()),
       transcript = transcript[!is_speaker] |> str_flatten(collapse = " "),
       type = first(type),
       .by = c(season, episode, group_id)

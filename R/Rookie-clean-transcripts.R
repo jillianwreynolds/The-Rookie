@@ -73,7 +73,8 @@ clean_transcripts <- function(tbl) {
         str_detect(transcript, "PATROL\\sCAR")           ~ "scene_heading",
         transcript %in% other_scene_headings             ~ "scene_heading",
         str_detect(transcript, "MID-WILSHIRE\\sSTATION") ~ "scene_heading",
-        str_detect(transcript, "^<i>")                   ~ "italics"
+        str_detect(transcript, "^<i>")                   ~ "italics",
+        transcript %in% other_type_patterns              ~ "other"
       ),
       is_speaker = if_else(
         is.na(type),

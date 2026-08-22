@@ -100,6 +100,22 @@ dispatch_pattern <- str_c(
   ")"
 )
 
+main_chars <- tribble(
+  ~name,             ~gender,
+  "John Nolan",       "M",
+  "Lucy Chen",        "F",
+  "Tim Bradford",     "M",
+  "Angela Lopez",     "F",
+  "Wade Grey",        "M",
+  "Nyla Harper",      "F"
+) |> separate_wider_delim(
+  name,
+  delim = " ",
+  names = c("first_name", "last_name"),
+  too_many = "merge"
+) |> 
+  mutate(across(ends_with("name"), str_to_upper))
+  
 characters <- tribble(
   ~name,             ~gender,
   "John Nolan",       "M",

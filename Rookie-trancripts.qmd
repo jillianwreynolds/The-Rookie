@@ -4,7 +4,7 @@ format: html
 ---
 
 ```{r}
-source('R/Rookie-vars.R')
+source("R/Rookie-vars.R")
 tar_load(transcripts)
 tar_load(transcripts_html)
 tar_load(transcripts_lines)
@@ -1360,6 +1360,92 @@ transcripts_clean |>
     x = "Season",
     y = "Mean Number of Dialogue Lines"
   )
+
+```
+
+```{r}
+#| label: split-multispeaker-lines
+
+transcripts_clean |> 
+  select(season, episode, line, type, speaker, transcript) |> 
+  filter(str_detect(speaker, "\\s?AND\\s")) |> 
+  collect()
+
+```
+
+
+```{r}
+
+# count line types by season
+
+transcripts_clean |> 
+  group_by(season) |> 
+  count(type) |> 
+  collect()
+
+# count line types by episode
+
+transcripts_clean |> 
+  group_by(season, episode) |> 
+  count(type) |> 
+  collect()
+
+# count line types by none
+
+transcripts_clean |> 
+  group_by(all_of("")) |> 
+  count(type) |> 
+  collect()
+
+```
+
+```{r}
+
+# count dialogue lines per character
+
+transcripts_clean |>
+  filter(when_all(
+    type == "dialogue",
+    when_any(
+      speaker_start %in% main_chars$first_name & 
+        speaker_end %in% main_chars$last_name,
+      is.na(speaker_start) & speaker_end %in% main_chars$last_name
+    )
+  )) |> 
+  group_by(speaker_start, speaker_end) |>
+  count() |>
+  collect()
+
+# by season
+
+transcripts_clean |>
+  filter(when_all(
+    type == "dialogue",
+    when_any(
+      speaker_start %in% main_chars$first_name & 
+        speaker_end %in% main_chars$last_name,
+      is.na(speaker_start) & speaker_end %in% main_chars$last_name
+    )
+  )) |> 
+  group_by(season, speaker_start, speaker_end) |>
+  count() |>
+  collect()
+
+# by episode
+
+transcripts_clean |>
+  filter(when_all(
+    type == "dialogue",
+    when_any(
+      speaker_start %in% main_chars$first_name & 
+        speaker_end %in% main_chars$last_name,
+      is.na(speaker_start) & speaker_end %in% main_chars$last_name
+    )
+  )) |> 
+  group_by(season, episode, speaker_start, speaker_end) |> 
+  count() |> 
+  collect()
+  
 
 ```
 

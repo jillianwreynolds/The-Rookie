@@ -27,4 +27,3 @@ transcripts_to_lines <- function(tbl) {
     filter_out(transcript == "")
   
 }
-

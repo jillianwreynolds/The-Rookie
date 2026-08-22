@@ -65,13 +65,15 @@ clean_transcripts <- function(tbl) {
         str_remove_all("(?=\\s?)\\[[^]]+\\]\\s?"),
       type = case_when(
         str_detect(transcript, "Previously") &
-          str_detect(transcript, "(?i)Rookie")        ~ "previously",
-        str_detect(transcript, "\u266a")              ~ "lyrics",
-        transcript %in% captions                      ~ "caption",
-        str_detect(transcript, "(INT|EXT)(\\.|,)")    ~ "scene_heading",
-        str_detect(transcript, "PATROL\\sCAR")        ~ "scene_heading",
-        str_detect(stranscript, "MID-WILSHIRE\\sSTATION") ~ "scene_heading",
-        str_detect(transcript, other_type_patterns)   ~ "other"
+          str_detect(transcript, "(?i)Rookie")           ~ "previously",
+        str_detect(transcript, "\u266a")                 ~ "lyrics",
+        transcript %in% captions                         ~ "caption",
+        str_detect(transcript, "(INT|EXT)(\\.|,)")       ~ "scene_heading",
+        str_detect(transcript, "^(INT|EXT)(\\.|,|\\s)")  ~ "scene_heading",
+        str_detect(transcript, "PATROL\\sCAR")           ~ "scene_heading",
+        transcript %in% other_scene_headings             ~ "scene_heading",
+        str_detect(transcript, "MID-WILSHIRE\\sSTATION") ~ "scene_heading",
+        str_detect(transcript, "^<i>")                   ~ "italics"
       ),
       is_speaker = if_else(
         is.na(type),
@@ -97,8 +99,8 @@ clean_transcripts <- function(tbl) {
     relocate(c(line, type), .after = episode) |> 
     # clean "Previously on..."
     mutate(transcript = transcript |> replace_when(
-      type == "previously" & 
-        !str_detect(transcript, "Feds") ~ "Previously on \"The Rookie\"",
+      type == "previously" & !str_detect(transcript, "Feds") 
+        ~ "Previously on \"The Rookie\"",
       type == "previously" & str_detect(transcript, "Feds") 
         ~ "Previously on \"The Rookie\" and \"The Rookie: Feds\""
     )) |> 
@@ -126,7 +128,7 @@ clean_transcripts <- function(tbl) {
         type == "scene_heading" & 
           str_detect(transcript, "PATROL\\sCAR") ~ "shop",
         type == "scene_heading" & 
-          str_detect(stranscript, "MID-WILSHIRE\\sSTATION") ~ "station",
+          str_detect(transcript, "MID-WILSHIRE\\sSTATION") ~ "station",
       )
     )
 }

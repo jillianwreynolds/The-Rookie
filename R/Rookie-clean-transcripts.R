@@ -47,6 +47,13 @@ clean_transcripts <- function(tbl) {
   ) |> 
     str_flatten(collapse = "|")
   
+  not_speaker_patterns <- c(
+    "^(OK|NO)[,\\.!\\?]?\\s?(OK|NO)?[\\.!\\?]?$",
+    "^LAP-$",
+    "^LAPD[\\.!,]?$"
+    ) |> 
+    str_flatten(collapse = "|")
+  
   tbl |> 
     mutate(
       transcript = transcript |> 
@@ -78,7 +85,8 @@ clean_transcripts <- function(tbl) {
       ),
       is_speaker = if_else(
         is.na(type),
-        str_detect(transcript, speaker_name_patterns),
+        str_detect(transcript, speaker_name_patterns) &
+          !str_detect(transcript, not_speaker_patterns),
         FALSE
       ),
       is_break = is_speaker | !is.na(type),

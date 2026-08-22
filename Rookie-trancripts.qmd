@@ -1368,8 +1368,59 @@ transcripts_clean |>
 
 transcripts_clean |> 
   select(season, episode, line, type, speaker, transcript) |> 
-  filter(str_detect(speaker, "\\s?AND\\s")) |> 
+  filter(str_detect(speaker, "\\sAND\\s|,|/")) |> 
   collect()
+
+multispeaker_lines <- transcripts_clean |> 
+  select(season, episode, line, type, speaker, transcript) |> 
+  filter(type == "dialogue") |> 
+  collect() |> 
+  mutate(
+    speaker = speaker |> 
+      str_replace("^V/O", "VOICEOVER"),
+    type = type |> 
+      replace_when(
+        str_detect(speaker, "\\s(AND)\\b|&\\s") ~ "dialogue_multi",
+        str_detect(speaker, "[A-Z]+,\\s[A-Z]+") ~ "dialogue_multi",
+        str_detect(speaker, "(BRADFORD/JAKE)|(CHEN/SAVA)") ~ "dialogue_UC",
+        str_detect(speaker, str_flatten(aliases$pattern, "|")) 
+          ~ "dialogue_alias",
+        str_detect(speaker, "[A-Z]+/[A-Z]+") ~ "dialogue_multi"
+      )
+  ) |> 
+  mutate(speaker = speaker |> 
+           replace_values(from = aliases$pattern, to = aliases$name)) |> 
+  filter(type == "dialogue_multi")
+  
+multispeaker_lines |> 
+  select(speaker, transcript) |> 
+  separate_wider_delim(
+    speaker,
+    delim = regex(",\\s|/|&\\s|(?<![A-Z])AND\\s|(?<=\\s)AND\\s|,\\sAND"),
+    names = c("a", "b", "c", "d", "e"),
+    too_few = "align_start",
+    too_many = "debug",
+    cols_remove = FALSE
+  ) |> 
+  mutate(
+    across(a:e, \(x) str_trim(x) |> replace_when(x == "" ~ NA_character_))
+  ) |> 
+  pivot_longer(a:e, names_to = "col", values_to = "name") |> 
+  filter_out(is.na(name))
+
+  # "(,\\s|/|(?<!\\s)AND(?=\\s)|and\\s|&\\s)"
+
+  # separate_longer_delim(speaker, delim = regex("(,\\s|\\sand\\s|/|\\s&\\s)"))
+
+transcripts_clean |> 
+  select(season, episode, line, type, speaker, transcript) |>
+  filter(transcript == "") |> 
+  collect()
+
+transcripts_clean |> 
+  select(season, episode, line, type, speaker, transcript) |> 
+  collect() |> 
+  peek_rows(speaker, "JASON & J-BAG")
 
 ```
 
@@ -1445,7 +1496,6 @@ transcripts_clean |>
   group_by(season, episode, speaker_start, speaker_end) |> 
   count() |> 
   collect()
-  
 
 ```
 

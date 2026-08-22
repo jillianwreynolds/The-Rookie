@@ -116,6 +116,15 @@ clean_transcripts <- function(tbl) {
         str_equal(speaker_start, speaker_end) ~ NA_character_,
         .default = speaker_start
       )
+    ) |> 
+    mutate(
+      speaker_end = str_trim(speaker_end),
+      scene_type = case_when(
+        type == "scene_heading" & str_detect(transcript, "INT") ~ "INT",
+        type == "scene_heading" & str_detect(transcript, "EXT") ~ "EXT",
+        type == "scene_heading" & 
+          str_detect(transcript, "PATROL\\sCAR") ~ "shop"
+      )
     )
 }
 

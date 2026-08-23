@@ -103,6 +103,28 @@ server <- function(input, output, session) {
     }
   )
   
+  output$n_lines <- renderDT(
+    transcripts_clean |> 
+      select(season, episode, type, speaker_start, speaker_end) |> 
+      collect() |> 
+      filter_chars() |> 
+      filter(speaker_end == input$choices_char) |> 
+      group_by(season) |> 
+      count() |> 
+      rename(Season = season, Lines = n),
+    options = list(dom = "t")
+  )
+  
+  output$n_episodes <- renderDT(
+    transcripts_clean |> 
+      select(season, episode) |> 
+      distinct() |>  
+      count(season) |> 
+      collect() |> 
+      rename(Season = season, Episodes = n),
+    options = list(dom = "t")
+  )
+  
   output$episodes <- renderDT(
     transcripts |> rename_with(\(x) str_to_title(x))
   )

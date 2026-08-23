@@ -1,7 +1,7 @@
 #' Clean transcript lines
 #'
 #' Cleans and labels lines by type. For scene headings, indicates type of location. For dialogue, indicates speaker and whether dialogue was recorded.
-#' @param tbl A table with transcripts split into lines.
+#' @param tbl A table with transcripts already split into lines.
 #'
 #' @returns A tibble with cleaned data.
 #' @export
@@ -99,6 +99,7 @@ clean_transcripts <- function(tbl) {
       type == "previously" & str_detect(transcript, "Feds") 
         ~ "Previously on \"The Rookie\" and \"The Rookie: Feds\""
     )) |> 
+    # separate speaker name into start and end pieces
     separate_wider_regex(
       speaker,
       patterns = c(
@@ -117,6 +118,7 @@ clean_transcripts <- function(tbl) {
     ) |> 
     mutate(
       speaker_end = str_trim(speaker_end),
+      # specify scene type
       scene_type = case_when(
         type == "scene_heading" & str_detect(transcript, "INT") ~ "INT",
         type == "scene_heading" & str_detect(transcript, "EXT") ~ "EXT",

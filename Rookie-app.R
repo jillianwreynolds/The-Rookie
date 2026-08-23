@@ -34,7 +34,7 @@ main_chars <- tribble(
   mutate(across(ends_with("name"), str_to_upper))
 
 # alone, characters vector doesn't account for "Henry Nolan" or "Mrs. Chen"
-characters <- c("NOLAN", "CHEN", "BRADFORD", "HARPER", "GREY", "LOPEZ")  
+characters <- c("NOLAN", "CHEN", "BRADFORD", "LOPEZ", "GREY", "HARPER")  
 
 line_types <- c(
   "previously", "scene_heading", "caption", "dialogue", "lyrics", "other", "NA"
@@ -76,7 +76,6 @@ ui <- fluidPage(
   fluidRow(
     column(6, DTOutput("episodes")),
     column(2, DTOutput("n_episodes", width = "10%")),
-    column(4, selectInput("choices_char", "Select Character", choices = characters), DTOutput("n_lines", width = "15%"))
   ),
   h2("EDA"),
   fluidRow(
@@ -91,7 +90,18 @@ ui <- fluidPage(
       uiOutput("char_option")
     )
   ),
-  renderPlot("plot")
+  headerPanel(""),
+  fluidRow(
+    column(3),
+    column(6, plotOutput("plot", height = "500px")),
+    column(3, selectInput(
+      "choices_char", "Select Character", 
+      choices = characters),
+      DTOutput("n_lines", width = "15%")
+    )
+  ),
+  headerPanel(""),
+  headerPanel("")
 )
 
 
@@ -149,7 +159,7 @@ server <- function(input, output, session) {
                          "Episode" = c("season", "episode")
     )
     tbl <- transcripts_clean |> 
-      select(season, episode, title, type, speaker_start, speaker_end) 
+      select(season, episode, title, type, speaker_start, speaker_end)
     if (input$count_var == "Lines" && !is.null(input$type_filter) && input$type_filter != "All" && input$type_filter != "NA") {
       tbl <- tbl |> filter(type == input$type_filter)
     }
@@ -181,9 +191,30 @@ server <- function(input, output, session) {
   })
   
   output$plot <- renderPlot({
-    
+    transcripts_clean |>
+      select(season, episode, title, type, speaker_start, speaker_end) |>
+      filter_chars() |>
+      group_by(season) |>
+      count(speaker_end) |>
+      collect() |>
+      mutate(
+        season = as_factor(season),
+        speaker_end = fct_reorder(speaker_end, desc(n))
+      ) |>
+      ggplot(aes(season, n)) +
+      geom_point(aes(season, n, color = speaker_end, group = speaker_end), size = 2) +
+      geom_line(aes(season, n, color = speaker_end, group = speaker_end)) +
+      # scale_y_continuous(expand = expansion(c(0, 0.5))) +
+      scale_colour_viridis_d(labels = \(x) str_to_title(x), end = 0.9) +
+      labs(x = "Season", y = "Count", color = "Character") +
+      theme_light() +
+      theme(
+        axis.title = element_text(size = 15),
+        axis.text = element_text(size = 13),
+        legend.title = element_text(size = 14),
+        legend.text = element_text(size = 12)
+      )
   })
-  
   
 }
 

@@ -15,7 +15,7 @@ transcripts_clean <- open_dataset(
 
 choices_count <- c("Lines", "Speakers")
 
-choices_group <- c("season", "episode")
+choices_group <- c("Season", "Episode")
 
 main_chars <- tribble(
   ~name,             ~gender,
@@ -33,7 +33,7 @@ main_chars <- tribble(
 ) |> 
   mutate(across(ends_with("name"), str_to_upper))
 
-# currently doesn't account for "Henry Nolan" or "Mrs. Chen"
+# alone, characters vector doesn't account for "Henry Nolan" or "Mrs. Chen"
 characters <- c("NOLAN", "CHEN", "BRADFORD", "HARPER", "GREY", "LOPEZ")  
 
 line_types <- c(
@@ -81,10 +81,15 @@ ui <- fluidPage(
   h2("EDA"),
   fluidRow(
     column(6, DTOutput("counts")),
-    column(6, selectInput("count_var", "Count", choices_count),
-           uiOutput("type_option"),
-           selectInput("group_var", "By", c("", "All", choices_group), selected = ""),
-           radioButtons("filter_char", "Include only main characters?", c("Yes", "No")))
+    column(
+      6, 
+      selectInput("count_var", "Count", choices_count),
+      uiOutput("type_option"),
+      selectInput(
+        "group_var", "By", c("", "All", choices_group), selected = ""
+      ),
+      uiOutput("char_option")
+    )
   ),
   renderPlot("plot")
 )
@@ -99,6 +104,14 @@ server <- function(input, output, session) {
       selectInput(
         "type_filter", "Type of line",
         c("All", line_types), selected = "All"
+      )
+    }
+  )
+  
+  output$char_option <- renderUI(
+    if (input$count_var == "Speakers") {
+      radioButtons(
+        "filter_char", "Include only main characters?", c("Yes", "No")
       )
     }
   )
@@ -131,16 +144,16 @@ server <- function(input, output, session) {
   
   output$counts <- renderDT({
     group_cols <- switch(input$group_var,
-                         "None"    = character(0),
-                         "season"  = "season",
-                         "episode" = c("season", "episode")
+                         "All"    = character(0),
+                         "Season"  = "season",
+                         "Episode" = c("season", "episode")
     )
     tbl <- transcripts_clean |> 
       select(season, episode, title, type, speaker_start, speaker_end) 
-    if (!is.null(input$type_filter) && input$type_filter != "All" && input$type_filter != "NA") {
+    if (input$count_var == "Lines" && !is.null(input$type_filter) && input$type_filter != "All" && input$type_filter != "NA") {
       tbl <- tbl |> filter(type == input$type_filter)
     }
-    if (!is.null(input$type_filter) && input$type_filter == "NA") {
+    if (input$count_var == "Lines" && !is.null(input$type_filter) && input$type_filter == "NA") {
       tbl <- tbl |> filter(is.na(type))
     }
     if (input$count_var == "Speakers" && input$filter_char == "Yes") {
@@ -163,10 +176,15 @@ server <- function(input, output, session) {
     tbl |> clean_cols()
   })
   
+  observeEvent(input$count_var, {
+    updateSelectInput(session, "group_var", selected = "")
+  })
+  
   output$plot <- renderPlot({
     
   })
-
+  
+  
 }
 
 shinyApp(ui, server)

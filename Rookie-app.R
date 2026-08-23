@@ -136,19 +136,31 @@ server <- function(input, output, session) {
                          "episode" = c("season", "episode")
     )
     tbl <- transcripts_clean |> 
-      select(season, episode, title, type, speaker_end) 
-    if (input$type_filter != "NA") {
+      select(season, episode, title, type, speaker_start, speaker_end) 
+    if (!is.null(input$type_filter) && input$type_filter != "All" && input$type_filter != "NA") {
       tbl <- tbl |> filter(type == input$type_filter)
     }
-    tbl <- tbl |> group_by(across(all_of(group_cols)))
-    if (input$count_var == "none") {
-      tbl <- tbl |> count()
-    } else {
-      tbl <- tbl |> count(.data[[input$count_var]])
+    if (!is.null(input$type_filter) && input$type_filter == "NA") {
+      tbl <- tbl |> filter(is.na(type))
     }
-    tbl |> 
-      collect() |> 
-      clean_cols()
+    if (input$count_var == "Speakers" && input$filter_char == "Yes") {
+      tbl <- tbl |> filter_chars()
+    }
+    tbl <- tbl |> group_by(across(all_of(group_cols)))
+    if (input$count_var == "Lines") {
+      tbl <- tbl |> count(type)
+    }
+    if (input$count_var == "Speakers") {
+      tbl <- tbl |> count(speaker_end)
+    }
+    if (input$group_var == "season") {
+      tbl <- tbl |> arrange(season)
+    }
+    if (input$group_var == "episode") {
+      tbl <- tbl |> arrange(season, episode)
+    }
+    tbl <- tbl |> collect() 
+    tbl |> clean_cols()
   })
   
   output$plot <- renderPlot({

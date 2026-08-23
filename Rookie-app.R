@@ -13,9 +13,9 @@ transcripts_clean <- open_dataset(
 
 # vars, options, funs -----------------------------------------------------
 
-choices_count <- c("Lines", "Speakers")
+choices_count <- c("Lines" = "type", "Speakers" = "speaker_end")
 
-choices_group <- c("Season", "Episode")
+choices_group <- c("Season" = "season", "Episode" = "episode")
 
 main_chars <- tribble(
   ~name,             ~gender,
@@ -34,7 +34,8 @@ main_chars <- tribble(
   mutate(across(ends_with("name"), str_to_upper))
 
 # alone, characters vector doesn't account for "Henry Nolan" or "Mrs. Chen"
-characters <- c("NOLAN", "CHEN", "BRADFORD", "LOPEZ", "GREY", "HARPER")  
+chars <- c("NOLAN", "CHEN", "BRADFORD", "LOPEZ", "GREY", "HARPER")
+characters <- set_names(chars, chars |> str_to_title())
 
 line_types <- c(
   "previously", "scene_heading", "caption", "dialogue", "lyrics", "other", "NA"
@@ -78,27 +79,30 @@ ui <- fluidPage(
     column(2, DTOutput("n_episodes", width = "10%")),
   ),
   h2("EDA"),
-  fluidRow(
-    column(6, DTOutput("counts")),
-    column(
-      6, 
+  sidebarLayout(
+    sidebarPanel(
       selectInput("count_var", "Count", choices_count),
       uiOutput("type_option"),
       selectInput(
         "group_var", "By", c("", "All", choices_group), selected = ""
       ),
-      uiOutput("char_option")
+      uiOutput("char_option"),
+      width = 3
+    ),
+    mainPanel(
+      DTOutput("counts")
     )
   ),
   headerPanel(""),
   fluidRow(
-    column(3),
-    column(6, plotOutput("plot", height = "500px")),
-    column(3, selectInput(
+    column(1),
+    column(2, selectInput(
       "choices_char", "Select Character", 
       choices = characters),
       DTOutput("n_lines", width = "15%")
-    )
+    ),
+    column(6, plotOutput("plot", height = "500px")),
+    column(3)
   ),
   headerPanel(""),
   headerPanel("")
@@ -110,7 +114,7 @@ ui <- fluidPage(
 server <- function(input, output, session) {
   
   output$type_option <- renderUI(
-    if (input$count_var == "Lines") {
+    if (input$count_var == "type") {
       selectInput(
         "type_filter", "Type of line",
         c("All", line_types), selected = "All"
@@ -119,7 +123,7 @@ server <- function(input, output, session) {
   )
   
   output$char_option <- renderUI(
-    if (input$count_var == "Speakers") {
+    if (input$count_var == "speaker_end") {
       radioButtons(
         "filter_char", "Include only main characters?", c("Yes", "No")
       )
@@ -155,26 +159,29 @@ server <- function(input, output, session) {
   output$counts <- renderDT({
     group_cols <- switch(input$group_var,
                          "All"    = character(0),
-                         "Season"  = "season",
-                         "Episode" = c("season", "episode")
+                         "season"  = "season",
+                         "episode" = c("season", "episode")
     )
     tbl <- transcripts_clean |> 
       select(season, episode, title, type, speaker_start, speaker_end)
-    if (input$count_var == "Lines" && !is.null(input$type_filter) && input$type_filter != "All" && input$type_filter != "NA") {
+    if (input$count_var == "type" && !is.null(input$type_filter) && input$type_filter != "All" && input$type_filter != "NA") {
       tbl <- tbl |> filter(type == input$type_filter)
     }
-    if (input$count_var == "Lines" && !is.null(input$type_filter) && input$type_filter == "NA") {
+    if (input$count_var == "type" && !is.null(input$type_filter) && input$type_filter == "NA") {
       tbl <- tbl |> filter(is.na(type))
     }
-    if (input$count_var == "Speakers" && input$filter_char == "Yes") {
+    if (input$count_var == "speaker_end" && input$filter_char == "Yes") {
       tbl <- tbl |> filter_chars()
     }
     tbl <- tbl |> group_by(across(all_of(group_cols)))
-    if (input$count_var == "Lines") {
+    if (input$count_var == "type") {
       tbl <- tbl |> count(type)
     }
-    if (input$count_var == "Speakers") {
-      tbl <- tbl |> count(speaker_end)
+    if (input$count_var == "speaker_end") {
+      tbl <- tbl |> 
+        count(speaker_end) |> 
+        mutate(speaker_end = speaker_end |> str_to_title()) |> 
+        rename(Character = speaker_end)
     }
     if (input$group_var == "season") {
       tbl <- tbl |> arrange(season)
@@ -183,7 +190,8 @@ server <- function(input, output, session) {
       tbl <- tbl |> arrange(season, episode)
     }
     tbl <- tbl |> collect() 
-    tbl |> clean_cols()
+    tbl |> 
+      clean_cols()
   })
   
   observeEvent(input$count_var, {

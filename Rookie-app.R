@@ -75,58 +75,6 @@ server <- function(input, output, session) {
     transcripts |> rename_with(\(x) str_to_title(x))
   )
   
-  # output$counts <- renderDT({
-  #   tbl <- transcripts_clean |>
-  #     select(season, episode, type, speaker_end) 
-  #   if (input$count_var == "speaker_end") {
-  #     tbl <- tbl |> filter(speaker_end %in% main_chars)
-  #   }
-  #   tbl <- tbl |> 
-  #     group_by(season, episode) %>%
-  #     count(.data[[input$count_var]]) |>
-  #     collect() %>%
-  #     {left_join(transcripts, ., by = join_by(season, episode))}
-  #   if (input$count_var == "type") {
-  #     tbl <- tbl |> 
-  #       pivot_wider(names_from = type, names_prefix = "n_", values_from = n) |> 
-  #       mutate(across(starts_with("n_"), \(x) if_else(is.na(x), 0, x))) |> 
-  #       rename_with(\(x) x |> str_remove("n_")) |> 
-  #       relocate(title, .after = episode) |> 
-  #       relocate(previously,    .after = title) |> 
-  #       relocate(scene_heading, .after = previously) |> 
-  #       relocate(caption,       .after = scene_heading) |> 
-  #       relocate(lyrics,        .after = dialogue) |> 
-  #       relocate(other,         .after = lyrics)
-  #   }
-  #   if (input$count_var == "speaker_end") {
-  #     tbl <- tbl |> 
-  #       relocate(title, .after = episode) |> 
-  #       rename(character = speaker_end) |> 
-  #       mutate(character = character |> str_to_title())
-  #   }
-  #   tbl |> clean_cols()
-  #   
-  # })
-  
-  # output$counts_type <- renderDT({
-  #   transcripts_clean |> 
-  #     select(season, episode, title, type) |> 
-  #     collect() |> 
-  #     group_by(season) |> 
-  #     count(type) |> 
-  #     pivot_wider(names_from = type, names_prefix = "n_", values_from = n) |> 
-  #     mutate(across(starts_with("n_"), \(x) if_else(is.na(x), 0, x))) |> 
-  #     rename_with(\(x) x |> str_remove("n_")) |> 
-  #     left_join(transcripts, ., by = join_by(season, episode)) |> 
-  #     relocate(title, .after = episode) |> 
-  #     relocate(previously,    .after = title) |> 
-  #     relocate(scene_heading, .after = previously) |> 
-  #     relocate(caption,       .after = scene_heading) |> 
-  #     relocate(lyrics,        .after = dialogue) |> 
-  #     relocate(other,         .after = lyrics) |> 
-  #     clean_cols()
-  # })
-  # 
   output$counts_char <- renderDT({
     group_cols <- switch(input$group_var,
                          "none"    = character(0),

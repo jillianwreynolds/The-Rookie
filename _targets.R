@@ -26,7 +26,9 @@ list(
   tar_target(
     transcripts_lines,
     {
-      transcripts_to_lines(transcripts) |>
+      transcripts |> 
+        pre_split_clean() |> 
+        transcripts_to_lines() |>
         write_parquet("data/The-Rookie/transcripts_lines.parquet")
       "data/The-Rookie/transcripts_lines.parquet"
     },

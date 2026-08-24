@@ -34,7 +34,10 @@ clean_transcripts <- function(tbl) {
         str_replace(
           "^([A-Z][a-zA-Z0-9\\s#/,]+):\\s",
           \(x) str_remove(str_to_upper(x), ":\\s")
-        ), # replace comma with pipe if un-commenting description removals
+        ) |> 
+        # un-italicize lyrics
+        str_remove("^<i>(?=\u266a)") |> 
+        str_remove("(?<=\u266a)</i>"), # replace comma with pipe if un-commenting description removals
         # remove descriptions denoted by [] and ()
         # str_remove_all("(?<=[A-Z])\\s?\\([^)]+\\)\\s?") |>
         # str_remove_all("(?<=[A-Z])\\s?\\[[^]]+\\]\\s?") |> 

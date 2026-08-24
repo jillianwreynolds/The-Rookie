@@ -145,7 +145,14 @@ clean_transcripts <- function(tbl) {
           str_detect(transcript, "MID-WILSHIRE\\sSTATION") ~ "station",
       ),
       transcript = transcript |> str_trim()
-    )
+    ) |> 
+    mutate(
+      transcript = transcript |> str_replace("\\s(?=\\[)", "\u2757")
+    ) |> 
+    separate_longer_delim(transcript, regex("\u2757")) |> 
+    mutate(type = type |> replace_when(
+      type == "scene_heading" & str_detect(transcript, "\\[") ~ "description"
+    ))
   
   line_split <- tbl |> 
     filter(speaker == "KAI", str_detect(transcript, "gente")) |> 

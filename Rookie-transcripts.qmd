@@ -1,6 +1,8 @@
 ---
 title: "Rookie-transcripts"
 format: html
+execute: 
+  eval: false
 ---
 
 ```{r}
@@ -1418,9 +1420,16 @@ transcripts_clean |>
   collect()
 
 transcripts_clean |> 
+  select(season, episode, line, type, speaker, transcript) |>
+  filter(type == "scene_heading") |> 
+  group_by(season, episode) |> 
+  count() |> 
+  collect()
+
+transcripts_clean |> 
   select(season, episode, line, type, speaker, transcript) |> 
   collect() |> 
-  peek_rows(speaker, "JASON & J-BAG")
+  peek_rows(type, "previously")
 
 ```
 
@@ -1497,5 +1506,218 @@ transcripts_clean |>
   count() |> 
   collect()
 
+```
+
+```{r}
+#| label: clean-lyrics
+
+# transcripts_clean |> 
+#   select(type, speaker, transcript) |> 
+#   filter(transcript == "") |> 
+#   collect()
+
+dim(transcripts_clean)
+
+transcripts_clean |> 
+  select(season, episode, type, speaker, transcript) |> 
+  collect() |> 
+  peek_rows(transcript, "♪", fmt = "g")
+
+transcripts_clean |> 
+  select(type, speaker, speaker_note, transcript) |> 
+  filter(str_detect(transcript, "\u266a")) |> 
+  collect()
+
+transcripts_clean |> 
+  select(type, speaker, speaker_note, transcript) |> 
+  filter(str_detect(transcript, "\u266a")) |> 
+  collect() |> 
+  mutate(
+    transcript = transcript |> 
+      str_replace_all("\u266a\\s(/\\s)?\u266a", "\u266a") |> 
+      str_remove("\u266a(\\s\\.{3})?$") |> 
+      str_trim()
+  ) |> 
+  separate_longer_delim(transcript, delim = regex("(?=♪)")) |> 
+  mutate(
+    type = type |> replace_when(str_detect(transcript, "\u266a") ~ "lyrics")
+  )
+
+transcripts_clean |> 
+  select(season, episode, type, speaker, speaker_note, transcript) |> 
+  filter(str_detect(transcript, "\u266a")) |> 
+  collect() |> 
+  mutate(
+    transcript = transcript |> 
+      str_replace_all("\u266a\\s(/\\s)?\u266a", "\u266a") |> 
+      str_remove("\u266a(\\s\\.{3})?$") |> 
+      str_trim()
+  ) |> 
+  separate_longer_delim(transcript, delim = regex("\\s(?=♪)")) |>
+  mutate(
+    type = type |> replace_when(str_detect(transcript, "\u266a") ~ "lyrics"),
+    transcript = transcript |> str_remove("\u266a\\s")
+  )
+
+transcripts_clean |> 
+  select(speaker, transcript) |> 
+  filter(speaker == "KAI", str_detect(transcript, "\u266a")) |> 
+  collect() |> 
+  mutate(id = row_number()) |> 
+  rows_insert(tibble(id = 10, speaker = "KAI", transcript = "[ Gunshots ]"))
+  
+transcripts_clean |> 
+  select(season, line, speaker, transcript) |> 
+  filter(season == 4, speaker == "KAI") |> 
+  collect()
+
+transcripts_clean |> 
+  select(season, line, speaker, transcript) |> 
+  filter(season == 4, speaker == "KAI") |> 
+  collect() |> 
+  mutate(transcript = transcript |> str_replace(
+      coll("♪ La gente paga [ Gunshots ]"), "♪ La gente paga"
+    )) |>
+  rows_append(filter(transcripts_clean |> 
+  select(season, line, speaker, transcript) |> 
+  filter(season == 4, speaker == "KAI") |> 
+  collect(), speaker == "KAI", str_detect(transcript, "gente"))) |>
+    mutate(transcript = transcript |> str_replace(
+      coll("♪ La gente paga [ Gunshots ]"), "[Gunshots]"
+    ))
+
+transcripts_clean |> 
+  select(season, line, speaker, transcript) |> 
+  filter(season == 4, speaker == "KAI") |> 
+  collect() |> 
+  separate_longer_delim(transcript, regex("\\s(?=\\[)"))
+
+transcripts_clean |> 
+  select(season, line, speaker, transcript) |> 
+  filter(speaker == "KAI", str_detect(transcript, "gente")) |> 
+  collect() |> 
+  separate_longer_delim(transcript, regex("\\s(?=\\[)"))
+
+
+transcripts_clean |> 
+  select(season, line, speaker, transcript) |> 
+  filter(speaker == "KAI", str_detect(transcript, "gente")) |> 
+  collect() |> 
+  add_row(
+    transcripts_clean |> 
+  select(season, line, speaker, transcript) |> 
+  filter(speaker == "KAI", str_detect(transcript, "gente")) |> 
+  collect() |> 
+  separate_longer_delim(transcript, regex("\\s(?=\\[)"))
+  )
+
+transcripts_clean |> 
+  select(speaker, transcript) |> 
+  collect() |> 
+  mutate(row_num = row_number()) |> 
+  filter(speaker == "KAI", str_detect(transcript, "gente"))
+
+```
+
+<!-- ♪ -->
+
+```{r}
+transcripts_lines |> 
+  select(season, episode, transcript) |> 
+  collect() |> 
+  mutate(
+    transcript = transcript |> 
+        # Move <i> from middle to beginning of word
+        str_replace_all("(\\w+)<i>", "<i>\\1") |> 
+        # remove ":\\s" separating name and dialogue; names from lower to upper
+        str_replace("(^[A-Z0-9][A-Z0-9\\s\\.\\-\\'#&,/]+):\\s", "\\1") |> 
+        str_replace(
+          "^([A-Z][a-zA-Z0-9\\s#/,]+):\\s",
+          \(x) str_remove(str_to_upper(x), ":\\s")
+        ) |> 
+        # un-italicize lyrics
+        str_remove("^<i>(?=\u266a)") |> 
+        str_remove("(?<=\u266a)</i>"),
+      type = case_when(
+        str_detect(transcript, "Previously") &
+          str_detect(transcript, "(?i)Rookie")           ~ "previously",
+        # str_detect(transcript, "\u266a")                 ~ "lyrics",
+        transcript %in% captions                         ~ "caption",
+        str_detect(transcript, "(INT|EXT)(\\.|,)")       ~ "scene_heading",
+        str_detect(transcript, "^(INT|EXT)(\\.|,|\\s)")  ~ "scene_heading",
+        str_detect(transcript, "PATROL\\sCAR")           ~ "scene_heading",
+        transcript %in% other_scene_headings             ~ "scene_heading",
+        str_detect(transcript, "MID-WILSHIRE\\sSTATION") ~ "scene_heading",
+        str_detect(transcript, "^<i>")                   ~ "italics",
+        transcript %in% other_type_patterns              ~ "other"
+      ),
+    is_lyrics = case_when(str_detect(transcript, "\u266a") ~ TRUE),
+    transcript = transcript |> str_remove("^\u266a\\s") |> str_remove("\\s\u266a$"),
+      is_speaker = if_else(
+        is.na(type),
+        str_detect(transcript, speaker_name_patterns) &
+          !str_detect(transcript, not_speaker_patterns),
+        FALSE
+      ),
+      is_break = is_speaker | !is.na(type),
+      group_id = cumsum(is_break),
+      .by = c(season, episode)
+    ) |>
+    # relocate(c(line, type), .after = episode) |>  
+  peek_rows(transcript, "Stars shining", fmt = "g")
+
+```
+
+```{r}
+transcripts_clean |> 
+  select(season, episode, type, speaker, transcript) |> 
+  filter(str_detect(transcript, "\\s[A-Z]+\\s[\\(|\\[]")) |> 
+  collect()
+
+transcripts_clean |> 
+  select(season, episode, type, speaker, transcript) |> 
+  filter(str_detect(speaker, "ACTOR")) |> 
+  collect()
+
+transcripts_lines |>
+  select(season, episode, transcript) |>
+  filter(str_detect(transcript, "[A-Z]+\\s\\([^)]+\\)")) |>
+  arrange(season, episode) |> 
+  filter(!str_detect(transcript, "INT|EXT|(PATROL)")) |> 
+  collect() |> 
+  anti_join(
+    transcripts_lines |>
+      select(season, episode, transcript) |>
+      filter(str_detect(transcript, "[A-Z]+\\s\\([^)]+\\)")) |>
+      arrange(season, episode) |> 
+      filter(!str_detect(transcript, "INT|EXT|(PATROL)")) |>
+      filter(str_detect(transcript, "^[A-Z0-9][A-Z0-9\\s\\.\\-\\'#&,/]+\\s\\(.+\\)$")) |>
+      collect(),
+    by = join_by(transcript)
+  )
+
+transcripts_lines |>
+  select(season, episode, transcript) |>
+  filter(str_detect(transcript, "[A-Z]+\\s\\([^)]+\\)")) |>
+  arrange(season, episode) |> 
+  collect() |> 
+  anti_join(
+    transcripts_lines |>
+  select(season, episode, transcript) |>
+  filter(str_detect(transcript, "[A-Z]+\\s\\([^)]+\\)")) |>
+  arrange(season, episode) |> 
+  # filter(!str_detect(transcript, "INT|EXT|(PATROL)")) |>
+  filter(str_detect(transcript, "^[A-Z0-9][A-Z0-9\\s\\.\\-\\'#&,/]+\\s\\(.+\\)$")) |>
+  collect()
+    , by = join_by(transcript)
+  )
+
+```
+
+```{r}
+transcripts_clean |> 
+  select(season, episode, type, speaker, transcript) |> 
+  filter(str_detect(transcript, "\\[")) |> 
+  collect()
 ```
 

@@ -40,7 +40,18 @@ clean_transcripts <- function(tbl) {
         ) |> 
         # un-italicize lyrics
         str_remove("^<i>(?=\u266a)") |> 
-        str_remove("(?<=\u266a)</i>"),
+        str_remove("(?<=\u266a)</i>") |> 
+        # fix inconsistent lyrics break
+        str_replace_all("\u266a\\s/\\s\u266a", "\u266a \u266a") |> 
+        # remove trailing ellipsis
+        str_remove("\u266a(\\s\\.{3})?$") |> 
+        # replace description with speaker name and note
+        str_replace(coll("[ Kai singing low in Italian ]"), "KAI (singing low in Italian)") |> 
+        # fix typo, set up split
+        str_replace(coll("La gente pa♪a"), "La gente paga")
+    ) |> 
+    # create `type` variable
+    mutate(
       type = case_when(
         str_detect(transcript, "Previously") &
           str_detect(transcript, "(?i)Rookie")           ~ "previously",
@@ -52,7 +63,7 @@ clean_transcripts <- function(tbl) {
         str_detect(transcript, "MID-WILSHIRE\\sSTATION") ~ "scene_heading",
         transcript %in% other_type_patterns              ~ "other"
       ),
-      is_speaker = if_else(
+      is_speaker = if_else(         # identify speakers
         is.na(type),
         str_detect(transcript, speaker_name_patterns) &
           !str_detect(transcript, not_speaker_patterns),
@@ -76,6 +87,8 @@ clean_transcripts <- function(tbl) {
     ) |>
     select(-group_id) |>
     relocate(c(line, type), .after = episode) |> 
+    # split mixed dialogue/lyrics lines
+    separate_longer_delim(transcript, delim = regex("(?=♪)")) |> 
     mutate(
       speaker = speaker |> 
         str_replace("^V/O", "VOICEOVER"),
@@ -94,7 +107,7 @@ clean_transcripts <- function(tbl) {
     ) |> 
     mutate(
       # clean "Previously on..."
-      transcript = transcript |> replace_when(
+      transcript = transcript |> str_trim() |> replace_when(
         type == "previously" & !str_detect(transcript, "Feds") 
         ~ "Previously on \"The Rookie\"",
         type == "previously" & str_detect(transcript, "Feds") 
@@ -116,9 +129,8 @@ clean_transcripts <- function(tbl) {
     ) |> 
     mutate(
       speaker_end = if_else(is.na(speaker_end), speaker_start, speaker_end),
-      speaker_start = case_when(
-        str_equal(speaker_start, speaker_end) ~ NA_character_,
-        .default = speaker_start
+      speaker_start = speaker_start |> replace_when(
+        str_equal(speaker_start, speaker_end) ~ NA_character_
       )
     ) |> 
     mutate(

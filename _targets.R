@@ -40,6 +40,11 @@ list(
       open_dataset(transcripts_lines) |>
         collect() |>
         clean_transcripts() |>
+        collect() |> 
+        left_join(
+          transcripts |> select(-c(pdf, html)),
+          by = join_by(season, episode)
+        ) |> 
         write_parquet("data/The-Rookie/transcripts_clean.parquet")
       "data/The-Rookie/transcripts_clean.parquet"
     },

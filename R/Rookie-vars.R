@@ -52,7 +52,6 @@ other_scene_headings <- c(
   "PAYNE'S HOUSE - NIGHT",
   "AERIAL VIEW OF CARAVAN ESCORTED BY 2 POLICE UNITS",
   "OUTSIDE, TRAILER PARK",
-  "RECORDING",
   "LOPEZ/EVERS HOME, NIGHT - BEDROOM",
   "CEMETERY, DAY - REBECCA ARMSTRONG'S GRAVESITE",
   "RESIDENTIAL STREET, DAY",
@@ -118,8 +117,9 @@ italicized_titles <- c(
   "Scream",
   "Blair Witch Project",
   "THDOH",
-  "Dead Bastards MC", #2x4
-  "Willy Wonka"
+  "Dead Bastards MC", # 2x4
+  "Willy Wonka",
+  "I Never Loved a Man" #2x16
 )
 
 dispatch_names <- c(

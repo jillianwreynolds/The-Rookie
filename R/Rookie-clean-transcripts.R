@@ -37,12 +37,7 @@ clean_transcripts <- function(tbl) {
         ) |> 
         # un-italicize lyrics
         str_remove("^<i>(?=\u266a)") |> 
-        str_remove("(?<=\u266a)</i>"), # replace comma with pipe if un-commenting description removals
-        # remove descriptions denoted by [] and ()
-        # str_remove_all("(?<=[A-Z])\\s?\\([^)]+\\)\\s?") |>
-        # str_remove_all("(?<=[A-Z])\\s?\\[[^]]+\\]\\s?") |> 
-        # str_remove_all("(?=\\s?)\\([^\\)]+\\)\\s?") |> 
-        # str_remove_all("(?=\\s?)\\[[^]]+\\]\\s?"),
+        str_remove("(?<=\u266a)</i>"),
       type = case_when(
         str_detect(transcript, "Previously") &
           str_detect(transcript, "(?i)Rookie")           ~ "previously",

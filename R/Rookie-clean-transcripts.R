@@ -15,7 +15,7 @@ clean_transcripts <- function(tbl) {
     "^ACTOR![A-Z]+$",
     "^[A-Z][a-z]{1,2}[A-Z]+$",
     # identifies speakers whose name is followed by () description
-    "^[A-Z0-9][A-Z0-9\\s\\.\\-\\'#&,/]+\\s\\(.+\\)$"
+    "^[A-Z0-9][A-Z0-9\\s\\.\\-\\'#&,/]+\\s[\\[|\\(].+[\\]|\\)]$"
   ) |> 
     str_flatten(collapse = "|")
   
@@ -114,8 +114,8 @@ clean_transcripts <- function(tbl) {
         ~ "Previously on \"The Rookie\" and \"The Rookie: Feds\""
       ),
       # extract notes from speaker name
-      speaker_note = speaker |> str_extract("(?<=\\().+(?=\\)$)"),
-      speaker = speaker |> str_remove("\\s\\(.+\\)$")
+      speaker_note = speaker |> str_extract("(?<=[\\[|\\(]).+(?=[\\]\\)]$)"),
+      speaker = speaker |> str_remove("\\s[\\[|\\(].+[\\]\\)]$")
     ) |> 
     # separate speaker name into start and end pieces
     separate_wider_regex(

@@ -44,14 +44,12 @@ clean_transcripts <- function(tbl) {
       type = case_when(
         str_detect(transcript, "Previously") &
           str_detect(transcript, "(?i)Rookie")           ~ "previously",
-        str_detect(transcript, "\u266a")                 ~ "lyrics",
         transcript %in% captions                         ~ "caption",
         str_detect(transcript, "(INT|EXT)(\\.|,)")       ~ "scene_heading",
         str_detect(transcript, "^(INT|EXT)(\\.|,|\\s)")  ~ "scene_heading",
         str_detect(transcript, "PATROL\\sCAR")           ~ "scene_heading",
         transcript %in% other_scene_headings             ~ "scene_heading",
         str_detect(transcript, "MID-WILSHIRE\\sSTATION") ~ "scene_heading",
-        str_detect(transcript, "^<i>")                   ~ "italics",
         transcript %in% other_type_patterns              ~ "other"
       ),
       is_speaker = if_else(
@@ -60,6 +58,7 @@ clean_transcripts <- function(tbl) {
           !str_detect(transcript, not_speaker_patterns),
         FALSE
       ),
+      type = type |> replace_when(str_detect(transcript, "^<i>") ~ "italics"),
       is_break = is_speaker | !is.na(type),
       group_id = cumsum(is_break),
       .by = c(season, episode)

@@ -1715,9 +1715,29 @@ transcripts_lines |>
 ```
 
 ```{r}
+transcripts_lines |> 
+  select(season, episode, transcript) |> 
+  collect() |> 
+  peek_rows(transcript, "Mrs. Young, this is Detective Lopez")
+
 transcripts_clean |> 
-  select(season, episode, type, speaker, transcript) |> 
-  filter(str_detect(transcript, "\\[")) |> 
-  collect()
+  select(season, episode, type, speaker, speaker_note, transcript) |> 
+  collect() |> 
+  peek_rows(transcript, "Help us! He's got a gun!")
+
+transcripts_clean |> 
+  select(season, episode, type, transcript) |> 
+  filter(type == "scene_heading", str_detect(transcript, "\\[")) |> 
+  # select(-type) |> 
+  collect() |> 
+  mutate(
+    transcript = transcript |> 
+      str_replace("\\s(?=\\[)", "\u2757")
+  ) |> 
+  separate_longer_delim(transcript, regex("\u2757")) |> 
+  mutate(type = type |> replace_when(str_detect(transcript, "\\[") ~ "description"))
+
+# Watch 2x18 for "[ Gunshots, people screaming ] Help us! He's got a gun!" to see who speaks; modify transcript by adding speaker name
+
 ```
 

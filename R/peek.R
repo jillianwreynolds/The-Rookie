@@ -9,6 +9,7 @@
 #' @export
 #'
 #' @examples
+#' transcripts_html$transcript[1] |> peek_match("hotshot")
 peek_match <- function(string, pattern, before = 50, after = 50) {
   
   if (!str_detect(string, pattern)) {
@@ -32,14 +33,18 @@ peek_match <- function(string, pattern, before = 50, after = 50) {
 #' @param pattern The pattern to match.
 #' @param before The number of lines before a match to be shown.
 #' @param after The number of lines after a match to be shown.
+#' @param fmt If `gt`, the default, rows are returned as a `gt` table with matches highlighted. If `fmt = "tbl"`, rows are returned as a tibble.
 #' 
 #' @returns A tibble.
 #' @export
 #' 
 #' @examples
 #' transcripts_clean |> peek_rows(transcript, "CDC MEDIC")
+#' transcripts_clean |> peek_rows(transcript, "CDC MEDIC", fmt = "tbl)
 #' 
-peek_rows <- function(tbl, col, pattern, show_col, before = 2, after = 2) {
+peek_rows <- function(tbl, col, pattern, show_col, before = 2, after = 2, fmt = "gt") {
+  
+  fmt <- match.arg(fmt, c("gt", "tbl"))
   
   if (inherits(tbl, "ArrowObject")) {
     tbl <- tbl |> collect()
@@ -70,16 +75,21 @@ peek_rows <- function(tbl, col, pattern, show_col, before = 2, after = 2) {
     out <- out |> select(!!show_col)
   }
   
-  out |> 
-    gt() |> 
-    tab_style(
-      style = cell_text(color = "black"),
-      locations = list(cells_column_spanners(), cells_body())
-    ) |> 
-    tab_style_body(
-      style = cell_fill(color = "#ADFF2F50"),
-      pattern = pattern
-    )
+  if (fmt == "gt") {
+    out |> 
+      gt() |> 
+      tab_style(
+        style = cell_text(color = "black"),
+        locations = list(cells_column_spanners(), cells_body())
+      ) |> 
+      tab_style_body(
+        style = cell_fill(color = "#ADFF2F50"),
+        pattern = pattern
+      )
+  } else {
+    out
+  }
+  
 
 }
 

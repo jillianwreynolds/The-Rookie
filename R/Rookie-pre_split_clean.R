@@ -14,10 +14,19 @@ pre_split_clean <- function(tbl) {
   
   tbl |> 
     mutate(
-      html = html |> str_replace(
-        coll("[ Gunshots, people screaming ]\nHelp us! He's got a gun!"),
-        "[ Gunshots, people screaming ]\nWOMAN\nHelp us! He's got a gun!"
-      )
+      html = html |> 
+        str_replace(
+          coll("[ Gunshots, people screaming ]\nHelp us! He's got a gun!"),
+          "[ Gunshots, people screaming ]\nWOMAN\nHelp us! He's got a gun!"
+        ) |> 
+        str_replace(
+          coll("NOLAND and BEN are putting away the party."),
+          "NOLAN and BEN are putting away the party."
+        ) |> 
+        str_replace(
+          coll("NOLAND and BAILEY are sitting on the sofa."),
+          "NOLAN and BAILEY are sitting on the sofa."
+        )
     )
   
 }

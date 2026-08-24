@@ -56,6 +56,7 @@ clean_transcripts <- function(tbl) {
         str_detect(transcript, "Previously") &
           str_detect(transcript, "(?i)Rookie")           ~ "previously",
         transcript %in% captions                         ~ "caption",
+        transcript %in% other_descriptions               ~ "desription",
         str_detect(transcript, "(INT|EXT)(\\.|,)")       ~ "scene_heading",
         str_detect(transcript, "^(INT|EXT)(\\.|,|\\s)")  ~ "scene_heading",
         str_detect(transcript, "PATROL\\sCAR")           ~ "scene_heading",

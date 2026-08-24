@@ -12,8 +12,10 @@ clean_transcripts <- function(tbl) {
   
   speaker_name_patterns <- c(
     "^[A-Z0-9][A-Z0-9\\s\\.\\-\\'#&,/]+$",
-    # "^ACTOR![A-Z]+$",
-    "^[A-Z][a-z]{1,2}[A-Z]+$"
+    "^ACTOR![A-Z]+$",
+    "^[A-Z][a-z]{1,2}[A-Z]+$",
+    # identifies speakers whose name is followed by () description
+    "^[A-Z0-9][A-Z0-9\\s\\.\\-\\'#&,/]+\\s\\(.+\\)$"
   ) |> 
     str_flatten(collapse = "|")
   
@@ -27,6 +29,7 @@ clean_transcripts <- function(tbl) {
   tbl |> 
     mutate(
       transcript = transcript |> 
+        str_trim() |> 
         # Move <i> from middle to beginning of word
         str_replace_all("(\\w+)<i>", "<i>\\1") |> 
         # remove ":\\s" separating name and dialogue; names from lower to upper
@@ -90,13 +93,18 @@ clean_transcripts <- function(tbl) {
       speaker = speaker |> 
         replace_values(from = aliases$pattern, to = aliases$name)
     ) |> 
-    # clean "Previously on..."
-    mutate(transcript = transcript |> replace_when(
-      type == "previously" & !str_detect(transcript, "Feds") 
+    mutate(
+      # clean "Previously on..."
+      transcript = transcript |> replace_when(
+        type == "previously" & !str_detect(transcript, "Feds") 
         ~ "Previously on \"The Rookie\"",
-      type == "previously" & str_detect(transcript, "Feds") 
+        type == "previously" & str_detect(transcript, "Feds") 
         ~ "Previously on \"The Rookie\" and \"The Rookie: Feds\""
-    )) |> 
+      ),
+      # extract notes from speaker name
+      speaker_note = speaker |> str_extract("(?<=\\().+(?=\\)$)"),
+      speaker = speaker |> str_remove("\\s\\(.+\\)$")
+    ) |> 
     # separate speaker name into start and end pieces
     separate_wider_regex(
       speaker,

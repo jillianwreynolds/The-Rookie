@@ -168,6 +168,7 @@ clean_transcripts <- function(tbl) {
     add_row(line_split, .after = row_location) |> 
     filter_out(
       str_detect(transcript, "gente") & str_detect(transcript, "Gunshots")
-    )
+    ) |> 
+    filter_out(season == 1 & episode == 3 & speaker == "CREDITS")
 
 }

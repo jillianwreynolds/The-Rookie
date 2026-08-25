@@ -7,8 +7,7 @@ tar_load(transcripts)
 transcripts <- transcripts |> select(season, episode, title)
 transcripts_clean <- open_dataset(
   here::here("data/The-Rookie/transcripts_clean.parquet"), format = "parquet"
-) |> 
-  left_join(transcripts, by = join_by(season, episode))
+)
 
 
 # vars, options, funs -----------------------------------------------------
@@ -76,9 +75,11 @@ ui <- fluidPage(
   h1("Episode Directory"),
   fluidRow(
     column(6, DTOutput("episodes")),
+    column(1),
     column(2, DTOutput("n_episodes", width = "10%")),
   ),
   h2("EDA"),
+  h3("Counts"),
   sidebarLayout(
     sidebarPanel(
       selectInput("count_var", "Count", choices_count),

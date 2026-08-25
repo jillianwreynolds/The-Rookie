@@ -26,7 +26,8 @@ clean_transcripts <- function(tbl) {
     all_caps_pattern,
     "^\\d[\\d\\s,\\-]*\\.?$",  # numbers, list or including dash(es)
     "^8977\\.",
-    "^R-2\\.$"
+    "^R-2\\.$",
+    stutter_cutoff_letters_pattern
     ) |> 
     str_flatten(collapse = "|")
   
@@ -187,6 +188,11 @@ clean_transcripts <- function(tbl) {
     filter_out(
       str_detect(transcript, "gente") & str_detect(transcript, "Gunshots")
     ) |> 
-    filter_out(season == 1 & episode == 3 & speaker == "CREDITS")
+    filter_out(season == 1 & episode == 3 & speaker == "CREDITS") |> 
+    filter_out(when_all(
+      type == "dialogue",
+      str_detect(speaker_note, "sing"),
+      transcript == ""
+    ))
 
 }

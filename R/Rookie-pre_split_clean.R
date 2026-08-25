@@ -26,6 +26,10 @@ pre_split_clean <- function(tbl) {
         str_replace(
           coll("NOLAND and BAILEY are sitting on the sofa."),
           "NOLAN and BAILEY are sitting on the sofa."
+        ) |> 
+        str_replace(
+          coll("ANNOUNCER\nPreviously on \"The Rookie\""),
+          "Previously on the \"The Rookie\""
         )
     )
   

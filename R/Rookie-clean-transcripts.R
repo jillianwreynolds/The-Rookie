@@ -31,7 +31,7 @@ clean_transcripts <- function(tbl) {
     ) |> 
     str_flatten(collapse = "|")
   
-  tbl <- tbl |> 
+  tbl |> 
     mutate(
       transcript = transcript |> 
         str_trim() |> 
@@ -172,21 +172,6 @@ clean_transcripts <- function(tbl) {
         str_equal(speaker_start, speaker_end) ~ NA_character_
       ),
       across(starts_with("speaker_"), str_trim)
-    )
-  
-  line_split <- tbl |> 
-    filter(speaker == "KAI", str_detect(transcript, "gente")) |> 
-    separate_longer_delim(transcript, regex("\\s(?=\\[)"))
-  
-  row_location <- tbl |> 
-    mutate(row_num = row_number()) |> 
-    filter(speaker == "KAI", str_detect(transcript, "gente")) |> 
-    pull(row_num)
-    
-  tbl |> 
-    add_row(line_split, .after = row_location) |> 
-    filter_out(
-      str_detect(transcript, "gente") & str_detect(transcript, "Gunshots")
     ) |> 
     filter_out(season == 1 & episode == 3 & speaker == "CREDITS") |> 
     # remove empty transcript lines after separate_longer for lyrics

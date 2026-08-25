@@ -31,7 +31,7 @@ clean_transcripts <- function(tbl) {
     ) |> 
     str_flatten(collapse = "|")
   
-  tbl |> 
+  tbl <- tbl |> 
     mutate(
       transcript = transcript |> 
         str_trim() |> 
@@ -51,8 +51,11 @@ clean_transcripts <- function(tbl) {
         # remove trailing ellipsis
         str_remove("\u266a(\\s\\.{3})?$") |> 
         # replace description with speaker name and note
-        str_replace(coll("[ Kai singing low in Italian ]"), "KAI (singing low in Italian)") |> 
-        # fix typo, set up split
+        str_replace(
+          coll("[ Kai singing low in Italian ]"),
+          "KAI (singing low in Italian)"
+        ) |> 
+        # fix typo
         str_replace(coll("La gente pa♪a"), "La gente paga")
     ) |> 
     # create `type` variable
@@ -135,6 +138,7 @@ clean_transcripts <- function(tbl) {
       ),
       transcript = transcript |> str_trim()
     ) |> 
+    # insert sentinel between text and [ then separate at sentinel
     mutate(
       transcript = transcript |> str_replace("\\s(?=\\[)", "\u2757")
     ) |> 
@@ -150,7 +154,7 @@ clean_transcripts <- function(tbl) {
     filter_out(str_detect(speaker, "DRONE")) |> 
     pull(speaker)
   
-  tbl <- tbl |> 
+  tbl |> 
     mutate(
       speaker = speaker |> replace_when(
         speaker %in% dispatch_names ~ "9-1-1 DISPATCH"
@@ -166,6 +170,7 @@ clean_transcripts <- function(tbl) {
       too_few = "align_start",
       cols_remove = FALSE
     ) |> 
+    # process/clean speaker_start and speaker_end
     mutate(
       speaker_end = if_else(is.na(speaker_end), speaker_start, speaker_end),
       speaker_start = speaker_start |> replace_when(

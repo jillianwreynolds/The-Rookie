@@ -1516,7 +1516,7 @@ transcripts_clean |>
 #   filter(transcript == "") |> 
 #   collect()
 
-dim(transcripts_clean)
+# dim(transcripts_clean)
 
 transcripts_clean |> 
   select(season, episode, type, speaker, transcript) |> 
@@ -1559,6 +1559,9 @@ transcripts_clean |>
     transcript = transcript |> str_remove("\u266a\\s")
   )
 
+```
+
+```{r}
 transcripts_clean |> 
   select(speaker, transcript) |> 
   filter(speaker == "KAI", str_detect(transcript, "\u266a")) |> 
@@ -1598,7 +1601,6 @@ transcripts_clean |>
   collect() |> 
   separate_longer_delim(transcript, regex("\\s(?=\\[)"))
 
-
 transcripts_clean |> 
   select(season, line, speaker, transcript) |> 
   filter(speaker == "KAI", str_detect(transcript, "gente")) |> 
@@ -1616,7 +1618,6 @@ transcripts_clean |>
   collect() |> 
   mutate(row_num = row_number()) |> 
   filter(speaker == "KAI", str_detect(transcript, "gente"))
-
 ```
 
 <!-- ♪ -->
@@ -1718,7 +1719,7 @@ transcripts_lines |>
 transcripts_lines |> 
   select(season, episode, transcript) |> 
   collect() |> 
-  peek_rows(transcript, "Mrs. Young, this is Detective Lopez")
+  peek_rows(transcript, "Help us! He's got a gun!")
 
 transcripts_clean |> 
   select(season, episode, type, speaker, speaker_note, transcript) |> 
@@ -1738,6 +1739,175 @@ transcripts_clean |>
   mutate(type = type |> replace_when(str_detect(transcript, "\\[") ~ "description"))
 
 # Watch 2x18 for "[ Gunshots, people screaming ] Help us! He's got a gun!" to see who speaks; modify transcript by adding speaker name
+
+transcripts_html$transcript[38] |> 
+    str_replace(
+      coll("[ Gunshots, people screaming ]\nHelp us! He's got a gun!"),
+      "[ Gunshots, people screaming ]\nWOMAN\nHelp us! He's got a gun!"
+    ) |> 
+  peek_match("gun!", 70)
+
+# "[ Gunshots, people screaming ]\nWOMAN\nHelp us! He's got a gun!"
+
+```
+
+```{r}
+transcripts_clean |> 
+  select(season, episode, type, transcript) |> 
+  filter(type == "scene_heading", str_detect(transcript, "\\[")) |> 
+  # select(-type) |> 
+  collect() |> 
+  mutate(
+    transcript = transcript |> 
+      str_replace("\\s(?=\\[)", "\u2757")
+  ) |> 
+  separate_longer_delim(transcript, regex("\u2757")) |> 
+  mutate(type = type |> replace_when(str_detect(transcript, "\\[") ~ "description"))
+```
+
+```{r}
+transcripts_clean |> 
+  select(season, episode, type, transcript) |> 
+  filter(type == "scene_heading") |> 
+  collect()
+  
+transcripts_lines |> 
+  select(transcript) |> 
+  collect() |> 
+  peek_rows(transcript, "The mall is crowded")
+
+transcripts_clean |> 
+  select(season, episode, type, transcript) |> 
+  filter(type == "scene_heading", str_detect(transcript, "[a-z]")) |> 
+  collect()
+
+transcripts_clean |>
+  filter(type == "scene_heading", str_detect(transcript, "[a-z]")) |>
+  collect() |>
+  mutate(
+    split_point = str_extract(
+      transcript, "[A-Z0-9,\\.\\-']+\\s+[A-Z][a-z].{0,20}"
+    )
+  ) |>
+  select(transcript, split_point)
+```
+
+```{r}
+transcripts_clean |> 
+  select(season, episode, type, speaker, speaker_note, transcript) |> 
+  collect() |> 
+  peek_rows(condition = transcript == "")
+
+transcripts_clean |> 
+  select(season, episode, type, speaker, transcript) |> 
+  filter(transcript == "") |> 
+  collect()
+
+transcripts_clean |> 
+  select(season, episode, type, speaker, transcript) |> 
+  filter(str_detect(speaker, "\\d")) |> 
+  collect()
+
+transcripts_clean |> 
+  select(season, episode, type, speaker, transcript) |> 
+  filter(str_detect(transcript, "^OK")) |> 
+  collect()
+
+```
+
+```{r}
+
+transcripts_clean |> 
+  select(season, episode, type, speaker, transcript) |>  
+  filter(str_detect(speaker, "^[\\d-\\s,]+\\.?$")) |> 
+  collect()
+
+transcripts_lines |> 
+  select(season, episode, transcript) |> 
+  collect() |> 
+  peek_rows(transcript, "PILOT A2")
+
+```
+
+```{r}
+#| label: clean-dispatch-names
+
+transcripts_clean |> 
+  select(speaker, speaker_start, speaker_end) |> 
+  filter(str_detect(speaker, "(911|9\\-1\\-1)|(?i)(dispatch|operator)")) |> 
+  unique() |>
+  collect()
+  
+transcripts_clean |> 
+  select(season, episode, speaker, transcript) |> 
+  filter(str_detect(speaker, "^OPERATOR")) |> 
+  collect()
+
+transcripts_clean |> 
+  select(speaker) |> 
+  filter(str_detect(speaker, "(911|9\\-1\\-1)|(?i)(dispatch|operator)")) |> 
+  unique() |> 
+  collect() |> 
+  filter_out(str_detect(speaker, "DRONE")) |> 
+  pull(speaker)
+
+```
+
+```{r}
+transcripts_clean |> 
+  select(season, episode, type, speaker, speaker_note, transcript) |> 
+  collect() |> 
+  peek_rows(condition = transcript == "")
+
+transcripts_clean |> 
+  select(type, speaker, transcript) |> 
+  filter(transcript == "") |>
+  collect()
+
+transcripts_lines |> 
+  select(ep_ID, transcript) |> 
+  collect() |> 
+  peek_rows(transcript, "Popping the hubcap")
+
+```
+
+```{r}
+#| label: clean-lyrics2
+
+transcripts_lines |> 
+  select(ep_ID, transcript) |> 
+  collect() |> 
+  peek_rows(transcript, "I am totally playing mind games", after = 5, fmt = "t")
+
+transcripts_lines |> 
+  select(ep_ID, transcript) |> 
+  collect() |> 
+  peek_rows(transcript, "\u266a", fmt = "t")
+
+transcripts_clean |> 
+  select(season, episode, type, speaker, transcript) |> 
+  collect() |> 
+  peek_rows(transcript, "\u266a", fmt = "g")
+
+# transcripts_clean |> 
+#   select(season, episode, type, speaker, speaker_note, transcript) |> 
+#   collect() |> 
+#   peek_rows(transcript, "♪", fmt = "g")
+
+transcripts_clean |> 
+  select(season, episode, type, speaker, transcript) |> 
+  collect() |> 
+  peek_rows(transcript, "♪", fmt = "t")
+
+# transcripts_clean |> 
+#   select(type, speaker, speaker_note, transcript) |> 
+#   filter(str_detect(transcript, "\u266a")) |> 
+#   collect()
+
+transcripts_clean |> 
+  select(season, episode, type, speaker, transcript) |> 
+  filter(type == "lyrics") |> 
+  collect()
 
 ```
 

@@ -29,20 +29,21 @@ captions <- c(
 )
 
 all_caps_start_words <- c(
-  "OK",
-  "NO",
-  "LAPD", "LAP-",
-  "UCLA",
-  "FBI",
-  "ADT",
-  "AJ",
-  "MDMA",
-  "VARDA",
-  "IBAN"
+  "L\\.A\\.P\\.D\\.",
+  "L\\.A\\.",
+  "I\\.D\\.",
+  "UCLA\\.",
+  "ADT\\?",
+  "AJ\\.",
+  "SWAT\\.",
+  "CIA\\.",
+  "OK\\.",
+  "APM\\.",
+  "G-R-O-U-T\\."
 )
 
 all_caps_pattern <- str_c(
-  "^([A-Z]+|[A-Z][a-z]{1,2}[A-Z]+)(",
+  "^(",
   all_caps_start_words |> str_flatten(collapse = "|"),
   ")"
 )

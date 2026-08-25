@@ -189,10 +189,12 @@ clean_transcripts <- function(tbl) {
       str_detect(transcript, "gente") & str_detect(transcript, "Gunshots")
     ) |> 
     filter_out(season == 1 & episode == 3 & speaker == "CREDITS") |> 
+    # remove empty transcript lines after separate_longer for lyrics
     filter_out(when_all(
       type == "dialogue",
       str_detect(speaker_note, "sing"),
       transcript == ""
-    ))
+    )) |> 
+    filter_out(transcript == "" & str_detect(lead(transcript), "^\u266a"))
 
 }

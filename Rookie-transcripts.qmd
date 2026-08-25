@@ -1854,24 +1854,6 @@ transcripts_clean |>
 ```
 
 ```{r}
-transcripts_clean |> 
-  select(season, episode, type, speaker, speaker_note, transcript) |> 
-  collect() |> 
-  peek_rows(condition = transcript == "")
-
-transcripts_clean |> 
-  select(type, speaker, transcript) |> 
-  filter(transcript == "") |>
-  collect()
-
-transcripts_lines |> 
-  select(ep_ID, transcript) |> 
-  collect() |> 
-  peek_rows(transcript, "Popping the hubcap")
-
-```
-
-```{r}
 #| label: clean-lyrics2
 
 transcripts_lines |> 
@@ -1908,6 +1890,83 @@ transcripts_clean |>
   select(season, episode, type, speaker, transcript) |> 
   filter(type == "lyrics") |> 
   collect()
+
+```
+
+```{r}
+transcripts_clean |> 
+  select(season, episode, type, speaker, speaker_note, transcript) |> 
+  collect() |> 
+  peek_rows(condition = transcript == "")
+
+transcripts_clean |> 
+  select(type, speaker, transcript) |> 
+  filter(transcript == "") |>
+  collect()
+
+transcripts_lines |> 
+  select(ep_ID, transcript) |> 
+  collect() |> 
+  peek_rows(transcript, "<i>", fmt = "t")
+
+transcripts_clean |> 
+  select(season, episode, type, speaker, speaker_note, transcript) |> 
+  filter(season == 1, episode %in% c(17)) |> 
+  collect() |> 
+  peek_rows(transcript, "<i>", fmt = "g")
+
+transcripts_clean |> 
+  select(ep_ID, type, speaker, speaker_note, transcript) |> 
+  collect() |> 
+  peek_rows(transcript, "<i>", fmt = "t")
+
+```
+
+```{r}
+
+transcripts_clean |> 
+  select(type, speaker, transcript) |> 
+  filter(str_detect(transcript, "</?i>")) |> 
+  collect()
+
+transcripts_clean |> 
+  select(season, episode, type, speaker, speaker_note, transcript) |> 
+  filter(season == 1, episode >= 9, str_detect(transcript, "</?i>")) |> 
+  collect() |> 
+  mutate(
+    speaker_note = speaker_note |> str_remove("</?i>"),
+    transcript = transcript |> 
+      str_replace_all("\\s(?=<i>)", "\u270a") #|> 
+      # str_replace_all("(?<=</i>)\\s", "\u270a")
+  ) |> 
+  separate_longer_delim(transcript, regex("\u270a")) |> 
+  gt()
+
+```
+
+```{r}
+
+transcripts_clean |> 
+  select(season, episode, type, speaker, speaker_note, transcript) |> 
+  filter(season == 1, episode %in% c(17)) |>
+  filter(str_detect(transcript, "^(\\(|\\[)")) |> 
+  collect() |> 
+  mutate(
+    speaker_note = speaker_note |> replace_when(
+      str_detect(transcript, "^(\\(|\\[)") ~ str_extract(transcript, "^.+(\\)|\\])(?=\\s)")
+    ),
+    transcript = transcript |> str_remove("^.+(\\)|\\])\\s")  
+  )
+
+transcripts_clean |> 
+  select(season, episode, type, speaker, speaker_note, transcript) |> 
+  filter(str_detect(transcript, "^(\\(|\\[)")) |> 
+  collect() |> 
+  mutate(transcript = transcript |> 
+           str_replace_all("(?<=\\)|\\])\\s", "\u270a")
+  ) |> 
+  separate_longer_delim(transcript, regex("\u270a")) |> 
+  gt()
 
 ```
 

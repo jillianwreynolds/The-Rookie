@@ -65,8 +65,6 @@ other_type_patterns <- c(
   "OVERHEAD VIEW OF CARAVAN"
 )
 
-
-
 aliases <- tribble(
   ~name,      ~alias,   ~type,    ~pattern,
   "BRADFORD", "JAKE",   "UC",     "BRADFORD/JAKE",
@@ -121,20 +119,6 @@ italicized_titles <- c(
   "Dead Bastards MC", # 2x4
   "Willy Wonka",
   "I Never Loved a Man" #2x16
-)
-
-dispatch_names <- c(
-  "911\\sDISPATCHER",
-  "9-1-1\\sDISPATCH",
-  "9-1-1\\sOPERATOR",
-  "9-1-1",
-  "911\\sOPERATOR"
-) 
-
-dispatch_pattern <- str_c(
-  "^(",
-  dispatch_names |> str_flatten(collapse = "|"),
-  ")"
 )
 
 main_chars <- tribble(
@@ -203,6 +187,23 @@ characters <- tribble(
     too_many = "merge"
   ) |> 
   mutate(caps = str_to_upper(last_name))
+
+stutter_cutoff_letters <- c(
+  "I-I-I-",
+  "N-",
+  "I\\s-",
+  "W--",
+  "I\\s--",
+  "I-I\\.{3}",
+  "[IXVTP]\\.{3}",
+  "I--"
+)
+
+stutter_cutoff_letters_pattern <- str_c(
+  "^(",
+  stutter_cutoff_letters |> str_flatten(collapse = "|"),
+  ")$"
+)
 
 other_descriptions <- c(
   "LOPEZ and WEST park in front of a convenience store.",

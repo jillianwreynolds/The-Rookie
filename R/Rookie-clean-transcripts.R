@@ -183,6 +183,10 @@ clean_transcripts <- function(tbl) {
       str_detect(speaker_note, "sing"),
       transcript == ""
     )) |> 
-    filter_out(transcript == "" & str_detect(lead(transcript), "^\u266a"))
+    filter_out(transcript == "" & str_detect(lead(transcript), "^\u266a")) |> 
+    mutate(
+      type = type |> replace_when(str_detect(transcript, "^\u266a") ~ "lyrics"),
+      transcript  = transcript |> str_remove("^\u266a\\s")
+    )
 
 }

@@ -76,6 +76,13 @@ clean_transcripts <- function(tbl) {
           !str_detect(transcript, not_speaker_patterns),
         FALSE
       ),
+      # clean "Previously on..."
+      transcript = transcript |> str_trim() |> replace_when(
+        type == "previously" & !str_detect(transcript, "Feds") 
+        ~ "Previously on \"The Rookie\"",
+        type == "previously" & str_detect(transcript, "Feds") 
+        ~ "Previously on \"The Rookie\" and \"The Rookie: Feds\""
+      ),
       type = type |> replace_when(str_detect(transcript, "^<i>") ~ "italics"),
       is_break = is_speaker | !is.na(type),
       group_id = cumsum(is_break),
@@ -113,13 +120,6 @@ clean_transcripts <- function(tbl) {
         replace_values(from = aliases$pattern, to = aliases$name)
     ) |> 
     mutate(
-      # clean "Previously on..."
-      transcript = transcript |> str_trim() |> replace_when(
-        type == "previously" & !str_detect(transcript, "Feds") 
-        ~ "Previously on \"The Rookie\"",
-        type == "previously" & str_detect(transcript, "Feds") 
-        ~ "Previously on \"The Rookie\" and \"The Rookie: Feds\""
-      ),
       # extract notes from speaker name
       speaker_note = speaker |> str_extract("(?<=[\\[|\\(]).+(?=[\\]\\)]$)"),
       speaker = speaker |> str_remove("\\s[\\[|\\(].+[\\]\\)]$")

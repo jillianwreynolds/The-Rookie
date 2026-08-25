@@ -15,7 +15,7 @@ transcripts_lines|stem|5b2e70ed5cd6e411|fa016da82fe85c3c|7ff074a88e686302|-34138
 dispatch_names|object|21ce442521118c33
 peek_first_last_lines|function|b147284e84796347
 italicized_titles|object|180b88b39287a3ef
-.Random.seed|object|448a496ad01373a2
+.Random.seed|object|dd1204e649b8e104
 characters|object|d7c9129597072d5e
 pre_split_clean|function|9dd34bc7f9a1bb16
 peek_rows|function|6651c0755c3e236f
@@ -36,6 +36,6 @@ main_chars|object|5ec88c44d98de32b
 all_caps_start_words|object|81e097765aeb749d
 transcripts_to_lines|function|851ba41be077bb1a
 peek_match|function|9b2af82a4b257077
-clean_transcripts|function|2dfd50408e56e914
+clean_transcripts|function|ffa91561adae8bee
 filter_main_chars|function|c61a3fb8412af469
-transcripts_clean|stem|9a60b3eb61720378|9ba8a26ca651674a|b205b2ab14f38286|1545621223|data/The-Rookie/transcripts_clean.parquet|t20690.0348075377s|s3488093b|3488093|file|local|vector|||13.033||
+transcripts_clean|stem|b71a417c339092d9|9ba8a26ca651674a|adbab0c3916779de|1545621223|data/The-Rookie/transcripts_clean.parquet|t20690.0733197133s|s3496012b|3496012|file|local|vector|||12.65||

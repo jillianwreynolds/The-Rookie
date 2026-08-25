@@ -122,24 +122,7 @@ clean_transcripts <- function(tbl) {
       speaker_note = speaker |> str_extract("(?<=[\\[|\\(]).+(?=[\\]\\)]$)"),
       speaker = speaker |> str_remove("\\s[\\[|\\(].+[\\]\\)]$")
     ) |> 
-    # separate speaker name into start and end pieces
-    separate_wider_regex(
-      speaker,
-      patterns = c(
-        speaker_start = "^[A-Za-z0-9'-\\.]+\\s?[A-Z]*",
-        speaker_end   = "\\s[A-Za-z'-0-9]+$"
-      ),
-      too_few = "align_start",
-      cols_remove = FALSE
-    ) |> 
     mutate(
-      speaker_end = if_else(is.na(speaker_end), speaker_start, speaker_end),
-      speaker_start = speaker_start |> replace_when(
-        str_equal(speaker_start, speaker_end) ~ NA_character_
-      )
-    ) |> 
-    mutate(
-      speaker_end = str_trim(speaker_end),
       # specify scene type
       scene_type = case_when(
         type == "scene_heading" & str_detect(transcript, "INT") ~ "INT",
@@ -158,6 +141,37 @@ clean_transcripts <- function(tbl) {
     mutate(type = type |> replace_when(
       type == "scene_heading" & str_detect(transcript, "\\[") ~ "description"
     ))
+  
+  dispatch_names <- tbl |> 
+    select(speaker) |> 
+    filter(str_detect(speaker, "(911|9\\-1\\-1)|(?i)(dispatch|operator)")) |> 
+    unique() |> 
+    filter_out(str_detect(speaker, "DRONE")) |> 
+    pull(speaker)
+  
+  tbl <- tbl |> 
+    mutate(
+      speaker = speaker |> replace_when(
+        speaker %in% dispatch_names ~ "9-1-1 DISPATCH"
+      ),
+    ) |> 
+    # separate speaker name into start and end pieces
+    separate_wider_regex(
+      speaker,
+      patterns = c(
+        speaker_start = "^[A-Za-z0-9'-\\.]+\\s?[A-Z]*",
+        speaker_end   = "\\s[A-Za-z'-0-9]+$"
+      ),
+      too_few = "align_start",
+      cols_remove = FALSE
+    ) |> 
+    mutate(
+      speaker_end = if_else(is.na(speaker_end), speaker_start, speaker_end),
+      speaker_start = speaker_start |> replace_when(
+        str_equal(speaker_start, speaker_end) ~ NA_character_
+      ),
+      across(starts_with("speaker_"), str_trim)
+    )
   
   line_split <- tbl |> 
     filter(speaker == "KAI", str_detect(transcript, "gente")) |> 

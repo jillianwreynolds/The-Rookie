@@ -28,9 +28,12 @@ peek_match <- function(string, pattern, before = 50, after = 50) {
 #' Peek at rows before and after a match
 #'
 #' See the lines before and after a pattern match.
+#'
 #' @param tbl A tibble or Arrow object.
 #' @param col The column where the match is located.
 #' @param pattern The pattern to match.
+#' @param condition 
+#' @param show_col 
 #' @param before The number of lines before a match to be shown.
 #' @param after The number of lines after a match to be shown.
 #' @param fmt If `gt`, the default, rows are returned as a `gt` table with matches highlighted. If `fmt = "tbl"`, rows are returned as a tibble.
@@ -42,7 +45,7 @@ peek_match <- function(string, pattern, before = 50, after = 50) {
 #' transcripts_clean |> peek_rows(transcript, "CDC MEDIC")
 #' transcripts_clean |> peek_rows(transcript, "CDC MEDIC", fmt = "tbl)
 #' 
-peek_rows <- function(tbl, col, pattern, show_col, before = 2, after = 2, fmt = "gt") {
+peek_rows <- function(tbl, col, pattern = NULL, condition, show_col, before = 2, after = 2, fmt = "gt") {
   
   fmt <- match.arg(fmt, c("gt", "tbl"))
   
@@ -52,10 +55,17 @@ peek_rows <- function(tbl, col, pattern, show_col, before = 2, after = 2, fmt = 
   
   col <- enquo(col)
   show_col <- enquo(show_col)
+  condition <- enquo(condition)
   
   hits <- tbl |>
     mutate(.row = row_number()) |>
-    filter(str_detect(!!col, pattern)) |>
+    filter(
+      if (quo_is_missing(condition)) {
+        str_detect(!!col, pattern)
+      } else {
+        !!condition
+      }
+    ) |>
     pull(.row)
   
   context_rows <- hits |>
@@ -76,21 +86,30 @@ peek_rows <- function(tbl, col, pattern, show_col, before = 2, after = 2, fmt = 
   }
   
   if (fmt == "gt") {
-    out |> 
-      gt() |> 
+    tbl_gt <- out |>
+      gt() |>
       tab_style(
         style = cell_text(color = "black"),
         locations = list(cells_column_spanners(), cells_body())
-      ) |> 
-      tab_style_body(
-        style = cell_fill(color = "#ADFF2F50"),
-        pattern = pattern
       )
+    
+    if (quo_is_missing(condition)) {
+      tbl_gt |>
+        tab_style_body(
+          style = cell_fill(color = "#ADFF2F50"),
+          pattern = pattern
+        )
+    } else {
+      tbl_gt |>
+        tab_style(
+          style = cell_fill(color = "#ADFF2F50"),
+          locations = cells_body(rows = .match)
+        )
+    }
   } else {
     out
   }
   
-
 }
 
 #' Peek at first and last lines of episodes

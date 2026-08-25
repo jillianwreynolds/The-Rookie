@@ -15,6 +15,9 @@ pre_split_clean <- function(tbl) {
   tbl |> 
     mutate(
       html = html |> 
+        # replace "♪ / ♪" with "♪" for separate_longer in clean_transcripts()
+        str_replace_all("\u266a\\s/\\s\u266a", "\u266a") |> 
+        # manual fixes
         str_replace(
           coll("[ Gunshots, people screaming ]\nHelp us! He's got a gun!"),
           "[ Gunshots, people screaming ]\nWOMAN\nHelp us! He's got a gun!"

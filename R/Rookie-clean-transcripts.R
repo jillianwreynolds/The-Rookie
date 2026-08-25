@@ -46,9 +46,7 @@ clean_transcripts <- function(tbl) {
         # un-italicize lyrics
         str_remove("^<i>(?=\u266a)") |> 
         str_remove("(?<=\u266a)</i>") |> 
-        # fix inconsistent lyrics break
-        str_replace_all("\u266a\\s/\\s\u266a", "\u266a \u266a") |> 
-        # remove trailing ellipsis
+        # remove trailing ♪ and potential ellipsis
         str_remove("\u266a(\\s\\.{3})?$") |> 
         # replace description with speaker name and note
         str_replace(

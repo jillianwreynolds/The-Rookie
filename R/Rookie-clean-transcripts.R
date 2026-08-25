@@ -20,11 +20,12 @@ clean_transcripts <- function(tbl) {
     str_flatten(collapse = "|")
   
   not_speaker_patterns <- c(
-    "^(OK|NO)[,\\.!\\?]?\\s?(OK|NO)?[\\.!\\?]?$",
+    "^OK",
     "^LAP-$",
     "^LAPD[\\.!,]?$",
     all_caps_pattern,
-    "^^[\\d-\\s,]+\\.",       # numbers, including ones with dash(es) or list
+    "^\\d[\\d\\s,\\-]*\\.?$",  # numbers, list or including dash(es)
+    "^8977.",
     "^R-2\\."
     ) |> 
     str_flatten(collapse = "|")

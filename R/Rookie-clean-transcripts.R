@@ -25,8 +25,12 @@ clean_transcripts <- function(tbl) {
     "^LAPD[\\.!,]?$",
     all_caps_pattern,
     "^\\d[\\d\\s,\\-]*\\.?$",  # numbers, list or including dash(es)
-    "^8977.",
-    "^R-2\\."
+    "^8977.$",
+    "^R-2\\.$"
+    # "^[(A-Z)-]+$",       # letter then dash, at least once
+    # "^[A-Z]\\.{3}$",     # letter, ellipsis
+    # "^[A-Z]\\s?-*$",     # letter, possible space, at least one dash,
+    # "^[(A-Z)-]+\\.{3}$"   # letter then dash at least once, then ellipsis
     ) |> 
     str_flatten(collapse = "|")
   

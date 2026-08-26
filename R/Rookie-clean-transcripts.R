@@ -107,7 +107,7 @@ clean_transcripts <- function(tbl) {
         # after ) or ]
         str_replace_all("(?<=[\\)|\\]])\\s", "\u2757") |>  
         # between punctuation and ( or [
-        str_replace_all("(?<=\\.|\\!|\\?)\\s(?=[\\(|\\[])", "\u2757") 
+        str_replace_all("(?<=\\.|\\!|\\?|</i>|[A-Z])\\s(?=[\\(|\\[])", "\u2757")
     ) |> 
     separate_longer_delim(transcript, regex("\u2757")) |> 
     mutate(

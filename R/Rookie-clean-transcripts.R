@@ -101,6 +101,29 @@ clean_transcripts <- function(tbl) {
     ) |>
     select(-group_id) |>
     relocate(c(line, type), .after = episode) |> 
+    # insert sentinel between text and [ then separate at sentinel
+    mutate(
+      transcript = transcript |> 
+        # after ) or ]
+        str_replace_all("(?<=[\\)|\\]])\\s", "\u2757") |>  
+        # between punctuation and ( or [
+        str_replace_all("(?<=\\.|\\!|\\?)\\s(?=[\\(|\\[])", "\u2757") 
+    ) |> 
+    separate_longer_delim(transcript, regex("\u2757")) |> 
+    mutate(
+      type = type |> replace_when(
+        when_all(
+          type == "dialogue",
+          str_detect(transcript, "^(\\(|\\[).+(\\)|\\])$")
+        ) ~ "description"
+      ),
+      speaker = speaker |> replace_when(
+        when_all(
+          type == "description",
+          str_detect(transcript, "^(\\(|\\[).+(\\)|\\])$")
+        ) ~ NA_character_
+      )
+    ) |> 
     # split mixed dialogue/lyrics lines
     separate_longer_delim(transcript, delim = regex("(?=♪)")) |> 
     mutate(
@@ -136,11 +159,6 @@ clean_transcripts <- function(tbl) {
       ),
       transcript = transcript |> str_trim()
     ) |> 
-    # insert sentinel between text and [ then separate at sentinel
-    mutate(
-      transcript = transcript |> str_replace("\\s(?=\\[)", "\u2757")
-    ) |> 
-    separate_longer_delim(transcript, regex("\u2757")) |> 
     mutate(type = type |> replace_when(
       type == "scene_heading" & str_detect(transcript, "\\[") ~ "description"
     ))

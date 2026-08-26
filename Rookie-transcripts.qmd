@@ -1963,10 +1963,40 @@ transcripts_clean |>
   filter(str_detect(transcript, "^(\\(|\\[)")) |> 
   collect() |> 
   mutate(transcript = transcript |> 
-           str_replace_all("(?<=\\)|\\])\\s", "\u270a")
+           str_replace_all("(?<=[\\)|\\]])\\s", "\u270a") |> 
+           str_replace_all("(?<=\\.|\\!|\\?)\\s(?=[\\(|\\[])", "\u270a")
   ) |> 
   separate_longer_delim(transcript, regex("\u270a")) |> 
+  mutate(
+    type = type |> replace_when(
+      when_all(
+        type == "dialogue",
+        str_detect(transcript, "^(\\(|\\[).+(\\)|\\])$")
+      ) ~ "description"
+    ),
+    speaker = speaker |> replace_when(
+      when_all(
+        type == "description",
+        str_detect(transcript, "^(\\(|\\[).+(\\)|\\])$")
+      ) ~ NA_character_
+    )
+  ) |> 
   gt()
+
+transcripts_clean |> 
+  select(season, episode, type, speaker, speaker_note, transcript) |> 
+  filter(season == 1) |> 
+  collect() |> 
+  peek_rows(type, "description")
+
+transcripts_clean |> 
+  select(season, episode, type, speaker, speaker_note, transcript) |> 
+  filter(season == 4, episode == 7) |> 
+  collect() |> 
+  mutate(transcript = transcript |> 
+           str_replace_all("(?<=\\.|\\!|\\?|</i>|[A-Z])\\s(?=[\\(|\\[])", "\u2757") 
+    ) |> 
+  separate_longer_delim(transcript, regex("\u2757"))
 
 ```
 

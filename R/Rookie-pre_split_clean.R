@@ -17,7 +17,12 @@ pre_split_clean <- function(tbl) {
       html = html |> 
         # replace "♪ / ♪" with "♪" for separate_longer in clean_transcripts()
         str_replace_all("\u266a\\s/\\s\u266a", "\u266a") |> 
-        # manual fixes
+        # other fixes
+        str_replace_all(coll("]["), "] [") |> 
+        str_replace(
+          coll("ANNOUNCER\nPreviously on \"The Rookie\""),
+          "Previously on the \"The Rookie\""
+        ) |> 
         str_replace(
           coll("[ Gunshots, people screaming ]\nHelp us! He's got a gun!"),
           "[ Gunshots, people screaming ]\nWOMAN\nHelp us! He's got a gun!"
@@ -31,8 +36,8 @@ pre_split_clean <- function(tbl) {
           "NOLAN and BAILEY are sitting on the sofa."
         ) |> 
         str_replace(
-          coll("ANNOUNCER\nPreviously on \"The Rookie\""),
-          "Previously on the \"The Rookie\""
+          coll("[SIREN CHIRPS] - [KNOCK ON DOOR]"),
+          "[SIREN CHIRPS] [KNOCK ON DOOR]"
         )
     )
   

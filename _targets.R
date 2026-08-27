@@ -12,7 +12,7 @@ tar_source()
 list(
   tar_target(
     transcript_list,
-    list.files("data/The-Rookie/", pattern = "\\.pdf$", recursive = TRUE)
+    list.files("data/", pattern = "\\.pdf$", recursive = TRUE)
   ),
   tar_target(
     transcripts_raw, read_pdfs(transcript_list), packages = "pdftools"

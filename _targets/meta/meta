@@ -13,13 +13,13 @@ not_speaker_patterns|object|6fb3d956242d889c
 transcripts_joined|stem|0163e9ea02a016be|9fc1b349645dba12|a14bf96da76c17e9|-1651235378|data/The-Rookie/transcripts_joined.parquet|t20689.9614734499s|s6458370b|6458370|file|local|vector|||0.095||
 dispatch_names|object|21ce442521118c33
 dispatch_pattern|object|adec13f61df547dd
-transcripts_lines|stem|cef5ef17d4052fe5|fa016da82fe85c3c|bc657e7390183adf|-341387061|data/The-Rookie/transcripts_lines.parquet|t20690.3419293314s|s3296186570b|3296186570|file|local|vector|||39.015||
+transcripts_lines|stem|598e9af5e3db3398|fa016da82fe85c3c|515c2d235a8b5429|-341387061|data/The-Rookie/transcripts_lines.parquet|t20691.9010948238s|s3296186560b|3296186560|file|local|vector|||38.88||
 peek_first_last_lines|function|b147284e84796347
 italicized_titles|object|180b88b39287a3ef
-.Random.seed|object|329e42a4448a780f
+.Random.seed|object|05dcb33a80e02881
 stutter_cutoff_letters_pattern|object|e1155e5bd0868e7d
 characters|object|d7c9129597072d5e
-pre_split_clean|function|8e7a36c4821c6a0b
+pre_split_clean|function|b0310a67f6adb9dd
 peek_rows|function|6651c0755c3e236f
 captions|object|ea04da6817fa5619
 parse_episode_html|function|a730a6ac26d1a76c
@@ -38,6 +38,6 @@ all_caps_start_words|object|81e097765aeb749d
 transcripts_to_lines|function|851ba41be077bb1a
 stutter_cutoff_letters|object|9c6e016fb8a19025
 peek_match|function|9b2af82a4b257077
-clean_transcripts|function|0a5d63e0c3c4e0de
+clean_transcripts|function|330bb57af94edcc7
 filter_main_chars|function|c61a3fb8412af469
-transcripts_clean|stem|46ec314825bb2d83|9ba8a26ca651674a|9e4897e42eb59537|1545621223|data/The-Rookie/transcripts_clean.parquet|t20690.3452065948s|s3495797b|3495797|file|local|vector|||17.394||
+transcripts_clean|stem|32e724c049f8dbee|9ba8a26ca651674a|a14d451f9c6921db|1545621223|data/The-Rookie/transcripts_clean.parquet|t20691.9344737562s|s3527007b|3527007|file|local|vector|||17.852||

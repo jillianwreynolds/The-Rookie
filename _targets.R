@@ -24,6 +24,14 @@ list(
     transcripts, join_pdf_html(transcripts_raw, transcripts_html)
   ),
   tar_target(
+    transcripts_parquet,
+    {
+      transcripts |> write_parquet("data/transcripts_parquet.parquet")
+      "data/transcripts_parquet.parquet"
+    },
+    format = "file"
+  ),
+  tar_target(
     transcripts_lines,
     {
       transcripts |> 

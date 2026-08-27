@@ -6,7 +6,7 @@ library(DT)
 tar_load(transcripts)
 transcripts <- transcripts |> select(season, episode, title)
 transcripts_clean <- open_dataset(
-  here::here("data/The-Rookie/transcripts_clean.parquet"), format = "parquet"
+  here::here("data/transcripts_clean.parquet"), format = "parquet"
 )
 
 

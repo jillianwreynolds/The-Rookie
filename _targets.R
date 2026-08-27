@@ -29,8 +29,8 @@ list(
       transcripts |> 
         pre_split_clean() |> 
         transcripts_to_lines() |>
-        write_parquet("data/The-Rookie/transcripts_lines.parquet")
-      "data/The-Rookie/transcripts_lines.parquet"
+        write_parquet("data/transcripts_lines.parquet")
+      "data/transcripts_lines.parquet"
     },
     format = "file"
   ),
@@ -45,8 +45,8 @@ list(
           transcripts |> select(-c(pdf, html)),
           by = join_by(season, episode)
         ) |> 
-        write_parquet("data/The-Rookie/transcripts_clean.parquet")
-      "data/The-Rookie/transcripts_clean.parquet"
+        write_parquet("data/transcripts_clean.parquet")
+      "data/transcripts_clean.parquet"
     },
     format = "file"
   )

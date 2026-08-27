@@ -7,7 +7,7 @@ read_pdfs <- function(file_list) {
   
   map(file_list, \(x) {
     
-    path <- paste0("data/The-Rookie/", x)
+    path <- paste0("data/", x)
     name <- x |> str_extract("(?<=\\d{1}/).+(?=\\.pdf)")
     
     text <- path |> 

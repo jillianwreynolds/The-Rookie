@@ -1,4 +1,4 @@
-parse_episode_html <- function(folder_path = "data/The-Rookie/html") {
+parse_episode_html <- function(folder_path = "data/html") {
   
   file_list <- list.files(folder_path, full.names = TRUE, recursive = TRUE)
   

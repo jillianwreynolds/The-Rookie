@@ -1,12 +1,9 @@
 library(shiny)
+library(nanoparquet)
 library(tidyverse)
 library(DT)
 
-library(shiny)
-library(tidyverse)
-library(DT)
-
-tbl_transcripts <- readRDS("transcripts_parquet.rds")
+tbl_transcripts <- nanoparquet::read_parquet("transcripts_parquet.parquet")
 
 options(DT.options = list(
   pageLength = 10,

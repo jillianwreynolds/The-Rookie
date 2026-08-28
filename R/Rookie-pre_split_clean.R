@@ -15,6 +15,8 @@ pre_split_clean <- function(tbl) {
   tbl |> 
     mutate(
       html = html |> 
+        # when missing, add space between character and (
+        str_replace_all("(?<=\\.)\\(", " (") |> 
         # when missing, add space between ) and next character
         str_replace_all("\\)(?=[A-Z]|\")", ") ") |> 
         # replace "♪ / ♪" with "♪" for separate_longer in clean_transcripts()

@@ -38,6 +38,10 @@ pre_split_clean <- function(tbl) {
         str_replace(
           coll("[SIREN CHIRPS] - [KNOCK ON DOOR]"),
           "[SIREN CHIRPS] [KNOCK ON DOOR]"
+        ) |> 
+        str_replace(
+          coll("[ laughing ]Lighten"),
+          "[ laughing ] Lighten"
         )
     )
   

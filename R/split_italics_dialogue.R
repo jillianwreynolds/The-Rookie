@@ -17,23 +17,6 @@ split_italics_dialogue <- function(tbl) {
         transcript
       )
     ) |> 
-    separate_longer_delim(transcript, "\u270a") |> 
-    mutate(
-      type = type |> replace_when(
-        str_detect(transcript, "<i>", negate = TRUE) ~ "dialogue"
-      ),
-      last_dialogue_speaker = if_else(
-        type == "dialogue",
-        speaker,
-        NA_character_
-      )
-    ) |> 
-    fill(last_dialogue_speaker) |> 
-    mutate(
-      speaker = speaker |> replace_when(
-        when_all(type == "dialogue", is.na(speaker)) ~ last_dialogue_speaker
-      )
-    ) |> 
-    select(-last_dialogue_speaker)
+    separate_longer_delim(transcript, "\u270a")
   
 }

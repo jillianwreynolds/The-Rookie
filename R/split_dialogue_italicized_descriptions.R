@@ -22,16 +22,6 @@ split_dialogue_italicized_descriptions <- function(tbl) {
         transcript
       )
     ) |> 
-    separate_longer_delim(transcript, "\u2757") |> 
-    mutate(
-      type = type |> replace_when(
-        when_all(type == "dialogue", str_starts(transcript, "<i>")) ~ "italics"
-      ),
-      speaker = speaker |> replace_when(
-        when_all(
-          type == "dialogue", str_starts(transcript, "<i>")
-        ) ~ NA_character_
-      )
-    )
+    separate_longer_delim(transcript, "\u2757")
   
 }

@@ -49,6 +49,7 @@ list(
         collect() |>
         clean_transcripts() |>
         split_italics_dialogue() |> 
+        split_dialogue_italicized_descriptions() |> 
         left_join(
           transcripts |> select(-c(pdf, html)),
           by = join_by(season, episode)

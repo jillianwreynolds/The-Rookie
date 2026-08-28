@@ -24,6 +24,11 @@ pre_split_clean <- function(tbl) {
           "Previously on the \"The Rookie\""
         ) |> 
         str_replace(
+          coll("[ Kai singing low in Italian ]"),
+          "KAI (singing low in Italian)"
+        ) |> 
+        str_replace(coll("La gente pa♪a"), "La gente paga") |> 
+        str_replace(
           coll("[ Gunshots, people screaming ]\nHelp us! He's got a gun!"),
           "[ Gunshots, people screaming ]\nWOMAN\nHelp us! He's got a gun!"
         ) |> 

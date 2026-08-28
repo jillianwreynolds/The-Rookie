@@ -36,9 +36,14 @@ clean_transcripts <- function(tbl) {
       transcript = transcript |> 
         str_trim() |> 
         # Move <i> from middle to beginning of word
-        str_replace_all("(\\w+)<i>", "<i>\\1") |> 
-        # Move </i> inside parentheses to outside parentheses
-        str_replace_all("</i>\\)", "\\)</i>") |> 
+        str_replace_all("(\\w+)<i>", "<i>\\1"),
+      # If "<i>(", Move </i> inside parentheses to outside parentheses
+      transcript = if_else(
+        str_detect(transcript, "<i>\\("),
+        str_replace_all(transcript, "</i>\\)", "\\)</i>"),
+        transcript
+      ),
+      transcript = transcript |> 
         # remove ":\\s" separating name and dialogue; names from lower to upper
         str_replace("(^[A-Z0-9][A-Z0-9\\s\\.\\-\\'#&,/]+):\\s", "\\1") |> 
         str_replace(
@@ -49,14 +54,7 @@ clean_transcripts <- function(tbl) {
         str_remove("^<i>(?=\u266a)") |> 
         str_remove("(?<=\u266a)</i>") |> 
         # remove trailing ♪ and potential ellipsis
-        str_remove("\u266a(\\s\\.{3})?$") |> 
-        # replace description with speaker name and note
-        str_replace(
-          coll("[ Kai singing low in Italian ]"),
-          "KAI (singing low in Italian)"
-        ) |> 
-        # fix typo
-        str_replace(coll("La gente pa♪a"), "La gente paga")
+        str_remove("\u266a(\\s\\.{3})?$")
     ) |> 
     # create `type` variable
     mutate(
@@ -110,7 +108,7 @@ clean_transcripts <- function(tbl) {
         transcript |> 
           # after ) or ]
           str_replace_all("(?<=[\\)|\\]])\\s", "\u2757") |>  
-          # between punctuation and ( or [
+          # between punctuation, italics, uppercase and ( or [
           str_replace_all("(?<=\\.|\\!|\\?|</i>|[A-Z])\\s(?=[\\(|\\[])", "\u2757"),
         transcript
       ),

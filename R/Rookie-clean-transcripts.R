@@ -103,14 +103,27 @@ clean_transcripts <- function(tbl) {
     ) |>
     select(-group_id) |>
     relocate(c(line, type), .after = episode) |> 
-    # insert sentinel between text and [ then separate at sentinel
+    # for non-italics rows, insert sentinel between text and [ or (
     mutate(
-      transcript = transcript |> 
-        # after ) or ]
-        str_replace_all("(?<=[\\)|\\]])\\s", "\u2757") |>  
-        # between punctuation and ( or [
-        str_replace_all("(?<=\\.|\\!|\\?|</i>|[A-Z])\\s(?=[\\(|\\[])", "\u2757")
+      transcript = if_else(
+        type != "italics",
+        transcript |> 
+          # after ) or ]
+          str_replace_all("(?<=[\\)|\\]])\\s", "\u2757") |>  
+          # between punctuation and ( or [
+          str_replace_all("(?<=\\.|\\!|\\?|</i>|[A-Z])\\s(?=[\\(|\\[])", "\u2757"),
+        transcript
+      ),
+      # separate description following italics
+      transcript = if_else(
+        type == "italics",
+        transcript |> 
+          str_replace_all("</i>\\s\\[", "</i>\u2757\\[") |> 
+          str_replace_all("\\]\\s\\[", "\\]\u2757\\["),
+        transcript
+      )
     ) |> 
+    # separate at sentinel
     separate_longer_delim(transcript, regex("\u2757")) |> 
     mutate(
       type = type |> replace_when(

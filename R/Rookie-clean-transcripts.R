@@ -54,7 +54,9 @@ clean_transcripts <- function(tbl) {
         str_remove("^<i>(?=\u266a)") |> 
         str_remove("(?<=\u266a)</i>") |> 
         # remove trailing ♪ and potential ellipsis
-        str_remove("\u266a(\\s\\.{3})?$")
+        str_remove("\u266a(\\s\\.{3})?$") |> 
+        # when missing, add space between ) and next character
+        str_replace_all("\\)(?=[A-Z]|\")", ") ")
     ) |> 
     # create `type` variable
     mutate(

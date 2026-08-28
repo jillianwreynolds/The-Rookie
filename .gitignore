@@ -11,5 +11,7 @@ data/html*
 data/Season*/
 
 helpers/check_lines.R
+helpers/write_rds.R
+temp/
 
 !docs/*/*

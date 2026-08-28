@@ -48,7 +48,7 @@ list(
       open_dataset(transcripts_lines) |>
         collect() |>
         clean_transcripts() |>
-        collect() |> 
+        split_italics_dialogue() |> 
         left_join(
           transcripts |> select(-c(pdf, html)),
           by = join_by(season, episode)

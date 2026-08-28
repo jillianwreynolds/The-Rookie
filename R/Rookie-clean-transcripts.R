@@ -159,8 +159,8 @@ clean_transcripts <- function(tbl) {
     ) |> 
     mutate(
       # extract notes from speaker name
-      speaker_note = speaker |> str_extract("(?<=[\\[|\\(]).+(?=[\\]\\)]$)"),
-      speaker = speaker |> str_remove("\\s[\\[|\\(].+[\\]\\)]$")
+      speaker_note = speaker |> str_extract("(?<=[\\[|\\(]).+(?=[\\]|\\)]$)"),
+      speaker = speaker |> str_remove("\\s[\\[|\\(].+[\\]|\\)]$")
     ) |> 
     mutate(
       # specify scene type

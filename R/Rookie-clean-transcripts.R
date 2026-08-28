@@ -37,6 +37,8 @@ clean_transcripts <- function(tbl) {
         str_trim() |> 
         # Move <i> from middle to beginning of word
         str_replace_all("(\\w+)<i>", "<i>\\1") |> 
+        # Move </i> inside parentheses to outside parentheses
+        str_replace_all("</i>\\)", "\\)</i>") |> 
         # remove ":\\s" separating name and dialogue; names from lower to upper
         str_replace("(^[A-Z0-9][A-Z0-9\\s\\.\\-\\'#&,/]+):\\s", "\\1") |> 
         str_replace(

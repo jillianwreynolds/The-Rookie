@@ -56,7 +56,8 @@ pre_split_clean <- function(tbl) {
           coll("Corey screams, glass breaking ]  Breathing"),
           "Corey screams, glass breaking ] [Breathing"
         ) |> 
-        str_replace(coll("Dial tone ]"), "[ Dial tone ]")
+        str_replace(coll("Dial tone ]"), "[ Dial tone ]") |> 
+        str_replace(coll("BYSTANDER(on video)"), "BYSTANDER (on video)")
     )
   
 }

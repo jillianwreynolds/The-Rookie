@@ -6,7 +6,6 @@ execute:
 ---
 
 ```{r}
-source("R/Rookie-vars.R")
 tar_load(transcripts)
 tar_load(transcripts_html)
 tar_load(transcripts_lines)
@@ -2286,5 +2285,32 @@ transcripts_clean |>
   filter(season == 1) |>
   collect() |> 
   peek_rows(transcript, "^[^(\\(|\\[)].+[\\]|\\)]$", fmt = "g", before = 2)
+```
+
+```{r}
+
+check_lines <- list(
+  start_parentheses  = "^\\(.+\\).+",         # ok S1, 4
+  middle_parentheses = "^.+\\(.+\\).+$",      # ok S1, 4, 7
+  # end_parentheses    = "^.+\\(.+\\)$",
+  # all_parentheses    = "^\\(.+\\)$",
+  # start_brackets     = "^\\[.+\\].+$",
+  # middle_brackets    = "^.+\\[.+\\].+$",
+  # end_brackets       = "^.+\\[.+\\]$",
+  # all_brackets       = "^\\[.+\\]$",
+  # start_italics      = "^<i>.+</i>.+",
+  # middle_italics     = "^.+<i>.+</i>.+$",
+  # end_italics        = "^.+<i>.+</i>$",
+  all_italics        = "^\\<i\\>.+\\</i\\>$"  # ok S1, 4
+)
+
+map(check_lines, \(x) {
+  transcripts_clean |> 
+    select(season, episode, type, speaker, speaker_note, transcript) |> 
+    filter(season == 7) |> 
+    collect() |> 
+    peek_rows(transcript, x, fmt = "g")
+})
+
 ```
 

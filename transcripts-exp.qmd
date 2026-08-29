@@ -16,6 +16,19 @@ transcripts_clean <- open_dataset(transcripts_clean, format = "parquet")
 ```
 
 ```{r}
+file.copy(
+  "data/transcripts_parquet.parquet",
+  "app/transcripts_parquet.parquet",
+  overwrite = TRUE
+)
+file.copy(
+  "data/transcripts_clean.parquet",
+  "app/transcripts_clean.parquet",
+  overwrite = TRUE
+)
+```
+
+```{r}
 transcripts
 ```
 
@@ -1998,5 +2011,280 @@ transcripts_clean |>
     ) |> 
   separate_longer_delim(transcript, regex("\u2757"))
 
+```
+
+```{r}
+
+transcripts_clean |> 
+  select(season, episode, type, speaker, speaker_note, transcript) |> 
+  filter(season == 2, episode == 15) |> 
+  collect() |> 
+  mutate(
+    transcript = if_else(
+      type == "italics",
+      transcript |> str_replace_all("(?<=</i>)\\s(?=[A-Z])", "\u270a"),
+      transcript
+    )
+  ) |> 
+  separate_longer_delim(transcript, "\u270a") |> 
+  mutate(
+    type = type |> replace_when(
+      str_detect(transcript, "<i>", negate = TRUE) ~ "dialogue"
+    ),
+    # speaker = speaker |> replace_when(
+    #   when_all(
+    #     type == "dialogue", is.na(speaker), lag(type, 1) == "italics"
+    #   ) ~ lag(speaker, 2)
+    # ),
+    last_dialogue_speaker = if_else(type == "dialogue", speaker, NA_character_)
+  ) |> 
+  fill(last_dialogue_speaker) |> 
+  mutate(speaker = speaker |> replace_when(
+       when_all(type == "dialogue", is.na(speaker)) ~ last_dialogue_speaker
+    )) |> 
+  peek_rows(transcript, "<i>\\(")
+
+transcripts_clean |> 
+  select(season, episode, type, speaker, transcript) |> 
+  filter(season %in% 5:8) |>
+  collect() |> 
+  peek_rows(transcript, "<i>\\(")
+
+```
+
+```{r}
+
+transcripts_clean |> 
+  select(season, episode, type, speaker, transcript) |> 
+  filter(season == 2, episode == 15) |> 
+  collect() |> 
+  mutate(
+    transcript = if_else(
+      when_all(
+        str_starts(type, "dialogue"),
+        str_detect(transcript, "</?i>")
+      ),
+      transcript |> 
+        str_replace_all("\\s(?=<i>\\()", "\u2757") |>
+        str_replace_all("(?<=\\)</i>)\\s", "\u2757"),
+      transcript
+    )
+  ) |> 
+  separate_longer_delim(transcript, "\u2757") |> 
+  mutate(
+    type = type |> replace_when(
+      when_all(type == "dialogue", str_starts(transcript, "<i>")) ~ "italics"
+    ),
+    speaker = speaker |> replace_when(
+      when_all(
+        type == "dialogue", str_starts(transcript, "<i>")
+      ) ~ NA_character_
+    )
+  ) |>
+  peek_rows(transcript, "</?i>")
+
+```
+
+```{r}
+transcripts_clean |> 
+  select(season, episode, type, speaker, transcript) |> 
+  filter(season == 2, episode == 15) |> 
+  collect() |> 
+  peek_rows(transcript, "</?i>")
+  
+```
+
+```{r}
+transcripts_clean |> 
+  select(season, episode, type, speaker, transcript) |> 
+  filter(season == 1, episode == 15) |> 
+  collect() |> 
+  peek_rows(transcript, "^[\\[|\\(].+[\\]|\\)]$")
+```
+
+```{r}
+transcripts_clean |> 
+  select(season, episode, type, speaker, transcript) |> 
+  # filter(season == 1) |> 
+  collect() |> 
+  # peek_rows(transcript, "^\\[.+[^\\]]$")
+  peek_rows(transcript, "^[^\\[].+\\]$")
+```
+
+```{r}
+transcripts_clean |> 
+  select(season, episode, type, speaker, transcript) |> 
+  collect() |> 
+  peek_rows(transcript, "^[^\\(].+\\)$")
+```
+
+```{r}
+transcripts_clean |> 
+  select(season, episode, type, speaker, transcript) |> 
+  filter(season == 1, episode == 1) |>
+  collect() |> 
+  mutate(
+    transcript = if_else(
+      type == "italics",
+      transcript |> 
+        str_replace_all("</i>\\s\\[", "</i>\u2757\\[") |> 
+        str_replace_all("\\]\\s\\[", "\\]\u2757\\["),
+      transcript
+    )
+  ) |> 
+  separate_longer_delim(transcript, "\u2757") |> 
+  peek_rows(transcript, "GLASS SHATTERS")
+```
+
+```{r}
+
+# () then dialogue
+
+transcripts_clean |> 
+  select(season, episode, type, speaker, transcript) |> 
+  collect() |> 
+  peek_rows(transcript, "^\\(.+[^\\)]$")
+
+# [] then dialogue
+
+transcripts_clean |> 
+  select(season, episode, type, speaker, transcript) |> 
+  collect() |> 
+  peek_rows(transcript, "^\\[.+[^\\]]$")
+
+# dialogue then ()
+
+transcripts_clean |> 
+  select(season, episode, type, speaker, transcript) |> 
+  collect() |> 
+  peek_rows(transcript, "^[^\\(].+\\)$")
+
+# dialogue then []
+
+transcripts_clean |> 
+  select(season, episode, type, speaker, transcript) |> 
+  collect() |> 
+  peek_rows(transcript, "^[^\\[].+\\]$")
+
+```
+
+```{r}
+tibble(x = c("(in <i>Cantonese</i>)", "<i>(TEST</i>)")) |>
+  mutate(x = if_else(
+    str_detect(x, "<i>\\("),
+    str_replace_all(x, "</i>\\)", "\\)</i>"),
+    x
+  ))
+```
+
+```{r}
+
+# () then dialogue
+
+transcripts_clean |> 
+  select(season, episode, type, speaker, transcript) |> 
+  collect() |> 
+  peek_rows(transcript, "^\\(.+[^\\)]$")
+
+# [] then dialogue
+
+transcripts_clean |> 
+  select(season, episode, type, speaker, transcript) |> 
+  collect() |> 
+  peek_rows(transcript, "^\\[.+[^\\]]$")
+
+# dialogue then ()
+
+transcripts_clean |> 
+  select(season, episode, type, speaker, transcript) |> 
+  collect() |> 
+  peek_rows(transcript, "^[^\\(].+\\)$")
+
+# dialogue then []
+
+transcripts_clean |> 
+  select(season, episode, type, speaker, transcript) |> 
+  collect() |> 
+  peek_rows(transcript, "^[^\\[].+\\]$")
+
+```
+
+```{r}
+transcripts_clean |> 
+  select(season, episode, type, speaker, transcript) |> 
+  filter(season == 8, episode == 3) |>
+  collect() |> 
+  mutate(
+    transcript = transcript |> 
+      str_replace_all("\\)(?=[A-Z]|\")", ") ")
+  ) |> 
+  peek_rows(transcript, "grad")
+
+transcripts_clean |> 
+  select(season, episode, type, speaker, transcript) |> 
+  filter(season == 7, episode == 14) |>
+  collect() |> 
+  peek_rows(transcript, "BYSTANDER", fmt = "t")
+```
+
+```{r}
+transcripts |> 
+  pre_split_clean() |> 
+  filter(season == 7, episode == 14) |> 
+  transcripts_to_lines()  |> 
+  select(-c(pdf, html)) |> 
+  peek_rows(transcript, "Get down on your knees. Interlace", fmt = "g")
+
+transcripts |> 
+  pre_split_clean() |> 
+  filter(season == 7, episode == 14) |> 
+  transcripts_to_lines()  |> 
+  clean_transcripts() |> 
+  select(season, episode, type, speaker, transcript) |> 
+  peek_rows(transcript, "Get down on your knees. Interlace", fmt = "g")
+
+transcripts |> 
+  pre_split_clean() |> 
+  filter(season == 7, episode == 14) |> 
+  transcripts_to_lines()  |> 
+  clean_transcripts() |> 
+  select(season, episode, type, speaker, transcript) |> 
+  split_italics_dialogue() |> 
+  peek_rows(transcript, "Get down on your knees. Interlace", fmt = "g")
+```
+
+```{r}
+transcripts |> 
+  pre_split_clean() |> 
+  filter(season == 4, episode == 9) |> 
+  transcripts_to_lines()  |> 
+  select(-c(pdf, html)) |> 
+  peek_rows(transcript, "dirty", fmt = "g")
+
+transcripts |> 
+  pre_split_clean() |> 
+  filter(season == 4, episode == 9) |> 
+  transcripts_to_lines()  |> 
+  clean_transcripts() |> 
+  select(season, episode, type, speaker, transcript) |> 
+  peek_rows(transcript, "dirty", fmt = "g")
+
+transcripts |> 
+  pre_split_clean() |> 
+  filter(season == 4, episode == 9) |> 
+  transcripts_to_lines()  |> 
+  clean_transcripts() |> 
+  split_italics_dialogue() |> 
+  select(season, episode, type, speaker, transcript) |> 
+  peek_rows(transcript, "dirty", fmt = "g")
+
+```
+
+```{r}
+transcripts_clean |> 
+  select(season, episode, type, speaker, speaker_note, transcript) |> 
+  filter(season == 1) |>
+  collect() |> 
+  peek_rows(transcript, "^[^(\\(|\\[)].+[\\]|\\)]$", fmt = "g", before = 2)
 ```
 

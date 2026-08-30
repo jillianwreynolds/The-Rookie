@@ -2290,8 +2290,8 @@ transcripts_clean |>
 ```{r}
 
 check_lines <- list(
-  start_parentheses  = "^\\(.+\\).+",         # ok S1, 4
-  middle_parentheses = "^.+\\(.+\\).+$",      # ok S1, 4, 7
+  # start_parentheses  = "^\\(.+\\).+",
+  # middle_parentheses = "^.+\\(.+\\).+$",
   # end_parentheses    = "^.+\\(.+\\)$",
   # all_parentheses    = "^\\(.+\\)$",
   # start_brackets     = "^\\[.+\\].+$",
@@ -2301,13 +2301,13 @@ check_lines <- list(
   # start_italics      = "^<i>.+</i>.+",
   # middle_italics     = "^.+<i>.+</i>.+$",
   # end_italics        = "^.+<i>.+</i>$",
-  all_italics        = "^\\<i\\>.+\\</i\\>$"  # ok S1, 4
+  all_italics        = "^\\<i\\>.+\\</i\\>$"
 )
 
 map(check_lines, \(x) {
   transcripts_clean |> 
     select(season, episode, type, speaker, speaker_note, transcript) |> 
-    filter(season == 7) |> 
+    filter(season == 1) |> 
     collect() |> 
     peek_rows(transcript, x, fmt = "g")
 })

@@ -67,50 +67,70 @@ aliases <- tribble(
   "ZACH",     "IGOR",   "alias",  "ZACH/IGOR"
 )
 
-italicized_titles <- c(
-  "50 Shades",
+italicized_titles <- tibble(original = c(
+  "50 Shades",             # 1x4
+  # 1x7
   "Trading Fire",
   "Trading Fire Five",
-  "Trading Fire Two",
   "Catch-22",
-  "Death Wish",
-  "Architectural Digest",
-  "Midnight Apocalypse",
-  "Rio Bravo",
-  "Split Second Leadership: Leading Men In The Line Of Duty.",
+  "Trading Fire Two",
+  "Death Wish",            # 1x9
+  "Architectural Digest",  # 1x11
+  "Midnight Apocalypse",   # 1x17
+  "Willy Wonka",
+  "Rio Bravo",             # 2x1
+  # 2x2
   "Split Second Leadership: Leading Men In The Line Of Duty",
   "Split Second Leadership",
-  "Downton Abbey",
-  "Aeronautics Through the Ages",
-  "Lady and the Tramp",
-  "Hot Suspect",
+  "Downton Abbey",         # 2x3
+  "Aeronautics Through the Ages", # 2x4
+  "Dead Bastards MC",      # 2x4
+  "Lady and the Tramp",    # 2x8
+  # 2x9
+  "Hot Suspect",           # and 2x12
   "The Maltese Falcon",
   "Cop Rock",
   "Candyman",
-  "Teen Rebel",
-  "The Great British Baking Show",
-  "The Godfather",
-  "Los Angeles Herald",
-  "Herald",
+  "Teen Rebel",            # 2x11
+  "The Great British Baking Show", # 2x14
+  "The Godfather",         # 2x15
+  "I Never Loved a Man",   # 2x16,
+  "Los Angeles <i>Herald</i>", # 2x16
+  # 2x17
   "Action Heist",
-  "The Bachelor",
+  "The Bachelor",          # and 4x1 and 5x19
   "The Cardinal",
-  "General Hospital",
-  "Paul's Place",
-  "Rocky",
-  "Dirty Harry.",
-  "Dirty Harry",
-  "Bosch",
-  "Top Chef",
-  "Chinatown",
+  "General Hospital",      # 3x1
+  "Paul's Place",          # 3x7
+  "Rocky",                 # 3x7
+  "Real Housewives",       # 4x1
+  "Miami Vice",            # 4x9
+  "Dirty Harry",           # 5x2
+  "Bosch",                 # 5x19
+  "Chinatown",             # 5x20
+  "Top Chef",              # 5x21
+  # 8x15
   "300 Days of Hell",
   "The Ring",
   "Scream",
   "Blair Witch Project",
   "THDOH",
-  "Dead Bastards MC", # 2x4
-  "Willy Wonka",
-  "I Never Loved a Man" #2x16
+  "Survive The Streets"
+)) |> 
+  mutate(new = original |> str_replace_all("\\s", "_"))
+
+other_proper_nouns <- c(
+  "The Badger", # 4x18
+  "LA CLEAR",
+  "L.A. CLEAR", # 5x16
+  "Eliza and Elektra",
+  "Joseph & Wells Rare Coins", # 4
+  "California State Bar", # 4
+  "Polizia Municipale di Roma", # 4x12
+  "University of Michigan", # 4x16
+  "Make Da Noise", # 4x16
+  "Big Foot", # 5x5
+  "U. S. Customs" # 5x15
 )
 
 stutter_cutoff_letters <- c(

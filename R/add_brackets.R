@@ -1,6 +1,6 @@
-#' Add brackets to unmarked description
+#' Add brackets to descriptions
 #'
-#' Some description is not italicized or contained in parentheses or brackets. This function wraps such descriptions in square brackets.
+#' Some description is not italicized or contained in parentheses or brackets. This function wraps such descriptions in square brackets. In other places, an opening bracket is missing; this function also adds the missing bracket.
 #' @param tbl 
 #'
 #' @returns
@@ -63,8 +63,13 @@ add_brackets <- function(tbl) {
         reduce2(lines$old, lines$new, \(acc, x, y) {
           str_replace(acc, coll(x), y)
         }, .init = x)
-        
-      })
+      }),
+      html = html |> 
+        str_replace(coll("Dial tone ]"), "[ Dial tone ]") |> 
+        str_replace(
+          coll("Corey screams, glass breaking ]  Breathing"),
+          "Corey screams, glass breaking ] [Breathing"
+        )
     )      
   
 }

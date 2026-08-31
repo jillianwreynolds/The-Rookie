@@ -1,7 +1,7 @@
 #' Remove colon and space separating names and dialogue
 #'
 #' Where names are separated from dialogue by a colon and space, this function replaces the colon and space with a new line so that speaker name and dialogue are on separate lines after `transcripts_to_lines()`.
-#' @param tbl A table with column `html` and where each episode's transcript is a single string.
+#' @param tbl A table with column `html` and each episode's transcript is a single string.
 #'
 #' @returns
 #' @export

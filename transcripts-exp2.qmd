@@ -1,0 +1,30 @@
+---
+title: "transcripts-exp2"
+format: html
+---
+
+```{r}
+tar_load(transcripts)
+tar_load(transcripts_html)
+tar_load(transcripts_lines)
+tar_load(transcripts_clean)
+transcripts_lines <- open_dataset(transcripts_lines, format = "parquet")
+transcripts_clean <- open_dataset(transcripts_clean, format = "parquet")
+```
+
+```{r}
+transcripts |> 
+  pre_clean() |> 
+  clean_speaker_names() |>
+  add_brackets() |>
+  add_space() |> 
+  pre_clean_lyrics() |>
+  split_transcripts() |>
+  shift_italics_tags() |> 
+  clean_previously() |> 
+  clean_scene_headings() |> 
+  select(season, episode, type, transcript) |> 
+  # filter(season == 2) |>
+  peek_rows(transcript, "\u266a", fmt = "g")
+
+```

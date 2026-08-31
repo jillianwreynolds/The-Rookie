@@ -58,5 +58,36 @@ list(
       "data/transcripts_clean.parquet"
     },
     format = "file"
-  )
+  ),
+  tar_target(
+    test_lines,
+    {
+      transcripts |> 
+        pre_clean() |> 
+        clean_speaker_names() |>
+        add_brackets() |>
+        add_space() |> 
+        split_transcripts() |>
+        write_parquet("data/test_lines.parquet")
+      "data/test_lines.parquet"
+    },
+    format = "file"
+  )#,
+  # tar_target(
+  #   test_clean,
+  #   {
+  #     open_dataset(transcripts_lines) |>
+  #       collect() |>
+  #       clean_transcripts() |>
+  #       split_italics_dialogue() |> 
+  #       split_dialogue_italicized_descriptions() |> 
+  #       left_join(
+  #         transcripts |> select(-c(pdf, html)),
+  #         by = join_by(season, episode)
+  #       ) |> 
+  #       write_parquet("data/test_clean.parquet")
+  #     "data/test_clean.parquet"
+  #   },
+  #   format = "file"
+  # )
 )

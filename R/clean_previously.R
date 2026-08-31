@@ -11,7 +11,7 @@ clean_previously <- function(tbl) {
   
   tbl |> 
     mutate(
-      type = type |> replace_when(
+      type = case_when(
         str_detect(transcript, "Previously") &
           str_detect(transcript, "(?i)Rookie")           ~ "previously"
       ),

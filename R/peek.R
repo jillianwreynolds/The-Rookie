@@ -22,7 +22,7 @@ peek_match <- function(string, pattern, before = 50, after = 50) {
     ) |>
     unlist() |>
     str_replace_all(pattern, \(m) str_c("\033[0;102m", m, "\033[0m")) |>
-    walk(cat)
+    walk(cat, "\n---\n")
 }
 
 #' Peek at rows before and after a match

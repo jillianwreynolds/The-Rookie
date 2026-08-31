@@ -142,24 +142,3 @@ stutter_cutoff_letters_pattern <- str_c(
   stutter_cutoff_letters |> str_flatten(collapse = "|"),
   ")$"
 )
-
-other_descriptions <- c(
-  "LOPEZ and WEST park in front of a convenience store.",
-  "LOPEZ and WEST are wrapping up their arrest. WEST is looking at something on his cell phone.",
-  "The mall is crowded; cops are moving, trying to secure the area. HAWKE and LOGAN are walking among the shoppers. NOLAN and HAWKE spot each other at the same time, from about 30 feet away.",
-  "ISABEL is waiting on the steps as BRADFORD comes walking up to her. She looks healthy.",
-  "LOPEZ and WEST are hauling in the formerly naked man.",
-  "DENISE comes up with a basket of muffins.",
-  "LOPEZ and WEST come up to the intake desk. The nurse from Episode 11, GINO, is there.",
-  "DENISE, BISHOP, and NOLAN are in DENISE's living room.",
-  "WEST is at a desk, looking at Mr. SCOTT's records.",
-  "SCOTT is retrieving his clothes as if about to get dressed. LOPEZ and WEST enter the room.",
-  "NOLAN goes looking for DENISE and finds her in his bed, naked under the covers.",
-  "NOLAN is on the phone with Poison Control as CHEN tries to revive DENISE.",
-  "NOLAN and BEN are putting away the party.",
-  "CHEN approaches a yard surrounded by a chain-link fence. A dog is barking continually in the yard.",
-  "LOPEZ and WEST are cruising, looking for looters.",
-  "NOLAN and RUSSO are having a late-night picnic in front of a fire pit.",
-  "JUAREZ looks around at the yard full of toys.",
-  "NOLAN and BAILEY are sitting on the sofa."
-)

@@ -10,10 +10,34 @@
 add_brackets <- function(tbl) {
   
   lines <- tibble(old = c(
+    # 1x2
+    "LOPEZ and WEST park in front of a convenience store.",
+    # 1x3
+    "LOPEZ and WEST are wrapping up their arrest. WEST is looking at something on his cell phone.",
+    # 1x6
+    "The mall is crowded; cops are moving, trying to secure the area. HAWKE and LOGAN are walking among the shoppers. NOLAN and HAWKE spot each other at the same time, from about 30 feet away.",
+    
     # 1x12
+    "ISABEL is waiting on the steps as BRADFORD comes walking up to her. She looks healthy.",
+    "LOPEZ and WEST are hauling in the formerly naked man.",
+    "DENISE comes up with a basket of muffins.",
+    "LOPEZ and WEST come up to the intake desk. The nurse from Episode 11, GINO, is there.",
+    "DENISE, BISHOP, and NOLAN are in DENISE's living room.",
+    "WEST is at a desk, looking at Mr. SCOTT's records.",
+    "SCOTT is retrieving his clothes as if about to get dressed. LOPEZ and WEST enter the room.",
+    "NOLAN goes looking for DENISE and finds her in his bed, naked under the covers.",
+    "NOLAN is on the phone with Poison Control as CHEN tries to revive DENISE.",
     "The paramedics have arrived and are taking DENISE out of the room on a gurney.",
+    "NOLAN and BEN are putting away the party.",
+    
+    # 1x14
+    "CHEN approaches a yard surrounded by a chain-link fence. A dog is barking continually in the yard.",
+    # 1x17
+    "LOPEZ and WEST are cruising, looking for looters.",
+    "NOLAN and RUSSO are having a late-night picnic in front of a fire pit.",
     # 2x20
     "WEST and LOPEZ storm the kitchen, where SERJ is trapped.",
+    
     # 4x6
     "BAILEY pulls MITCHELL's spare key from under a pot on the porch and lets herself into his house.",
     "She goes straight to a room that looks like an office and starts looking through the desk drawers, finally finding a folder marked RECEIPTS.",
@@ -24,7 +48,12 @@ add_brackets <- function(tbl) {
   "She looks over the bannister to see that MITCHELL has arrived home; as he starts up the stairs, looking over the mail in his hand, she ducks back into the office and hides in a closet.",
   "MITCHELL enters the office and tosses the mail on his desk. He sees the folder and picks up a receipt lying on the floor, looks around the room, and is about to open the closet when the doorbell rings.",
   "MITCHELL opens his front door to find NOLAN standing there.",
-  "BAILEY is sneaking downstairs and out of the house."
+  "BAILEY is sneaking downstairs and out of the house.",
+  
+  # 5x19
+  "JUAREZ looks around at the yard full of toys.",
+  "NOLAN and BAILEY are sitting on the sofa."
+  
   )) |> 
     mutate(new = str_c("[", old, "]"))
   

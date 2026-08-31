@@ -2301,16 +2301,28 @@ check_lines <- list(
   # start_italics      = "^<i>.+</i>.+",
   # middle_italics     = "^.+<i>.+</i>.+$",
   # end_italics        = "^.+<i>.+</i>$",
-  all_italics        = "^\\<i\\>.+\\</i\\>$"
+  # all_italics        = "^\\<i\\>.+\\</i\\>$",
+  caps_word            = "^[(LAPD)][A-Z]{2,}"
 )
 
 map(check_lines, \(x) {
   transcripts_clean |> 
     select(season, episode, type, speaker, speaker_note, transcript) |> 
-    filter(season == 1) |> 
+    filter(season == 2, type == "dialogue") |> 
+    filter(str_detect(transcript, "[^(LAPD)][A-Z]{3,}")) |> 
     collect() |> 
-    peek_rows(transcript, x, fmt = "g")
+    pull(transcript)
 })
+
+```
+```{r}
+
+transcripts_clean |> 
+  select(season, episode, type, speaker, speaker_note, transcript) |> 
+  filter(tra) |> 
+  collect() |> 
+  mutate(transcript = str_trunc(transcript, 28, side = "right")) |> 
+  distinct()
 
 ```
 

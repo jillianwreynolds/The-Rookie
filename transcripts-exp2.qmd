@@ -1,6 +1,8 @@
 ---
 title: "transcripts-exp2"
 format: html
+execute:
+  eval: false
 ---
 
 ```{r}
@@ -13,18 +15,30 @@ transcripts_clean <- open_dataset(transcripts_clean, format = "parquet")
 ```
 
 ```{r}
-transcripts |> 
+test <- transcripts |> 
   pre_clean() |> 
   clean_speaker_names() |>
   add_brackets() |>
   add_space() |> 
-  pre_clean_lyrics() |>
   split_transcripts() |>
   shift_italics_tags() |> 
   clean_previously() |> 
-  clean_scene_headings() |> 
-  select(season, episode, type, transcript) |> 
-  # filter(season == 2) |>
-  peek_rows(transcript, "\u266a", fmt = "g")
-
+  clean_scene_headings()
 ```
+
+```{r}
+test |> 
+  pre_clean_lyrics() |>
+  assign_speaker_names() |>
+  insert_sentinels() |> 
+  separate_at_sentinels() |> 
+  extract_speaker_note() |> 
+  # select(season, episode, type, transcript) |>
+  # select(season, episode, type, speaker, transcript) |>
+  select(season, episode, type, speaker, speaker_note, transcript) |>
+  # filter(season == 2) |>
+  # filter_out(is.na(speaker_note)) |> 
+  # filter(str_detect(transcript, "^(\\(|\\[)")) |> gt()
+  peek_rows(transcript, "\u266a", fmt = "g")
+```
+

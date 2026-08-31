@@ -40,17 +40,7 @@ all_caps_pattern <- str_c(
   ")"
 )
 
-other_scene_headings <- c(
-  "CLIPS FROM SEASON 1, EPISODE 20, \"FREE FALL\" ",
-  "PAYNE'S HOUSE - NIGHT",
-  "AERIAL VIEW OF CARAVAN ESCORTED BY 2 POLICE UNITS",
-  "OUTSIDE, TRAILER PARK",
-  "LOPEZ/EVERS HOME, NIGHT - BEDROOM",
-  "CEMETERY, DAY - REBECCA ARMSTRONG'S GRAVESITE",
-  "RESIDENTIAL STREET, DAY",
-  "NEWS CLIP - DECEMBER 5, 2022, COAST GUARD SEARCH FOR MISSING OFFICER",
-  "VIDEO CALL WITH INTERVIEWER, ABIGAIL, JENSEN ACKLES, JARED PADALECKI"
-)
+
 
 other_type_patterns <- c(
   "FADE TO LATER",
@@ -67,7 +57,9 @@ aliases <- tribble(
   "ZACH",     "IGOR",   "alias",  "ZACH/IGOR"
 )
 
-italicized_titles <- tibble(original = c(
+titles <- tibble(original = c(
+  "Dead Bastards MC",      # 1x3,
+    "Dead Bastards",       # 2x12 and 4x14
   "50 Shades",             # 1x4
   # 1x7
   "Trading Fire",
@@ -77,14 +69,14 @@ italicized_titles <- tibble(original = c(
   "Death Wish",            # 1x9
   "Architectural Digest",  # 1x11
   "Midnight Apocalypse",   # 1x17
-  "Willy Wonka",
   "Rio Bravo",             # 2x1
   # 2x2
   "Split Second Leadership: Leading Men In The Line Of Duty",
   "Split Second Leadership",
   "Downton Abbey",         # 2x3
-  "Aeronautics Through the Ages", # 2x4
-  "Dead Bastards MC",      # 2x4
+  # 2x4
+  "Aeronautics Through the Ages",
+  "Willy Wonka",           # and 5x1 and 6x6
   "Lady and the Tramp",    # 2x8
   # 2x9
   "Hot Suspect",           # and 2x12
@@ -106,6 +98,7 @@ italicized_titles <- tibble(original = c(
   "Real Housewives",       # 4x1
   "Miami Vice",            # 4x9
   "Dirty Harry",           # 5x2
+  "Avatar: The Way of Water", # 5x9
   "Bosch",                 # 5x19
   "Chinatown",             # 5x20
   "Top Chef",              # 5x21

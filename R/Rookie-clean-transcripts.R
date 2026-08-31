@@ -44,12 +44,6 @@ clean_transcripts <- function(tbl) {
         transcript
       ),
       transcript = transcript |> 
-        # remove ":\\s" separating name and dialogue; names from lower to upper
-        str_replace("(^[A-Z0-9][A-Z0-9\\s\\.\\-\\'#&,/]+):\\s", "\\1") |> 
-        str_replace(
-          "^([A-Z][a-zA-Z0-9\\s#/,]+):\\s",
-          \(x) str_remove(str_to_upper(x), ":\\s")
-        ) |> 
         # un-italicize lyrics
         str_remove("^<i>(?=\u266a)") |> 
         str_remove("(?<=\u266a)</i>") |> 

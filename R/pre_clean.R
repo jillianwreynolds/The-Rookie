@@ -12,6 +12,17 @@ pre_clean <- function(tbl) {
   tbl |> 
     mutate(
       html = html |> 
+        # remove smart quotes and line separators
+        str_replace_all("(\u201c|\u201d)", "\"") |>
+        str_replace_all("\u2018|\u2019", "'") |>
+        str_remove_all("\u2028") |> 
+        # remove title block info
+        str_remove(                   
+          "^(THE\\sROOKIE[\\s\\S]+?\"[^\"\\n]+\"[^\\S\\n]*\\n+|[\\s\\n]+)"
+        ) |> 
+        str_remove(
+          "^(THE\\sROOKIE[\\s\\S]+?\"[^\"\\n]+\"[^\\S\\n]*\\n+|[\\s\\n]+)"
+        ) |> 
         # add/remove/rearrange speaker info
         str_replace(
           coll("ANNOUNCER\nPreviously on \"The Rookie\""),

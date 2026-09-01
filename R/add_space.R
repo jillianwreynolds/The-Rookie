@@ -24,6 +24,8 @@ add_space <- function(tbl) {
         # when missing, add space between ) and next character
         str_replace_all("\\)(?=[A-Z]|\")", ") ") |> 
         str_replace_all("\\](?=[A-Z]|\")", "] ") |> 
+        # add \n between character and italics
+        str_replace_all("\\.<i>", ".\n<i>") |> 
         # manual
         # 2x12
         str_replace("</i>star", "</i> star")

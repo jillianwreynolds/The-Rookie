@@ -67,9 +67,15 @@ list(
       transcripts |> 
         pre_clean() |> 
         clean_speaker_names() |>
+        remove_translations() |> 
         add_brackets() |>
         add_space() |> 
         split_transcripts() |>
+        shift_italics_tags() |>
+        clean_previously() |> 
+        clean_scene_headings() |> 
+        clean_captions() |> 
+        clean_other() |> 
         write_parquet("data/test_lines.parquet")
       "data/test_lines.parquet"
     },

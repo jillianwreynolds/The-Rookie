@@ -45,6 +45,11 @@ shift_italics_tags <- function(tbl) {
         str_replace(
           coll("<i>(He sprays the MAN in the face and cuffs him. To NEIL)</i>"),
           "(<i>He sprays the MAN in the face and cuffs him. To NEIL</i>)"
+        ) |> 
+        # 4x1
+        str_replace(
+          coll("<i>DE LA CRUZ, her</i> <i>sicarios, and DR. MORALES"),
+          "<i>DE LA CRUZ, her sicarios, and DR. MORALES"
         )
     )
    

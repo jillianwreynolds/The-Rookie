@@ -51,6 +51,10 @@ pre_clean <- function(tbl) {
           coll("NOLAND and BAILEY are sitting on the sofa."),
           "NOLAN and BAILEY are sitting on the sofa."
         ) |> 
+        str_replace(
+          coll("barricaded inside a bulding"),
+          "barricaded inside a building"
+        ) |> 
         
         # punctuation
         str_replace(

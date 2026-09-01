@@ -21,6 +21,7 @@ test <- transcripts |>
   remove_translations() |> 
   add_brackets() |>
   add_space() |> 
+  replace_italics() |> 
   split_transcripts() |>
   shift_italics_tags() |>
   clean_previously() |> 
@@ -42,12 +43,12 @@ test |>
   # select(season, episode, type, speaker, transcript) |>
   select(season, episode, type, speaker, speaker_note, transcript) |>
   # filter(season == 3) |>
-  # filter(season == 2, episode == 10) |>
+  filter(season == 3, episode == 14) |>
   # filter_out(is.na(speaker_note)) |> 
   # filter(str_detect(transcript, "^(\\(|\\[)")) |> gt()
   # count(type)
-  # peek_rows(transcript, "head in the game", fmt = "g")
-  peek_rows(transcript, "^<i>.+</i>.+", fmt = "g")
+  peek_rows(transcript, "who works for DE LA CRUZ", fmt = "g")
+  # peek_rows(transcript, "^<i>.+</i>.+", fmt = "g")
   # peek_rows(transcript, ".+<i>.+</i>.*", fmt = "g")
 
 ```

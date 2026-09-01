@@ -59,7 +59,10 @@ add_brackets <- function(tbl) {
   "A montage plays showing time passing, PENN and RIDLEY staking out STOWE's house, NOLAN talking to BAILEY on the phone, the Baja backup team watching the beach.",
   "CHEN and HARPER drive up and park the van.",
   # 8x10
-  "NOLAN and DASH come across a half-filled swimming pool and find a woman standing in it, trying to hide."
+  "NOLAN and DASH come across a half-filled swimming pool and find a woman standing in it, trying to hide.",
+  "DASH yells and jumps into the pool to help NOLAN subdue the attacker.",
+  "PENN hits several of them with beanbag ammo; the rest keep coming. NOLAN, DASH, and KAYLEIGH are being chased down another street.",
+  "Several patrol cars pull into the area, lights and sirens going. BRADFORD steps out of one of them as officers take down attackers with beanbags and hand-to-hand fighting."
   )) |> 
     mutate(new = str_c("[", old, "]"))
   

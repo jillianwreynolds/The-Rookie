@@ -33,6 +33,10 @@ pre_clean <- function(tbl) {
           "KAI (singing low in Italian)"
         ) |> 
         str_replace(
+          coll("BRADFORD You think it's a bad idea"),
+          "BRADFORD\nYou think it's a bad idea"
+        ) |> 
+        str_replace(
           coll("[ Gunshots, people screaming ]\nHelp us! He's got a gun!"),
           "[ Gunshots, people screaming ]\nWOMAN\nHelp us! He's got a gun!"
         ) |> 

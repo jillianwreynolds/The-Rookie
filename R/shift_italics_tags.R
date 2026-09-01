@@ -36,6 +36,15 @@ shift_italics_tags <- function(tbl) {
         str_replace(
           coll("<i>As</i> <i>CHEN struggles to break free of her restraints"),
           "<i>As CHEN struggles to break free of her restraints"
+        ) |> 
+        # 2x15
+        str_replace(
+          coll("NOLAN <i>climbs up the ladder"),
+          "<i>NOLAN climbs up the ladder"
+        ) |> 
+        str_replace(
+          coll("<i>(He sprays the MAN in the face and cuffs him. To NEIL)</i>"),
+          "(<i>He sprays the MAN in the face and cuffs him. To NEIL</i>)"
         )
     )
    

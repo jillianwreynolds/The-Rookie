@@ -26,7 +26,9 @@ list(
   tar_target(
     transcripts_parquet,
     {
-      transcripts |> write_parquet("data/transcripts_parquet.parquet")
+      transcripts |> 
+        select(season, episode, title) |> 
+        write_parquet("data/transcripts_parquet.parquet")
       "data/transcripts_parquet.parquet"
     },
     format = "file"

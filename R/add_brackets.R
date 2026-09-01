@@ -35,6 +35,8 @@ add_brackets <- function(tbl) {
     # 1x17
     "LOPEZ and WEST are cruising, looking for looters.",
     "NOLAN and RUSSO are having a late-night picnic in front of a fire pit.",
+    # 2x15
+    "BRADFORD is chasing the man. COLIN puts his arm out and stops the suspect.",
     # 2x20
     "WEST and LOPEZ storm the kitchen, where SERJ is trapped.",
     # 3x7

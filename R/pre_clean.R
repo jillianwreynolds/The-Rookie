@@ -38,6 +38,9 @@ pre_clean <- function(tbl) {
           "KAI (singing low in Italian)"
         ) |> 
         
+        # capitalization
+        str_replace_all(coll("OLIVIA's MOM"), "OLIVIA'S MOM") |>  # 5x19
+        
         # typos
         str_replace( # 1x12
           coll("NOLAND and BEN are putting away the party."),

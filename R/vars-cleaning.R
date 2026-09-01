@@ -1,25 +1,3 @@
-captions <- c(
-  "OPENING TITLESTHE ROOKIE",
-  "NINE MONTHS LATER",
-  "TWO WEEKS LATER",
-  "\"ONE MONTH LATER\"",
-  "\"DAY 2\"",
-  "\"DAY 4\"",
-  "97 MINUTES EARLIER",
-  "6 WEEKS LATER",
-  "TO BE CONTINUED...",
-  "12 HOURS EARLIER",
-  "EMERGENCY ALERT",
-  "BALLISTIC MISSILE THREAT",
-  "INBOUND TO LOS ANGELES",
-  "SEEK IMMEDIATE SHELTER",
-  "IMPACT IN 29 MINUTES",
-  "THIS IS NOT A DRILL",
-  "IN TRAILER",
-  "DETECTIVES' BULLPEN",
-  "THREE MONTHS LATER"
-)
-
 all_caps_start_words <- c(
   "L\\.A\\.P\\.D\\.",
   "L\\.A\\.",
@@ -38,13 +16,6 @@ all_caps_pattern <- str_c(
   "^(",
   all_caps_start_words |> str_flatten(collapse = "|"),
   ")"
-)
-
-
-
-other_type_patterns <- c(
-  "FADE TO LATER",
-  "OVERHEAD VIEW OF CARAVAN"
 )
 
 aliases <- tribble(

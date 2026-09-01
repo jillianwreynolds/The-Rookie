@@ -2,6 +2,7 @@ insert_sentinels <- function(tbl) {
   
   tbl |> 
     mutate(
+      # when type isn't italics and () or [] don't appear at both start and end
       transcript = if_else(
         when_all(
           type != "italics",

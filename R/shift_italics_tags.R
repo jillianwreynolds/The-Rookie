@@ -17,7 +17,26 @@ shift_italics_tags <- function(tbl) {
         str_detect(transcript, "<i>\\("),
         str_replace_all(transcript, "</i>\\)", "\\)</i>"),
         transcript
-      )
+      ),
+      transcript = transcript |> 
+        # 2x5
+        str_replace(
+          coll("<i>JOHN</i> <i>NOLAN is plastering the interior wall"),
+          "<i>JOHN NOLAN is plastering the interior wall"
+        ) |> 
+        str_replace(
+          coll("<i>DAISY</i> <i>turns to face CHEN, BRADFORD, and HILDA</i>"),
+          "<i>DAISY turns to face CHEN, BRADFORD, and HILDA.</i>"
+        ) |> 
+        # 2x11
+        str_replace(
+          coll("<i>JOHN</i> <i>NOLAN's television is on and he's"),
+          "<i>JOHN NOLAN's television is on and he's"
+        ) |> 
+        str_replace(
+          coll("<i>As</i> <i>CHEN struggles to break free of her restraints"),
+          "<i>As CHEN struggles to break free of her restraints"
+        )
     )
    
 }

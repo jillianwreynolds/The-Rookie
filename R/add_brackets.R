@@ -54,6 +54,8 @@ add_brackets <- function(tbl) {
   "MITCHELL opens his front door to find NOLAN standing there.",
   "BAILEY is sneaking downstairs and out of the house.",
   
+  # 4x22
+  "At the diner, NOLAN has been disarmed and is being repeatedly shoved against the wall and throttled; he reaches over to ELROY, who hands him a plate. Breaking the plate on the thug's head seems to have little effect, but the second one enables NOLAN to get in a knockout punch.",
   # 5x19
   "JUAREZ looks around at the yard full of toys.",
   "NOLAN and BAILEY are sitting on the sofa.",

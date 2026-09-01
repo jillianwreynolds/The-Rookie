@@ -9,7 +9,6 @@ clean_captions <- function(tbl) {
     "\"DAY 4\"",
     "97 MINUTES EARLIER",
     "6 WEEKS LATER",
-    "TO BE CONTINUED",
     "12 HOURS EARLIER",
     "EMERGENCY ALERT",
     "BALLISTIC MISSILE THREAT",
@@ -25,8 +24,8 @@ clean_captions <- function(tbl) {
   tbl |> 
     mutate(
       type = type |> replace_when(
-        transcript %in% captions                              ~ "caption",
-        str_detect(transcript, "^TO\\sBE\\sCONTINUED\\.{3}$") ~ "caption"
+        transcript %in% captions                                    ~ "caption",
+        str_detect(transcript, "TO\\sBE\\sCONTINUED[\\.{3}|\u2026]") ~ "caption"
       )
     )
   

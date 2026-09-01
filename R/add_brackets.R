@@ -37,6 +37,8 @@ add_brackets <- function(tbl) {
     "NOLAN and RUSSO are having a late-night picnic in front of a fire pit.",
     # 2x20
     "WEST and LOPEZ storm the kitchen, where SERJ is trapped.",
+    # 3x7
+    "The scene switches to the interrogation room, with LOPEZ and AURORA/DEBBIE inside.",
     
     # 4x6
     "BAILEY pulls MITCHELL's spare key from under a pot on the porch and lets herself into his house.",
@@ -52,8 +54,12 @@ add_brackets <- function(tbl) {
   
   # 5x19
   "JUAREZ looks around at the yard full of toys.",
-  "NOLAN and BAILEY are sitting on the sofa."
-  
+  "NOLAN and BAILEY are sitting on the sofa.",
+  # 8x7
+  "A montage plays showing time passing, PENN and RIDLEY staking out STOWE's house, NOLAN talking to BAILEY on the phone, the Baja backup team watching the beach.",
+  "CHEN and HARPER drive up and park the van.",
+  # 8x10
+  "NOLAN and DASH come across a half-filled swimming pool and find a woman standing in it, trying to hide."
   )) |> 
     mutate(new = str_c("[", old, "]"))
   
@@ -65,11 +71,18 @@ add_brackets <- function(tbl) {
         }, .init = x)
       }),
       html = html |> 
-        str_replace(coll("Dial tone ]"), "[ Dial tone ]") |> 
+        # 1x14
+        str_replace(
+          "NOLAN nods.\nLYNN\nPlease\\.",
+          "[NOLAN nods.]\nLYNN\nPlease\\."
+        ) |> 
+        # 3x7
         str_replace(
           coll("Corey screams, glass breaking ]  Breathing"),
           "Corey screams, glass breaking ] [Breathing"
-        )
-    )      
+        ) |> 
+        # 4x7
+        str_replace(coll("Dial tone ]"), "[ Dial tone ]")
+    )
   
 }

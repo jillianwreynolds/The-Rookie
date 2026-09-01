@@ -18,27 +18,47 @@ transcripts_clean <- open_dataset(transcripts_clean, format = "parquet")
 test <- transcripts |> 
   pre_clean() |> 
   clean_speaker_names() |>
+  remove_translations() |> 
   add_brackets() |>
   add_space() |> 
   split_transcripts() |>
-  shift_italics_tags() |> 
+  shift_italics_tags() |>
   clean_previously() |> 
-  clean_scene_headings()
+  clean_scene_headings() |> 
+  clean_captions() |> 
+  clean_other() |> 
+  pre_clean_lyrics() |> 
+  arrow_table()
+```
+
+```{r}
+test |> 
+  collect() |> 
+  assign_speaker_names() |>
+  insert_sentinels() |>
+  # separate_at_sentinels() |> 
+  extract_speaker_note() |>
+  # select(season, episode, type, transcript) |>
+  # select(season, episode, type, speaker, transcript) |>
+  select(season, episode, type, speaker, speaker_note, transcript) |>
+  # filter(season == 3) |>
+  # filter(season == 2, episode == 10) |>
+  # filter_out(is.na(speaker_note)) |> 
+  # filter(str_detect(transcript, "^(\\(|\\[)")) |> gt()
+  # count(type)
+  # peek_rows(transcript, "head in the game", fmt = "g")
+  peek_rows(transcript, "^<i>.+</i>.+", fmt = "g")
+  # peek_rows(transcript, ".+<i>.+</i>.*", fmt = "g")
+
 ```
 
 ```{r}
 test |> 
   pre_clean_lyrics() |>
   assign_speaker_names() |>
-  insert_sentinels() |> 
-  separate_at_sentinels() |> 
-  extract_speaker_note() |> 
-  # select(season, episode, type, transcript) |>
-  # select(season, episode, type, speaker, transcript) |>
+  insert_sentinels() |>
+  extract_speaker_note() |>
   select(season, episode, type, speaker, speaker_note, transcript) |>
-  # filter(season == 2) |>
-  # filter_out(is.na(speaker_note)) |> 
-  # filter(str_detect(transcript, "^(\\(|\\[)")) |> gt()
-  peek_rows(transcript, "\u266a", fmt = "g")
+  peek_rows(transcript, "^<i>.+</i>\\s[A-Z0-9]", fmt = "g")
 ```
 

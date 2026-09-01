@@ -62,7 +62,12 @@ add_brackets <- function(tbl) {
   "NOLAN and DASH come across a half-filled swimming pool and find a woman standing in it, trying to hide.",
   "DASH yells and jumps into the pool to help NOLAN subdue the attacker.",
   "PENN hits several of them with beanbag ammo; the rest keep coming. NOLAN, DASH, and KAYLEIGH are being chased down another street.",
-  "Several patrol cars pull into the area, lights and sirens going. BRADFORD steps out of one of them as officers take down attackers with beanbags and hand-to-hand fighting."
+  "Several patrol cars pull into the area, lights and sirens going. BRADFORD steps out of one of them as officers take down attackers with beanbags and hand-to-hand fighting.",
+  # also 8x10
+  "DASH checks his phone for a signal. There is none.",
+  "A group of \"zombies\" are chasing PENN down a street.",
+  "HARPER, NOLAN, DASH, and KAYLEIGH are barricaded inside a building with zombies banging on the doors.",
+  "PENN appears with the beanbag rifle and takes out some of their pursuers."
   )) |> 
     mutate(new = str_c("[", old, "]"))
   

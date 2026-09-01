@@ -21,6 +21,20 @@ clean_speaker_names <- function(tbl) {
         str_replace(coll("Woman: Hear, hear."), "WOMAN\nHear, hear.") |>  # 4x18
         str_replace_all(coll("Operator: "), "OPERATOR\n") |>              # 7x15
         str_replace_all(coll("Caller: "), "CALLER\n") |> 
-        str_replace(coll("BRADFORD/CHEN: Yeah"), "BRADFORD/CHEN\nYeah")   # 8x4
+        str_replace(coll("BRADFORD/CHEN: Yeah"), "BRADFORD/CHEN\nYeah") |># 8x4
+        # 1x15
+        str_replace( 
+          coll("BRADFORD You think it's a bad idea"),
+          "BRADFORD\nYou think it's a bad idea"
+        ) |> 
+        # 2x6
+        str_replace( 
+          coll("CHEN Hey! Hands on the hood"),
+          "CHEN\nHey! Hands on the hood"
+        ) |> 
+        str_replace(
+          coll("NICKERSON Now. Come on"),
+          "NICKERSON\nNow. Come on"
+        )
     )
 }

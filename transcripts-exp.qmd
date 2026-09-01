@@ -2315,14 +2315,3 @@ map(check_lines, \(x) {
 })
 
 ```
-```{r}
-
-transcripts_clean |> 
-  select(season, episode, type, speaker, speaker_note, transcript) |> 
-  filter(tra) |> 
-  collect() |> 
-  mutate(transcript = str_trunc(transcript, 28, side = "right")) |> 
-  distinct()
-
-```
-

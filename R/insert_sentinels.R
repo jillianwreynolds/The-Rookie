@@ -29,11 +29,13 @@ insert_sentinels <- function(tbl) {
           # between description and description
           str_replace_all("(?<=[\\]|\\)])\\s(?=[\\[|\\(])", blue_square) |> 
           # before ???
-          # str_replace_all("(?<=</i>)(?:.+)\\s(?=\\()", blue_diamond) |> 
+          str_replace_all(
+            "(?<=</i>)(.+)\\s(?=\\()", paste0("\\1", blue_diamond)
+          ) |> 
           # after ???
-          # str_replace_all(
-          #   "(\\))\\s(?=[A-Z\\d\"])", paste0("\\1", orange_diamond)
-          # ) |> 
+          str_replace_all(
+            "(\\))\\s(?=[A-Z\\d\"])", paste0("\\1", orange_diamond)
+          ) |>
           # between </i> and dialogue
           str_replace_all(
             "(?<=[\\.\\!\\?\\)]</i>)\\s(?=[A-Z\\d\"])",

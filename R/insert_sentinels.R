@@ -41,6 +41,7 @@ insert_sentinels <- function(
           # 🔵 between </i> and () or [] description
           str_replace_all("(?<=</i>)\\s(?=[\\[|\\(])", blue_circle) |> 
           # 🟣 between </i> and dialogue
+          # excludes italicized dialogue by requiring punctuation before </i>
           str_replace_all(
             "(?<=[\\.\\!\\?\\)]</i>)\\s(?=[A-Z\\d\"])",
             purple_circle

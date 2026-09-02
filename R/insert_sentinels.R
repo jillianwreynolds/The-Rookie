@@ -3,10 +3,12 @@ insert_sentinels <- function(
 ) {
   
   symbols_list <- c(
+    # non-italics lines
     red_circle, red_loop, red_cross,
+    # italics lines
     blue_square,
     blue_circle, purple_circle,
-    blue_diamond, orange_diamond
+    blue_diamond, red_square, orange_diamond
   )
   
   tbl <- tbl |> 
@@ -44,10 +46,12 @@ insert_sentinels <- function(
             purple_circle
           ) |> 
           # 🔷 after italics and dialogue and before description (like red_loop)
+          # only () and [] description; not when dialogue is followed by italics
           str_replace_all(
-            "(?<=</i>)(.+)\\s(?=\\()", paste0("\\1", blue_diamond)
+            "(?<=</i>)(.+)\\s(?=\\(|\\[)", paste0("\\1", blue_diamond)
           ) |> 
-          # 🟪 between dialogue and description/italics
+          # 🟥 between dialogue and italicized description
+          str_replace_all("(?<=[\\.\"\\!])\\s(?=<i>)", red_square) |> 
           # 🔶 after description (like red_cross)
           str_replace_all(
             "(?<=</i>)(.+[\\]\\)])\\s(?=[A-Z\\d\"])",

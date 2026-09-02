@@ -28,8 +28,11 @@ test_base <- transcripts |>
   clean_scene_headings() |> 
   clean_captions() |> 
   clean_other() |> 
-  pre_clean_lyrics() 
+  pre_clean_lyrics()
 
+```
+
+```{r}
 test <- test_base |> 
   arrow_table()
 
@@ -54,25 +57,25 @@ test3a <- test_base |>
   insert_sentinels(multiple_symbols = FALSE) |> 
   extract_speaker_note() |> 
   arrow_table()
-
 ```
+
 
 ```{r}
 test |> 
-  collect() |> 
-  assign_speaker_names() |>
-  insert_sentinels() |>
-  # separate_at_sentinels() |> 
-  extract_speaker_note() |>
-  # select(season, episode, type, transcript) |>
+  select(season, episode, type, transcript) |>
   # select(season, episode, type, speaker, transcript) |>
-  select(season, episode, type, speaker, speaker_note, transcript) |>
+  # select(season, episode, type, speaker, speaker_note, transcript) |>
   # filter(season == 3) |>
-  filter(season == 3, episode == 14) |>
+  filter(season == 3, episode == 1) |>
+  collect() |> 
+  # assign_speaker_names() |>
+  # insert_sentinels() |>
+  # separate_at_sentinels() |> 
+  # extract_speaker_note() |>
   # filter_out(is.na(speaker_note)) |> 
   # filter(str_detect(transcript, "^(\\(|\\[)")) |> gt()
   # count(type)
-  peek_rows(transcript, "memory for faces", fmt = "g")
+  peek_rows(transcript, "Birds singing", fmt = "g")
   # peek_rows(transcript, "^<i>.+</i>.+", fmt = "g")
   # peek_rows(transcript, ".+<i>.+</i>.*", fmt = "g")
 
@@ -88,12 +91,32 @@ test2 |>
   select(season, episode, type, speaker, speaker_note, transcript) |> 
   collect() |> 
   peek_rows(transcript, ".+<i>.+</i>.*", fmt = "g")
+```
+
+```{r}
+
+test2 |> 
+  select(season, episode, type, speaker, speaker_note, transcript) |> 
+  collect() |> 
+  peek_rows(transcript, "\u266a", fmt = "g")
 
 test3 |> 
   select(season, episode, type, speaker, speaker_note, transcript) |> 
   # filter(season == 1) |> 
   collect() |> 
-  peek_rows(transcript, "\266a", fmt = "g")
+  peek_rows(transcript, "\u266a", fmt = "g")
+
+```
+
+```{r}
+
+tibble(x = c(
+  test3 |> 
+    select(season, episode, type, speaker, speaker_note, transcript) |> 
+    filter(str_detect(transcript, "\u266a")) |> 
+    collect() |> 
+    pull(transcript)
+)) |> separate_longer_delim(x, brown_square)
 
 ```
 
@@ -101,13 +124,15 @@ test3 |>
 #| label: check-sentinels
 
 test3 |> check_sentinel(red_circle)     |> gt()
-test3 |> check_sentinel(red_loop)       |> gt()  # 2
+test3 |> check_sentinel(brown_square)   |> gt()  # 2
+test3 |> check_sentinel(brown_circle)   |> gt()
+test3 |> check_sentinel(red_loop)       |> gt()  # 4
 test3 |> check_sentinel(red_cross)      |> gt()
-test3 |> check_sentinel(blue_square)    |> gt()  # 4
+test3 |> check_sentinel(blue_square)    |> gt()  # 6
 test3 |> check_sentinel(blue_circle)    |> gt()
-test3 |> check_sentinel(purple_circle)  |> gt()  # 6
+test3 |> check_sentinel(purple_circle)  |> gt()  # 8
 test3 |> check_sentinel(blue_diamond)   |> gt()
-test3 |> check_sentinel(red_square)     |> gt()  # 8
+test3 |> check_sentinel(red_square)     |> gt()  # 10
 test3 |> check_sentinel(orange_diamond) |> gt()
 
 ```
@@ -142,7 +167,6 @@ test3a |>
   peek_rows(transcript, "<i>|\\(|\\[", fmt = "g")
 ```
 
-
 ```{r}
 #| label: check-ms-names
 
@@ -165,10 +189,3 @@ c(
 
 # ^[A-Z\']+\sand\s[A-Z]+\s?[A-Z]+
 ```
-
-```{r}
-
-t
-
-```
-

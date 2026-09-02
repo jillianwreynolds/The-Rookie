@@ -9,13 +9,13 @@ insert_sentinels <- function(tbl) {
       transcript = if_else(
         type != "italics",
         transcript |> 
-          # before [ or (
+          # 🔴 before [ or (
           str_replace_all("\\s(?=[\\[|\\(])", red_circle) |> 
           # after ] or )
           str_replace_all("(?<=[\\]|\\)])\\s", red_circle) |> 
-          # before <i>(
+          # ⭕ before <i>(
           str_replace_all("\\s(?=<i>\\()", red_loop) |> 
-          # after )</i>
+          # ❌ after )</i>
           str_replace_all("(?<=\\)</i>)\\s", red_cross),
         transcript,
       ),
@@ -24,24 +24,24 @@ insert_sentinels <- function(tbl) {
       transcript = if_else(
         type == "italics",
         transcript |> 
-          # between </i> and description
+          # 🔵 between </i> and description
           str_replace_all("(?<=</i>)\\s(?=[\\[|\\(])", blue_circle) |> 
-          # between description and description
-          str_replace_all("(?<=[\\]|\\)])\\s(?=[\\[|\\(])", blue_square) |> 
-          # before ???
-          str_replace_all(
-            "(?<=</i>)(.+)\\s(?=\\()", paste0("\\1", blue_diamond)
-          ) |> 
-          # after ???
-          str_replace_all(
-            "(\\))\\s(?=[A-Z\\d\"])", paste0("\\1", orange_diamond)
-          ) |>
-          # between </i> and dialogue
+          # 🟣 between </i> and dialogue
           str_replace_all(
             "(?<=[\\.\\!\\?\\)]</i>)\\s(?=[A-Z\\d\"])",
             purple_circle
           ) |> 
-          # between dialogue and description/italics
+          # italics then dialogue then 🔷 before description
+          str_replace_all(
+            "(?<=</i>)(.+)\\s(?=\\()", paste0("\\1", blue_diamond)
+          ) |> 
+          # 🔶 after description
+          str_replace_all(
+            "(\\))\\s(?=[A-Z\\d\"])", paste0("\\1", orange_diamond)
+          ) |>
+          # 🟦 between description and description
+          str_replace_all("(?<=[\\]|\\)])\\s(?=[\\[|\\(])", blue_square) |> 
+          # 🟪 between dialogue and description/italics
           str_replace_all(
             "(?<=[\\.\"\\!])\\s(\\(|\\[|<i>)",
             paste0(purple_square, "\\1")

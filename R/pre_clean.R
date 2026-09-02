@@ -37,8 +37,18 @@ pre_clean <- function(tbl) {
           coll("[ Kai singing low in Italian ]"),
           "KAI (singing low in Italian)"
         ) |> 
+        # 5x19
+        str_replace(
+          coll("<i>BLANCA\nCelina, vamos! [ giggles ]</i>"),
+          "BLANCA (in memory)\nCelina, vamos! [ giggles ]"
+        ) |> 
+        str_replace(
+          coll("<i>CHILDREN\nCelina!</i>"),
+          "CHILDREN (in memory)\nCelina!"
+        ) |> 
         
         # capitalization
+        str_replace(coll("GREY's VOICE"), "GREY'S VOICE") |>  # 3x4
         str_replace_all(coll("OLIVIA's MOM"), "OLIVIA'S MOM") |>  # 5x19
         
         # typos

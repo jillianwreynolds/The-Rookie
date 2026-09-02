@@ -15,7 +15,7 @@ transcripts_clean <- open_dataset(transcripts_clean, format = "parquet")
 ```
 
 ```{r}
-test <- transcripts |> 
+test_base <- transcripts |> 
   pre_clean() |> 
   clean_speaker_names() |>
   remove_translations() |> 
@@ -28,7 +28,20 @@ test <- transcripts |>
   clean_scene_headings() |> 
   clean_captions() |> 
   clean_other() |> 
-  pre_clean_lyrics() |> 
+  pre_clean_lyrics() 
+
+test <- test_base |> 
+  arrow_table()
+
+test2 <- test_base |> 
+  assign_speaker_names() |> 
+  extract_speaker_note() |> 
+  arrow_table()
+
+test3 <- test_base |> 
+  assign_speaker_names() |> 
+  insert_sentinels() |> 
+  extract_speaker_note() |> 
   arrow_table()
 ```
 
@@ -47,19 +60,43 @@ test |>
   # filter_out(is.na(speaker_note)) |> 
   # filter(str_detect(transcript, "^(\\(|\\[)")) |> gt()
   # count(type)
-  peek_rows(transcript, "who works for DE LA CRUZ", fmt = "g")
+  peek_rows(transcript, "memory for faces", fmt = "g")
   # peek_rows(transcript, "^<i>.+</i>.+", fmt = "g")
   # peek_rows(transcript, ".+<i>.+</i>.*", fmt = "g")
 
 ```
 
 ```{r}
+test2 |> 
+  select(season, episode, type, speaker, speaker_note, transcript) |>
+  collect() |> 
+  peek_rows(transcript, "^<i>.+</i>.+", fmt = "g")
+
+test2 |> 
+  select(season, episode, type, speaker, speaker_note, transcript) |> 
+  collect() |> 
+  peek_rows(transcript, ".+<i>.+</i>.*", fmt = "g")
+
 test |> 
-  pre_clean_lyrics() |>
+  collect() |> 
   assign_speaker_names() |>
   insert_sentinels() |>
   extract_speaker_note() |>
-  select(season, episode, type, speaker, speaker_note, transcript) |>
-  peek_rows(transcript, "^<i>.+</i>\\s[A-Z0-9]", fmt = "g")
+  select(season, episode, type, speaker, speaker_note, transcript) |> 
+  filter(season == 1) |> 
+  peek_rows(transcript, "<i>|\\(|\\[", fmt = "g")
+
+```
+
+```{r}
+test3 |> check_sentinel(red_circle)     |> gt()
+test3 |> check_sentinel(red_loop)       |> gt()
+test3 |> check_sentinel(red_cross)      |> gt()
+test3 |> check_sentinel(blue_circle)    |> gt()
+test3 |> check_sentinel(blue_square)    |> gt()
+test3 |> check_sentinel(blue_diamond)   |> gt()
+test3 |> check_sentinel(orange_diamond) |> gt()
+test3 |> check_sentinel(purple_circle)  |> gt()
+test3 |> check_sentinel(purple_square)  |> gt()
 ```
 

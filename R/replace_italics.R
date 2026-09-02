@@ -2,6 +2,7 @@ replace_italics <- function(tbl) {
   
   lines <- tibble(old = c(
     "<i>CHEN turns her phone off and puts it away.</i>",  # 2x10
+    "<i>Sees the car.</i>",  # 2x15
     # 3x14
     "I'm not so sure. <i>Gun cocks.</i> I have a very good memory for faces.",
     "I'm coming! <i>A man, who works for DE LA CRUZ, is standing with a gun pointing at Lopez.</i>",

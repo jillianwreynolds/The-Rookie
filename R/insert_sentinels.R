@@ -24,7 +24,10 @@ insert_sentinels <- function(tbl) {
       transcript = if_else(
         type == "italics",
         transcript |> 
-          # 🔵 between </i> and description
+          # 🟦 between description and description
+          str_replace_all("(?<=[\\]|\\)])\\s(?=[\\[|\\(])", blue_square) |> 
+          str_replace_all("(?<=</i>)\\s(?=<i>)", blue_square) |> 
+          # 🔵 between </i> and () or [] description
           str_replace_all("(?<=</i>)\\s(?=[\\[|\\(])", blue_circle) |> 
           # 🟣 between </i> and dialogue
           str_replace_all(

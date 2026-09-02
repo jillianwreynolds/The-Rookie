@@ -24,6 +24,12 @@ insert_sentinels <- function(
           str_replace_all("\\s(?=[\\[|\\(])", red_circle) |> 
           # 🔴 after ] or )
           str_replace_all("(?<=[\\]|\\)])\\s", red_circle) |> 
+          # 🟫 between lyrics lines " ♪ ♪ "
+          str_replace_all("(?<=\u266a)\\s(?=\u266a)", brown_square) |> 
+          # 🟤 between dialogue and lyrics
+          str_replace_all("(?<!\\))\\s(?=\u266a\\s)", brown_circle) |> 
+          # manually adjust 🟤 when dialogue -> lyrics -> dialogue
+          str_replace(coll("sexy🟤♪ It's--it's"), "sexy ♪🟤It's--it's") |> 
           # ⭕ before <i>(
           str_replace_all("\\s(?=<i>\\()", red_loop) |> 
           # ❌ after )</i>

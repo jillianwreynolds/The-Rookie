@@ -1,7 +1,7 @@
 clean_captions <- function(tbl) {
   
   captions <- c(
-    "OPENING TITLESTHE ROOKIE",
+    "OPENING TITLES: THE ROOKIE",
     "NINE MONTHS LATER",
     "TWO WEEKS LATER",
     "\"ONE MONTH LATER\"",

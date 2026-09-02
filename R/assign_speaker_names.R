@@ -5,7 +5,9 @@ assign_speaker_names <- function(tbl) {
     "^ACTOR![A-Z]+$",
     "^[A-Z][a-z]{1,2}[A-Z]+$",
     # identifies speakers whose name is followed by () description
-    "^[A-Z0-9][A-Z0-9\\s\\.\\-\\'#&,/]+\\s[\\[|\\(].+[\\]|\\)]$"
+    "^[A-Z0-9][A-Z0-9\\s\\.\\-\\'#&,/]+\\s[\\[|\\(].+[\\]|\\)]$",
+    # multi-speaker names separated by "and"
+    "^[A-Z\']+\\sand\\s[A-Z]+\\s?[A-Z]+$"
   ) |> 
     str_flatten(collapse = "|")
   

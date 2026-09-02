@@ -1,6 +1,15 @@
-insert_sentinels <- function(tbl) {
+insert_sentinels <- function(
+    tbl, multiple_symbols = TRUE, symbol = red_circle
+) {
   
-  tbl |> 
+  symbols_list <- c(
+    red_circle, red_loop, red_cross,
+    blue_square,
+    blue_circle, purple_circle,
+    blue_diamond, orange_diamond
+  )
+  
+  tbl <- tbl |> 
     mutate(
       # remove duplicate spaces
       transcript = transcript |> str_replace_all("(?<=.)\\s{2}(?=.)", " "),
@@ -34,12 +43,10 @@ insert_sentinels <- function(tbl) {
             "(?<=[\\.\\!\\?\\)]</i>)\\s(?=[A-Z\\d\"])",
             purple_circle
           ) |> 
-          # italics then dialogue then 🔷 before description
+          # 🔷 after italics and dialogue and before description (like red_loop)
           str_replace_all(
             "(?<=</i>)(.+)\\s(?=\\()", paste0("\\1", blue_diamond)
           ) |> 
-          # 🟦 between description and description
-          str_replace_all("(?<=[\\]|\\)])\\s(?=[\\[|\\(])", blue_square) |> 
           # 🟪 between dialogue and description/italics
           # 🔶 after description (like red_cross)
           str_replace_all(
@@ -49,5 +56,16 @@ insert_sentinels <- function(tbl) {
         transcript
       )
     )
+  
+  if (multiple_symbols == TRUE) {
+    tbl
+  } else {
+    tbl |> 
+      mutate(
+        transcript = reduce(symbols_list, \(acc, s) {
+          str_replace_all(acc, s, symbol)
+        }, .init = transcript)
+      )
+  }
   
 }

@@ -42,7 +42,7 @@ symbols <- list(
   )
 )
 
-list2env(symbols, .GlobalEnv)
+symbols |> list_flatten(name_spec = "{inner}") |>list2env(.GlobalEnv)
 
 symbols_tbl <- tibble(x = symbols) |> 
   unnest_longer(x, values_to = "symbol") |> 

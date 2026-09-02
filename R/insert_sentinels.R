@@ -11,7 +11,7 @@ insert_sentinels <- function(tbl) {
         transcript |> 
           # 🔴 before [ or (
           str_replace_all("\\s(?=[\\[|\\(])", red_circle) |> 
-          # after ] or )
+          # 🔴 after ] or )
           str_replace_all("(?<=[\\]|\\)])\\s", red_circle) |> 
           # ⭕ before <i>(
           str_replace_all("\\s(?=<i>\\()", red_loop) |> 
@@ -35,16 +35,13 @@ insert_sentinels <- function(tbl) {
           str_replace_all(
             "(?<=</i>)(.+)\\s(?=\\()", paste0("\\1", blue_diamond)
           ) |> 
-          # 🔶 after description
-          str_replace_all(
-            "(\\))\\s(?=[A-Z\\d\"])", paste0("\\1", orange_diamond)
-          ) |>
           # 🟦 between description and description
           str_replace_all("(?<=[\\]|\\)])\\s(?=[\\[|\\(])", blue_square) |> 
           # 🟪 between dialogue and description/italics
+          # 🔶 after description (like red_cross)
           str_replace_all(
-            "(?<=[\\.\"\\!])\\s(\\(|\\[|<i>)",
-            paste0(purple_square, "\\1")
+            "(?<=</i>)(.+[\\]\\)])\\s(?=[A-Z\\d\"])",
+            paste0("\\1", orange_diamond)
           ),
         transcript
       )

@@ -27,7 +27,7 @@ list(
     transcripts_parquet,
     {
       transcripts |> 
-        select(season, episode, title) |> 
+        select(ep_number, season, episode, title) |> 
         write_parquet("data/transcripts_parquet.parquet")
       "data/transcripts_parquet.parquet"
     },

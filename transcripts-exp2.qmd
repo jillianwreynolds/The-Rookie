@@ -38,11 +38,23 @@ test2 <- test_base |>
   extract_speaker_note() |> 
   arrow_table()
 
+test3_base <- test_base |> 
+  assign_speaker_names() |> 
+  insert_sentinels() |> 
+  extract_speaker_note()
+
 test3 <- test_base |> 
   assign_speaker_names() |> 
   insert_sentinels() |> 
   extract_speaker_note() |> 
   arrow_table()
+
+test3a <- test_base |> 
+  assign_speaker_names() |> 
+  insert_sentinels(multiple_symbols = FALSE) |> 
+  extract_speaker_note() |> 
+  arrow_table()
+
 ```
 
 ```{r}
@@ -77,26 +89,86 @@ test2 |>
   collect() |> 
   peek_rows(transcript, ".+<i>.+</i>.*", fmt = "g")
 
-test |> 
-  collect() |> 
-  assign_speaker_names() |>
-  insert_sentinels() |>
-  extract_speaker_note() |>
+test3 |> 
   select(season, episode, type, speaker, speaker_note, transcript) |> 
-  filter(season == 1) |> 
-  peek_rows(transcript, "<i>|\\(|\\[", fmt = "g")
+  # filter(season == 1) |> 
+  collect() |> 
+  peek_rows(transcript, "\266a", fmt = "g")
 
 ```
 
 ```{r}
+#| label: check-sentinels
+
 test3 |> check_sentinel(red_circle)     |> gt()
-test3 |> check_sentinel(red_loop)       |> gt()
+test3 |> check_sentinel(red_loop)       |> gt()  # 2
 test3 |> check_sentinel(red_cross)      |> gt()
+test3 |> check_sentinel(blue_square)    |> gt()  # 4
 test3 |> check_sentinel(blue_circle)    |> gt()
-test3 |> check_sentinel(blue_square)    |> gt()
+test3 |> check_sentinel(purple_circle)  |> gt()  # 6
 test3 |> check_sentinel(blue_diamond)   |> gt()
+test3 |> check_sentinel(red_square)     |> gt()  # 8
 test3 |> check_sentinel(orange_diamond) |> gt()
-test3 |> check_sentinel(purple_circle)  |> gt()
-test3 |> check_sentinel(purple_square)  |> gt()
+
+```
+
+```{r}
+#| label: check-missing-sentinels
+
+# check places where sentinels might be missing
+
+missing_sentinels_pattern <- paste(
+  "\\s[\\(\\[]",   # space before ( or [
+  "[\\)\\]]\\s",   # space after ) or ]
+  "\\s<i>",        # space before <i>
+  "</i>\\s",       # space after </i>
+  sep = "|"
+)
+
+test3 |>
+  select(season, episode, type, speaker, transcript) |>
+  # filter(type == "italics") |> 
+  filter(str_detect(transcript, missing_sentinels_pattern)) |>
+  # filter_out(str_detect(transcript, "</i>|[\\]\\)]$")) |> 
+  collect() |> 
+  gt()
+```
+
+```{r}
+test3a |> 
+  select(season, episode, type, speaker, speaker_note, transcript) |> 
+  filter(season == 2, episode == 15) |> 
+  collect() |> 
+  peek_rows(transcript, "<i>|\\(|\\[", fmt = "g")
+```
+
+
+```{r}
+#| label: check-ms-names
+
+# check pattern for recognizing multi-speaker speaker names separated by "and"
+
+c(
+  ms_name = "BISHOP and LOPEZ",
+  ms_name = "NA'VI and THORSEN",
+  ms_name = "WESLEY and DEL MONTE",
+  dialogue = "BOLOs are out for Abril, and the DEA and FBI are launching",
+  dialogue = "We need you and ... house while FBI and SWAT mobilize",
+  dialogue = "BP and O2 are falling.",
+  description = "(to NOLAN and CHEN)",
+  description = "[LOPEZ and WESLEY leave the room]",
+  unmarked_description = "LOPEZ and WEST are cruising",
+  italics = "<i>OFFICERS ANGELA LOPEZ and TALIA BISHOP are coming down...</i>"
+  
+) |> 
+  str_detect("^[A-Z\']+\\sand\\s[A-Z]+\\s?[A-Z]+$")
+
+# ^[A-Z\']+\sand\s[A-Z]+\s?[A-Z]+
+```
+
+```{r}
+
+t
+
 ```
 

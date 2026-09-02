@@ -2,6 +2,7 @@ library(shiny)
 library(nanoparquet)
 library(tidyverse)
 library(DT)
+library(bslib)
 
 # setup -------------------------------------------------------------------
 
@@ -12,9 +13,18 @@ options(DT.options = list(
   lengthMenu = c(5, 10, seq(20, 50, 10))
 ))
 
-theme <- bslib::bs_theme(
+theme <- bs_theme(
   bootswatch = "cerulean",
-  primary = "#0a333f"
+  primary = "#0a333f",
+  secondary = "#2f8b9d",
+  base_font = "Helvetica"
+) |> 
+  bs_add_variables(
+    "headings-color" = "#0a333f",
+    "link-color" = "#007bc2",
+    "code-color" = "purple"
+  )
+
 # About section -----------------------------------------------------------
 
 about_section <- htmltools::tagList(
@@ -40,7 +50,7 @@ ui <- fluidPage(
   titlePanel(h1(em("The Rookie"), " Transcript Analysis")),
   p("By Jillian W. Reynolds", style = "font-size:22px"),
   titlePanel(""),
-  tags$details(about_section),
+  # tags$details(about_section),
   titlePanel(""),
   h2("Episode Directory"),
   titlePanel(""),
@@ -77,4 +87,3 @@ server <- function(input, output, session) {
 }
 
 shinyApp(ui, server)
-

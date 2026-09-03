@@ -8,20 +8,17 @@ library(bslib)
 
 tbl_transcripts <- nanoparquet::read_parquet("transcripts_parquet.parquet")
 
-options(DT.options = list(
-  pageLength = 10,
-  lengthMenu = c(5, 10, seq(20, 50, 10))
-))
+# for testing tbl_transcripts
+# tbl_transcripts <- nanoparquet::read_parquet("app/transcripts_parquet.parquet")
 
 theme <- bs_theme(
-  bootswatch = "cerulean",
   primary = "#0a333f",
   secondary = "#2f8b9d",
   base_font = "Helvetica"
-) |> 
+) |>
   bs_add_variables(
     "headings-color" = "#0a333f",
-    "link-color" = "#007bc2",
+    "link-color" = "#2f8b9d",
     "code-color" = "purple"
   )
 
@@ -67,11 +64,11 @@ ui <- fluidPage(
     column(9)
   ),
   titlePanel(""),
-  h2("Episode Directory"),
+  h2("Episode Directory", style = "font-size:26px"),
   titlePanel(""),
   fluidRow(
     column(7, DTOutput("episodes")),
-    column(2, DTOutput("n_episodes", width = "10%"))
+    column(2, tableOutput("n_episodes"))
   ),
   titlePanel(""),
   titlePanel("")
@@ -86,17 +83,19 @@ server <- function(input, output, session) {
       tibble() |> 
       select(ep_number, season, episode, title) |>
       rename(number = ep_number) |> 
-      rename_with(str_to_title)
+      rename_with(str_to_title),
+    server = FALSE,
+    options = list(
+      pageLength = 10,
+      lengthMenu = c(5, 10, seq(20, 40, 10))
+    )
   )
   
-  output$n_episodes <- renderDT(
-    tbl_transcripts |> 
-      select(season, episode) |> 
-      distinct() |>  
-      count(season) |> 
-      collect() |> 
-      rename(Season = season, Episodes = n),
-    options = list(dom = "t")
+  output$n_episodes <- renderTable(
+    tbl_transcripts |>
+      select(season, episode) |>
+      count(season) |>
+      rename(Season = season, Episodes = n)
   )
   
 }

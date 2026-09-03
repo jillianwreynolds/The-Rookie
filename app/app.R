@@ -13,8 +13,7 @@ tbl_transcripts <- nanoparquet::read_parquet("transcripts_parquet.parquet")
 
 theme <- bs_theme(
   primary = "#0a333f",
-  secondary = "#2f8b9d",
-  base_font = "Helvetica"
+  secondary = "#2f8b9d"
 ) |>
   bs_add_variables(
     "headings-color" = "#0a333f",

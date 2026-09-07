@@ -41,11 +41,6 @@ test2 <- test_base |>
   extract_speaker_note() |> 
   arrow_table()
 
-test3_base <- test_base |> 
-  assign_speaker_names() |> 
-  insert_sentinels() |> 
-  extract_speaker_note()
-
 test3 <- test_base |> 
   assign_speaker_names() |> 
   insert_sentinels() |> 
@@ -57,6 +52,14 @@ test3a <- test_base |>
   insert_sentinels(multiple_symbols = FALSE) |> 
   extract_speaker_note() |> 
   arrow_table()
+
+test4 <- test_base |> 
+  assign_speaker_names() |> 
+  insert_sentinels(multiple_symbols = FALSE) |> 
+  extract_speaker_note() |> 
+  separate_at_sentinels() |> 
+  arrow_table()
+
 ```
 
 
@@ -165,6 +168,16 @@ test3a |>
   filter(season == 2, episode == 15) |> 
   collect() |> 
   peek_rows(transcript, "<i>|\\(|\\[", fmt = "g")
+```
+
+```{r}
+
+test4 |> 
+  select(season, episode, type, speaker, speaker_note, transcript) |> 
+  filter(season == 2, episode == 15) |> 
+  collect() |> 
+  peek_rows(transcript, "<i>|\\(|\\[", fmt = "g")
+
 ```
 
 ```{r}

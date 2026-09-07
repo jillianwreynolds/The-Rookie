@@ -1,6 +1,6 @@
-separate_at_sentinels <- function(tbl) {
+separate_at_sentinels <- function(tbl, sentinel = red_circle) {
   
   tbl |> 
-    separate_longer_delim("transcript", "\u2757")
+    separate_longer_delim("transcript", sentinel)
   
 }

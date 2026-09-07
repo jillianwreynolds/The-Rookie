@@ -18,16 +18,6 @@ all_caps_pattern <- str_c(
   ")"
 )
 
-aliases <- tribble(
-  ~name,      ~alias,   ~type,    ~pattern,
-  "BRADFORD", "JAKE",   "UC",     "BRADFORD/JAKE",
-  "CHEN",     "SAVA",   "UC",     "CHEN/SAVA",
-  "DEBBIE",   "AURORA", "alias",  "AURORA/DEBBIE",
-  "FREEMAN",  "YOUNG",  "alias",  "FREEMAN/YOUNG",
-  "KAILEY",   "NADIA",  "alias",  "KAILEY/NADIA",
-  "ZACH",     "IGOR",   "alias",  "ZACH/IGOR"
-)
-
 titles <- tibble(original = c(
   "Dead Bastards MC",      # 1x3,
     "Dead Bastards",       # 2x12 and 4x14

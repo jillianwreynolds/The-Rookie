@@ -76,7 +76,7 @@ ui <- fluidPage(
   fluidRow(
     column(6, DTOutput("episodes")),
     column(1),
-    column(2, DTOutput("n_episodes", width = "10%")),
+    column(2, DTOutput("n_episodes", width = "10%"))
   ),
   h2("EDA"),
   h3("Counts"),

@@ -1,9 +1,11 @@
 clean_captions <- function(tbl) {
   
   captions <- c(
+    # 1x1
     "OPENING TITLES: THE ROOKIE",
     "NINE MONTHS LATER",
-    "TWO WEEKS LATER",
+    "CREDITS",  # 1x3
+    "TWO WEEKS LATER",  # 2x1
     "\"ONE MONTH LATER\"",
     "\"DAY 2\"",
     "\"DAY 4\"",
@@ -25,7 +27,7 @@ clean_captions <- function(tbl) {
     mutate(
       type = type |> replace_when(
         transcript %in% captions                                    ~ "caption",
-        str_detect(transcript, "TO\\sBE\\sCONTINUED[\\.{3}|\u2026]") ~ "caption"
+        str_detect(transcript, "TO\\sBE\\sCONTINUED[\\.{3}\u2026]") ~ "caption"
       )
     )
   

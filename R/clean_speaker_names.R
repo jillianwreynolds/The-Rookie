@@ -35,6 +35,8 @@ clean_speaker_names <- function(tbl) {
         str_replace(
           coll("NICKERSON Now. Come on"),
           "NICKERSON\nNow. Come on"
-        )
+        ) |> 
+        # 7x14
+        str_replace_all("V/O", "VOICEOVER")
     )
 }

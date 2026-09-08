@@ -1,0 +1,23 @@
+---
+title: "reference-dfs"
+format: html
+---
+
+Code in this qmd can be used to create small tibbles to reference when writing code to clean data
+
+```{r}
+multispeaker_lines <- test4 |> 
+  select(season, episode, type, speaker, speaker_note, transcript) |>
+  filter(type == "dialogue") |>
+  filter(str_detect(speaker, ",|&|\\s(?i)and\\s|/")) |> 
+  collect()
+```
+
+```{r}
+previously_episodes <- test4 |>
+  select(season, episode, type, transcript) |>
+  filter(type == "previously") |>
+  select(-c(type, transcript)) |>
+  arrange(season, episode) |> 
+  collect()
+```

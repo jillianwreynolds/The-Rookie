@@ -16,6 +16,7 @@ pre_clean <- function(tbl) {
         str_replace_all("(\u201c|\u201d)", "\"") |>
         str_replace_all("\u2018|\u2019", "'") |>
         str_remove_all("\u2028") |> 
+        
         # remove title block info
         str_remove(                   
           "^(THE\\sROOKIE[\\s\\S]+?\"[^\"\\n]+\"[^\\S\\n]*\\n+|[\\s\\n]+)"
@@ -78,6 +79,12 @@ pre_clean <- function(tbl) {
         str_replace( # 8x15
           coll("cast of</i>Game Changer<i>are trying"),
           "cast of \"Game Changer\" are trying"
+        ) |> 
+        
+        # remove extraneous/incorrect info
+        str_replace(  # 3x1
+          coll("Previously on \"The Rookie\"...\n\"The Q Word\""),
+          "Previously on \"The Rookie\""
         )
     )
   

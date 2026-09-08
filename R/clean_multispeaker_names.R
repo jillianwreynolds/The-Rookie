@@ -24,7 +24,14 @@ clean_multispeaker_names <- function(tbl) {
       speaker = speaker |> 
         replace_values(from = aliases$pattern, to = aliases$name),
       speaker = speaker |> 
-        str_replace_all()
+        str_replace_all(",\\s", green_circle) |> 
+        str_replace_all("/", green_circle) |> 
+        str_replace_all("\\s?&\\s", green_circle) |> 
+        str_replace_all("\\s?(?i)and\\s", green_circle) |> 
+        str_remove_all("(?<=\U1f7e2)\U1f7e2"),
+      dialogue_type = dialogue_type |> replace_when(
+        str_detect(speaker, green_circle) ~ "multi"
+      )
     )
   
 }

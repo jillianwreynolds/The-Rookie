@@ -80,9 +80,14 @@ pre_clean <- function(tbl) {
           coll("(Kyra finally lays down the weapon)."),
           "(Kyra finally lays down the weapon)"
         ) |> 
-        str_replace( # 8x15
+        # 8x15
+        str_replace(
           coll("cast of</i>Game Changer<i>are trying"),
           "cast of \"Game Changer\" are trying"
+        ) |> 
+        str_replace(
+          coll("<i>Clips from</i>300 Days of Hell'"),
+          "Clips from <i>300 Days of Hell</i>"
         ) |> 
         
         # remove extraneous/incorrect info

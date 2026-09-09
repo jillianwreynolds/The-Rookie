@@ -30,6 +30,10 @@ pre_clean <- function(tbl) {
           coll("ANNOUNCER\nPreviously on \"The Rookie\""),
           "Previously on the \"The Rookie\""
         ) |> 
+        str_replace(  # 1x11
+          coll("RUTH (inside the apartment, crying)"),
+          "RUTH\n(inside the apartment, crying)"
+        ) |> 
         str_replace( # 2x18
           coll("[ Gunshots, people screaming ]\nHelp us! He's got a gun!"),
           "[ Gunshots, people screaming ]\nWOMAN\nHelp us! He's got a gun!"

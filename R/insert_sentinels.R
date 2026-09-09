@@ -2,6 +2,9 @@ insert_sentinels <- function(tbl) {
   
   tbl |> 
     mutate(
+      # update type
+      type = if_else(is.na(type), "description", type),
+      
       # remove duplicate spaces
       transcript = transcript |> str_replace_all("(?<=.)\\s{2}(?=.)", " "),
       
@@ -10,9 +13,9 @@ insert_sentinels <- function(tbl) {
         type != "italics",
         transcript |> 
           # 🔴 before [ or (
-          str_replace_all("\\s(?=[\\[|\\(])", red_circle) |> 
+          str_replace_all("\\s(?=\\(|\\[)", red_circle) |> 
           # 🔴 after ] or )
-          str_replace_all("(?<=[\\]|\\)])\\s", red_circle) |> 
+          str_replace_all("(?<=\\)|\\])\\s", red_circle) |> 
           # 🟫 between lyrics lines " ♪ ♪ "
           str_replace_all("(?<=\u266a)\\s(?=\u266a)", brown_square) |> 
           # 🟤 between dialogue and lyrics
@@ -31,10 +34,10 @@ insert_sentinels <- function(tbl) {
         type == "italics",
         transcript |> 
           # 🟦 between description and description
-          str_replace_all("(?<=[\\]|\\)])\\s(?=[\\[|\\(])", blue_square) |> 
+          str_replace_all("(?<=\\)|\\])\\s(?=\\(|\\[])", blue_square) |> 
           str_replace_all("(?<=</i>)\\s(?=<i>)", blue_square) |> 
           # 🔵 between </i> and () or [] description
-          str_replace_all("(?<=</i>)\\s(?=[\\[|\\(])", blue_circle) |> 
+          str_replace_all("(?<=</i>)\\s(?=\\(|\\[)", blue_circle) |> 
           # 🟣 between </i> and dialogue
           # excludes italicized dialogue by requiring punctuation before </i>
           str_replace_all(

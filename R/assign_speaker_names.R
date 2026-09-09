@@ -49,6 +49,7 @@ assign_speaker_names <- function(tbl) {
       transcript = transcript |> str_trim()
     ) |>
     select(-group_id) |>
+    relocate(starts_with("ep_")) |> 
     relocate(c(line, type), .after = episode)
    
 }

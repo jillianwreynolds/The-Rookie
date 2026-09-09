@@ -10,7 +10,7 @@ reclassify_type <- function(tbl) {
       type = if_else(
         when_all(
           type == "italics",
-          str_detect(transcript, "^[A-Z\"]")
+          str_detect(transcript, "^[A-Z0-9\"]")
         ),
         "dialogue",
         type

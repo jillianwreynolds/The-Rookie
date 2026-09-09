@@ -40,7 +40,7 @@ assign_speaker_names <- function(tbl) {
       speaker = first(transcript[is_speaker] |> str_trim()),
       transcript = transcript[!is_speaker] |> str_flatten(collapse = " "),
       type = first(type),
-      .by = c(season, episode, group_id)
+      .by = c(season, episode, group_id, ep_number, ep_ID, scene_type)
     ) |> 
     mutate(
       type = replace_when(type, !is.na(speaker) ~ "dialogue"),

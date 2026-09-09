@@ -45,7 +45,8 @@ assign_speaker_names <- function(tbl) {
     mutate(
       type = replace_when(type, !is.na(speaker) ~ "dialogue"),
       line = row_number(),
-      .by = c(season, episode)
+      .by = c(season, episode),
+      transcript = transcript |> str_trim()
     ) |>
     select(-group_id) |>
     relocate(c(line, type), .after = episode)

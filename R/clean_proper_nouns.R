@@ -1,4 +1,4 @@
-clean_proper_nouns <- function(tbl, include_other = FALSE) {
+clean_proper_nouns <- function(tbl, include_other = TRUE) {
   
   titles <- tibble(original = c(
     "50 Shades",             # 1x4
@@ -6,6 +6,7 @@ clean_proper_nouns <- function(tbl, include_other = FALSE) {
     "Trading Fire Two",
     "Trading Fire Five",
     "Trading Fire",
+    "Catch-22",
     "Death Wish",            # 1x9
     "Architectural Digest",  # 1x11
     "Midnight Apocalypse",   # 1x17
@@ -46,10 +47,11 @@ clean_proper_nouns <- function(tbl, include_other = FALSE) {
   ))
   
   other <- tibble(original = c(
+    "U-Haul",                     # 1x1 and 2x1
     "Dead Bastards MC",           # 1x3,
-      "Dead Bastards",              # 2x12 and 4x14
+      "Dead Bastards",            # 2x12 and 4x14
     "LA CLEAR",                   # 2x14 and 4x3
-      "L.A. CLEAR",                 # 5x16
+      "L.A. CLEAR",               # 5x16
     "The Badger",                 # 3x11 and 4x18
     "Eliza and Elektra",          # 4x3
     "Joseph & Wells Rare Coins",  # 4x6
@@ -68,7 +70,11 @@ clean_proper_nouns <- function(tbl, include_other = FALSE) {
     text <- titles
   }
   
-  text <- text |> mutate(new = original |> str_replace_all("\\s", "_"))
+  text <- text |> 
+    mutate(new = original |> 
+             str_replace_all("\\s", "_") |> 
+             str_replace_all("-", "_")
+    )
   
   tbl |> 
     mutate(html = map_chr(html, \(x) {

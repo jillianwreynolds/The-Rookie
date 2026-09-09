@@ -94,7 +94,12 @@ add_brackets <- function(tbl) {
           "Corey screams, glass breaking ] [Breathing"
         ) |> 
         # 4x7
-        str_replace(coll("Dial tone ]"), "[ Dial tone ]")
+        str_replace(coll("Dial tone ]"), "[ Dial tone ]") |> 
+        # 8x6
+        str_replace(
+          coll("BOOM\nJUAREZ\nWhat happened?"),
+          "[BOOM]\nJUAREZ\nWhat happened?"
+        )
     )
   
 }

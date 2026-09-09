@@ -3,9 +3,9 @@ clean_proper_nouns <- function(tbl, include_other = FALSE) {
   titles <- tibble(original = c(
     "50 Shades",             # 1x4
     # 1x7
-    "Trading Fire",
-    "Trading Fire Five",
     "Trading Fire Two",
+    "Trading Fire Five",
+    "Trading Fire",
     "Death Wish",            # 1x9
     "Architectural Digest",  # 1x11
     "Midnight Apocalypse",   # 1x17

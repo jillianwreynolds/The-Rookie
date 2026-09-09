@@ -4,7 +4,7 @@ insert_sentinels <- function(
   
   symbols_list <- c(
     # non-italics lines
-    red_circle, red_loop, red_cross,
+    red_circle, brown_square, brown_circle, red_loop, red_cross,
     # italics lines
     blue_square,
     blue_circle, purple_circle,

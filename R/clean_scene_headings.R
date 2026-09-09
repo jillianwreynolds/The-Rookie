@@ -44,13 +44,20 @@ clean_scene_headings <- function(tbl) {
           !str_detect(transcript, "^<i>")
         ) ~ "scene_heading"
       ),
-      scene_type = case_when(
-        type == "scene_heading" & 
-          str_detect(transcript, "PATROL\\sCAR") ~ "shop",
-        type == "scene_heading" & 
+      scene_type = if_else(
+        type == "scene_heading",
+        case_when(
+          str_detect(transcript, "PATROL\\sCAR")           ~ "shop",
           str_detect(transcript, "MID-WILSHIRE\\sSTATION") ~ "station",
-        type == "scene_heading" & str_detect(transcript, "INT(\\.|,)") ~ "INT",
-        type == "scene_heading" & str_detect(transcript, "EXT(\\.|,)") ~ "EXT"
+          str_detect(transcript, "INT/EXT")                ~ "other",
+          str_detect(transcript, "EXT(?=\\.|,|\\-)")       ~ "EXT",
+          str_detect(transcript, "INT(?=\\.|,|\\-)")       ~ "INT",
+          str_detect(transcript, "^EXT\\s")                ~ "EXT",
+          str_detect(transcript, "^INT\\s")                ~ "INT",
+          str_detect(transcript, "^AV\\.")                 ~ "AV",
+          .default = "other"
+        ),
+        NA_character_
       ),
       # Remove parentheses from patrol car scene headings in 4x8
       transcript = if_else(

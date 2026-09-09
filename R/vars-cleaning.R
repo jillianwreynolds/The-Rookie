@@ -95,7 +95,8 @@ stutter_cutoff_letters <- c(
   "I\\s--",
   "I-I\\.{3}",
   "[IXVTP]\\.{3}",
-  "I--"
+  "I--",
+  "I-I"
 )
 
 stutter_cutoff_letters_pattern <- str_c(

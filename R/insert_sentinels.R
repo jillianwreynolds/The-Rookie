@@ -12,7 +12,7 @@ insert_sentinels <- function(tbl) {
           # 🔴 before [ or (
           str_replace_all("\\s(?=[\\[|\\(])", red_circle) |> 
           # 🔴 after ] or )
-          str_replace_all("(?<=[\\]|\\)])\\s(?!\u266a)", red_circle) |> 
+          str_replace_all("(?<=[\\]|\\)])\\s", red_circle) |> 
           # 🟫 between lyrics lines " ♪ ♪ "
           str_replace_all("(?<=\u266a)\\s(?=\u266a)", brown_square) |> 
           # 🟤 between dialogue and lyrics

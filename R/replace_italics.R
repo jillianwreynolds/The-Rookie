@@ -14,14 +14,26 @@ replace_italics <- function(tbl) {
         str_replace_all("</i>", "]")
     )
   
+  # 5x4 dialogue with audio over radio
+  radio <- tibble(original = c(
+    "7-Adam-15, are you there? <i>7-Adam-15, are you there?</i> Nolan. 7-Adam-15. <i>Nolan. 7-Adam-15.</i> Hey, where are you? <i>Hey, where are you?</i> 7-Adam-15, report. <i>7-Adam-15, report.</i>",
+    "7-Adam-15, what's your status? <i>7-Adam-15, what's your status?</i> 7-Adam-15. Nolan. <i>7-Adam-15. Nolan.</i> Nolan, this is Lucy. <i>Nolan, this is Lucy.</i> We're trying to locate you. <i>We're trying to locate you.</i> Are you there? <i>Are you there?</i> Nolan, please answer. <i>Nolan, please answer.</i>"
+  )) |> 
+    mutate(new = original |> 
+             str_replace_all("<i>", "[Over radio: ") |> 
+             str_replace_all("</i>", "]")
+    )
+  
   tbl |> 
     mutate(
-      html = map(html, \(x) {
+      html = map_chr(html, \(x) {
         reduce2(lines$old, lines$new, \(acc, old, new) {
           str_replace(acc, coll(old), new)
         }, .init = x)
       }),
-      html = html |> as.character()
+      html = html |> 
+        str_replace(coll(radio$original[1]), radio$new[1]) |> 
+        str_replace(coll(radio$original[2]), radio$new[2])
     )
   
 }

@@ -1,6 +1,4 @@
 titles <- tibble(original = c(
-  "Dead Bastards MC",      # 1x3,
-    "Dead Bastards",       # 2x12 and 4x14
   "50 Shades",             # 1x4
   # 1x7
   "Trading Fire",
@@ -54,6 +52,8 @@ titles <- tibble(original = c(
   mutate(new = original |> str_replace_all("\\s", "_"))
 
 other_proper_nouns <- c(
+  "Dead Bastards MC",      # 1x3,
+  "Dead Bastards",       # 2x12 and 4x14
   "The Badger", # 4x18
   "LA CLEAR",
   "L.A. CLEAR", # 5x16

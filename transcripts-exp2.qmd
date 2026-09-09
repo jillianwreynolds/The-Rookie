@@ -75,6 +75,21 @@ test4 <- test_base |>
   separate_at_sentinels() |> 
   arrow_table()
 
+test4a <- test_base |> 
+  assign_speaker_names() |> 
+  extract_speaker_note() |> 
+  insert_sentinels() |> 
+  unitalicize_descriptions() |> 
+  arrow_table()
+
+test4b <- test_base |> 
+  assign_speaker_names() |> 
+  extract_speaker_note() |> 
+  insert_sentinels() |> 
+  unitalicize_descriptions() |> 
+  unify_sentinels() |> 
+  arrow_table()
+
 test5 <- test_base2 |> 
   arrow_table()
 
@@ -83,13 +98,15 @@ test6 <- test_base2 |>
   fill_speaker_info() |> 
   arrow_table()
 
-# test7 <- test_base2 |> 
-#   reclassify_type() |> 
-#   fill_speaker_info() |> 
-#   clean_proper_nouns() |> 
-#   arrow_table()
+test7 <- test_base2 |>
+  reclassify_type() |>
+  fill_speaker_info() |>
+  clean_multispeaker_names() |>
+  arrow_table()
 
 ```
+
+# test
 
 ```{r}
 test |> 
@@ -112,6 +129,8 @@ test |>
 
 ```
 
+# test2
+
 ```{r}
 test2 |> 
   select(season, episode, type, speaker, speaker_note, transcript) |>
@@ -125,18 +144,30 @@ test2 |>
 ```
 
 ```{r}
-
 test2 |> 
   select(season, episode, type, speaker, speaker_note, transcript) |> 
   collect() |> 
   peek_rows(transcript, "\u266a", fmt = "g")
+```
 
+```{r}
+test2 |> 
+  select(season:transcript) |> 
+  # filter(is.na(type)) |> 
+  filter(type == "scene_heading") |> 
+  filter(str_detect(transcript, "<i>")) |> 
+  collect() |> 
+  gt()
+```
+
+# test3
+
+```{r}
 test3 |> 
   select(season, episode, type, speaker, speaker_note, transcript) |> 
   # filter(season == 1) |> 
   collect() |> 
   peek_rows(transcript, "\u266a", fmt = "g")
-
 ```
 
 ```{r}
@@ -200,6 +231,8 @@ test3 |>
   
 ```
 
+## test3a
+
 ```{r}
 test3a |> 
   select(season, episode, type, speaker, speaker_note, transcript) |> 
@@ -207,6 +240,8 @@ test3a |>
   collect() |> 
   peek_rows(transcript, "<i>|\\(|\\[", fmt = "g")
 ```
+
+# test4
 
 ```{r}
 
@@ -285,6 +320,8 @@ test4 |>
   gt()
 ```
 
+# test5
+
 ```{r}
 test5 |> 
   select(season, episode, type, speaker, speaker_note, transcript) |> 
@@ -333,16 +370,49 @@ test5 |>
 
 ```
 
+# test6
+
 ```{r}
 test6 |> 
-  select(season, episode, type, speaker, speaker_note, transcript) |> 
-  filter(str_detect(transcript, "^\\[.+\\].+$")) |> 
-  collect() |> 
-  # peek_rows(transcript, "\u266a")
-  gt()
+  # select(ep_ID, season, episode, type, scene_type, transcript) |> 
+  select(season:transcript) |>
+  # select(season:last_col()) |> 
+  # filter(season == 2, episode == 10) |> 
+  filter(type == "italics") |> 
+  # filter(type != "description", type != "italics") |> 
+  # filter(str_detect(speaker, "\\s(?i)and\\s")) |>
+  collect() |>
+  # gt()
+  peek_rows(transcript, "^<i>.+</i>.+$")
+  # peek_rows(transcript, condition = transcript == "")
+  # peek_rows(italicized_dialogue, "TRUE", before = 0, after = 0)
 
 ```
 
+```{r}
+test6 |> 
+  unitalicize_descriptions2() |> 
+  select(season:transcript) |> 
+  filter(type != "scene_heading", !is.na(scene_type)) |> 
+  collect() |> gt()
+
+test6 |> 
+  unitalicize_descriptions2() |> 
+  select(season:transcript) |> 
+  filter(type == "scene_heading", str_detect(transcript, "<i>"))
+
+```
+
+```{r}
+
+test6 |> 
+  select(season, episode, speaker, speaker_note, transcript) |> 
+  distinct(speaker) |> 
+  collect()
+
+```
+
+# multispeaker speaker names
 
 ```{r}
 #| label: check-ms-names
@@ -369,31 +439,95 @@ c(
 
 ```{r}
 
-multispeaker_lines <- test4 |> 
-  select(season, episode, type, speaker, speaker_note, transcript) |>
+multispeaker_lines <- test6 |> 
+  select(season, episode, line, type, dialogue_type, speaker, speaker_note, transcript) |>
   filter(type == "dialogue") |>
   # filter(str_detect(speaker, "[A-Z]{3,}\\sand\\s[A-Z]{3,}")) |> 
   filter(str_detect(speaker, ",|&|\\s(?i)and\\s|/")) |> 
   collect()
 
+# multispeaker_lines |> 
+#   mutate(
+#     speaker = speaker |> 
+#       replace_values(from = aliases$pattern, to = aliases$name),
+#     speaker = speaker |> 
+#       str_replace_all(",\\s", green_circle) |> 
+#       str_replace_all("/", green_circle) |> 
+#       str_replace_all("\\s?&\\s", green_circle) |> 
+#       str_replace_all("\\s?(?i)and\\s", green_circle) |> 
+#       str_remove_all("(?<=\U1f7e2)\U1f7e2")
+#   )
+
+multispeaker_lines |> gt()
+
 multispeaker_lines |> 
-  mutate(
-    speaker = speaker |> 
-      replace_values(from = aliases$pattern, to = aliases$name),
-    speaker = speaker |> 
-      str_replace_all(",\\s", green_circle) |> 
-      str_replace_all("/", green_circle) |> 
-      str_replace_all("\\s?&\\s", green_circle) |> 
-      str_replace_all("\\s?(?i)and\\s", green_circle) |> 
-      str_remove_all("(?<=\U1f7e2)\U1f7e2")
-  )
+  clean_multispeaker_names() |> 
+  gt()
 
 multispeaker_lines |> 
   clean_multispeaker_names() |>
-  relocate(dialogue_type, .after = type) |> 
-  separate_longer_delim(speaker, green_circle)
+  separate_longer_delim(speaker, green_circle) |> 
+  gt()
 
 ```
+
+# test7
+
+```{r}
+test7 |> 
+  select(season:transcript) |> 
+  # filter(season == 1) |>
+  filter(type == "italics") |>
+  collect() |> 
+  # filter(str_detect(transcript, "Paul\'s")) |>
+  filter(str_detect(transcript, "^<i>.+</i>.+$")) |> 
+  # filter(str_detect(transcript, "</i>.+$")) |>
+  gt()
+  # peek_rows(transcript, "<i>")
+```
+
+```{r}
+test7 |> 
+  select(season:transcript) |> 
+  unitalicize_descriptions2() |> 
+  filter(str_detect(transcript, "<i>")) |>
+  gt()
+  # peek_rows(transcript, "Her cell phone rings and she answers")
+```
+
+```{r}
+test7 |> 
+  select(season:transcript) |> 
+  unitalicize_descriptions2() |> 
+  replace_italics2() |> 
+  filter(str_detect(transcript, "\\d\\-[A-Z][a-z]*\\-\\d{1,}")) |> 
+  mutate(call_sign = str_extract_all(transcript, "\\d\\-[A-Z][a-z]*\\-\\d{1,}")) |> 
+  # gt()
+  unnest_longer(call_sign) |> 
+  count(call_sign) |> 
+  arrange(call_sign)
+```
+
+
+```{r}
+test7 |> 
+  select(season:transcript) |> 
+  unitalicize_descriptions2() |> 
+  replace_italics2() |> 
+  filter(str_detect(transcript, "\U1f7e9")) |>
+  gt()
+
+test7 |> 
+  select(season:transcript) |> 
+  unitalicize_descriptions2() |> 
+  replace_italics2() |> 
+  filter(str_detect(transcript, "\U1f7e9")) |>
+  unnest_tokens(unnested, transcript, to_lower = FALSE) |> 
+  mutate(word = unnested |> str_to_lower(), .after = unnested) |> 
+  gt()
+```
+
+# test unnesting
 
 ```{r}
 tribble(
@@ -416,4 +550,3 @@ tribble(
   # ) |>
   # unnest_tokens(word, word)
 ```
-

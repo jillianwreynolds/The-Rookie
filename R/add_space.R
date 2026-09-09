@@ -19,14 +19,13 @@ add_space <- function(tbl) {
         str_replace_all(coll(")("), ") (") |> 
         str_replace_all(coll("]["), "] [") |> 
         # when missing, add space between character and (
-        str_replace_all("(?<=[A-Z]|\\.|\\-)\\(", " (") |> 
-        str_replace_all("(?<=[A-Z]|\\.|\\-)\\[", " [") |> 
+        str_replace_all("(?<=[A-Z.?!]|\\-)\\(", " (") |> 
+        str_replace_all("(?<=[A-Z.?!]|\\-)\\[", " [") |> 
         # when missing, add space between ) and next character
         str_replace_all("\\)(?=[A-Z]|\")", ") ") |> 
         str_replace_all("\\](?=[A-Z]|\"|\\.{3})", "] ") |> 
         # manual
-        # 2x12
-        str_replace("</i>star", "</i> star")
+        str_replace("</i>star", "</i> star")  # 2x12
     )
   
 }

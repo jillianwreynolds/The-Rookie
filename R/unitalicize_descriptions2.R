@@ -5,7 +5,7 @@ unitalicize_descriptions2 <- function(tbl) {
       transcript = if_else(
         type == "italics",
         transcript |> 
-          str_replace_all(coll("</i>."), ".<i>") |> 
+          str_replace_all(coll("</i>."), ".</i>") |> 
           str_replace_all("<i>", "[") |> 
           str_replace_all("</i>", "]"),
         transcript

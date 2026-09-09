@@ -18,6 +18,7 @@ reclassify_type <- function(tbl) {
       dialogue_type = case_when(
         str_detect(transcript, "\u266a") ~ "lyrics"
       )
-    )
+    ) |> 
+    relocate(dialogue_type, .before = speaker)
   
 }

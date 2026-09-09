@@ -53,15 +53,38 @@ test3 <- test_base |>
 
 test3a <- test_base |> 
   assign_speaker_names() |> 
-  insert_sentinels(multiple_symbols = FALSE) |> 
+  insert_sentinels() |> 
+  unify_sentinels() |> 
   extract_speaker_note() |> 
   arrow_table()
 
 test4 <- test_base |> 
   assign_speaker_names() |> 
-  insert_sentinels(multiple_symbols = FALSE) |> 
   extract_speaker_note() |> 
+  insert_sentinels() |> 
+  unify_sentinels() |> 
   separate_at_sentinels() |> 
+  arrow_table()
+
+test5 <- test_base |> 
+  assign_speaker_names() |> 
+  extract_speaker_note() |> 
+  insert_sentinels() |> 
+  unitalicize_descriptions() |> 
+  unify_sentinels() |> 
+  separate_at_sentinels() |> 
+  reclassify_type() |> 
+  arrow_table()
+
+test6 <- test_base |> 
+  assign_speaker_names() |> 
+  extract_speaker_note() |> 
+  insert_sentinels() |> 
+  unitalicize_descriptions() |> 
+  unify_sentinels() |> 
+  separate_at_sentinels() |> 
+  reclassify_type() |> 
+  fill_speaker_info() |> 
   arrow_table()
 
 ```
@@ -167,9 +190,20 @@ test3 |>
 ```
 
 ```{r}
-test3a |> 
+test3 |> 
   select(season, episode, type, speaker, speaker_note, transcript) |> 
   filter(season == 2, episode == 15) |> 
+  collect() |> 
+  unitalicize_descriptions() |> 
+  gt()
+  
+```
+
+
+```{r}
+test3a |> 
+  select(season, episode, type, speaker, speaker_note, transcript) |> 
+  filter(season == 1, episode == 1) |>
   collect() |> 
   peek_rows(transcript, "<i>|\\(|\\[", fmt = "g")
 ```
@@ -178,11 +212,138 @@ test3a |>
 
 test4 |> 
   select(season, episode, type, speaker, speaker_note, transcript) |> 
-  filter(season == 2, episode == 15) |> 
+  # filter(season == 1, episode == 17) |>
+  # filter(type == "dialogue") |> 
   collect() |> 
-  peek_rows(transcript, "<i>|\\(|\\[", fmt = "g")
+  # reclassify_type() |>
+  # peek_rows(transcript, "<i>|\\(|\\[", fmt = "g")
+  peek_rows(transcript, condition = transcript == "")
 
 ```
+
+```{r}
+test4 |> 
+  select(season, episode, type, speaker, speaker_note, transcript) |> 
+  filter(season == 2, episode == 15) |> 
+  # filter(type == "dialogue") |> 
+  collect() |> 
+  reclassify_type() |>
+  peek_rows(transcript, condition = transcript == "", fmt = "t") |>
+  mutate(
+    speaker = if_else(
+      when_all(
+        type == "italics",
+        lag(transcript) == ""
+      ),
+      lag(speaker),
+      speaker
+    ),
+    speaker_note = if_else(
+      when_all(
+        type == "italics",
+        lag(transcript) == ""
+      ),
+      lag(speaker_note),
+      speaker_note
+    ),
+    type = if_else(
+      when_all(
+        type == "italics",
+        lag(transcript) == ""
+      ),
+      "dialogue",
+      type
+    ),
+    speaker = if_else(
+      when_all(
+        type == "description",
+        lag(type) == "dialogue",
+        lag(transcript) == ""
+      ),
+      lag(speaker),
+      speaker
+    ),
+    speaker = if_else(
+      when_all(
+        type == "dialogue",
+        is.na(speaker),
+        lag(transcript, n = 2) == ""
+      ),
+      lag(speaker, n = 2),
+      speaker
+    ),
+    speaker_note = if_else(
+      when_all(
+        type == "dialogue",
+        is.na(speaker_note),
+        lag(transcript, n = 2) == ""
+      ),
+      lag(speaker_note, n = 2),
+      speaker_note
+    )
+  ) |>
+  gt()
+```
+
+```{r}
+test5 |> 
+  select(season, episode, type, speaker, speaker_note, transcript) |> 
+  # filter(season == 1, episode == 17) |> 
+  collect() |> 
+  # peek_rows(transcript, "<i>|\\(|\\[", fmt = "g")
+  peek_rows(transcript, condition = transcript == "")
+```
+
+
+```{r}
+
+blue_true <- function(tbl) {
+  
+  tbl |> 
+    tab_style(
+    style = list(cell_fill(color = "lightblue")),
+    locations = cells_body(
+      columns = italicized_dialogue,
+      rows = italicized_dialogue == TRUE
+    )
+  ) |> 
+  tab_style(
+    style = list(cell_fill(color = "lightblue")),
+    locations = cells_body(
+      columns = description_dialogue,
+      rows = description_dialogue == TRUE
+    )
+  )
+  
+}
+
+test5 |> 
+  select(season, episode, type, speaker, speaker_note, transcript) |> 
+  # filter(season == 1, episode == 6) |>
+  collect() |> 
+  # peek_rows(transcript, "<i>|\\(|\\[", fmt = "g")
+  # peek_rows(transcript, condition = transcript == "", fmt = "t") |> 
+  fill_speaker_info() |> 
+  # fill_speaker_info() |>
+  # fill_speaker_info() |>
+  # peek_rows(transcript, condition = transcript == "") |>
+  # peek_rows(transcript, condition = description_dialogue == TRUE) |>
+  # peek_rows(speaker, condition = is.na(speaker)) |> 
+  peek_rows(transcript, "Things hard to get to", before = 10, after = 5) |>
+  blue_true()
+
+```
+
+```{r}
+test6 |> 
+  select(season, episode, type, speaker, speaker_note, transcript) |> 
+  filter(str_detect(transcript, "^\\[.+\\].+$")) |> 
+  collect() |> 
+  # peek_rows(transcript, "\u266a")
+  gt()
+
+```
+
 
 ```{r}
 #| label: check-ms-names
@@ -209,14 +370,14 @@ c(
 
 ```{r}
 
-ms_lines <- test4 |> 
+multispeaker_lines <- test4 |> 
   select(season, episode, type, speaker, speaker_note, transcript) |>
   filter(type == "dialogue") |>
   # filter(str_detect(speaker, "[A-Z]{3,}\\sand\\s[A-Z]{3,}")) |> 
   filter(str_detect(speaker, ",|&|\\s(?i)and\\s|/")) |> 
   collect()
 
-ms_lines |> 
+multispeaker_lines |> 
   mutate(
     speaker = speaker |> 
       replace_values(from = aliases$pattern, to = aliases$name),
@@ -228,5 +389,9 @@ ms_lines |>
       str_remove_all("(?<=\U1f7e2)\U1f7e2")
   )
 
-```
+multispeaker_lines |> 
+  clean_multispeaker_names() |>
+  relocate(dialogue_type, .after = type) |> 
+  separate_longer_delim(speaker, green_circle)
 
+```

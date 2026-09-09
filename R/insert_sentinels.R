@@ -10,7 +10,7 @@ insert_sentinels <- function(tbl) {
       
       # when type isn't italics
       transcript = if_else(
-        type != "italics",
+        type != "italics" & type != "scene_heading",
         transcript |> 
           # 🔴 before [ or (
           str_replace_all("\\s(?=\\(|\\[)", red_circle) |> 

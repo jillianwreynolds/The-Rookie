@@ -20,7 +20,9 @@ clean_captions <- function(tbl) {
     "THIS IS NOT A DRILL",
     "IN TRAILER",
     "DETECTIVES' BULLPEN",
-    "THREE MONTHS LATER"
+    "THREE MONTHS LATER",
+    "\"DAY 1\"",           # 5x21
+    "September 26, 2024"   # 7x15
   )
   
   tbl |> 

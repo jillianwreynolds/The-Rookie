@@ -71,7 +71,7 @@ clean_proper_nouns <- function(tbl, include_other = FALSE) {
   text <- text |> mutate(new = original |> str_replace_all("\\s", "_"))
   
   tbl |> 
-    mutate(transcript = map_chr(transcript, \(x) {
+    mutate(html = map_chr(html, \(x) {
       reduce2(text$original, text$new, \(acc, x, y) {
         str_replace_all(acc, coll(x), y)
       }, .init = x)

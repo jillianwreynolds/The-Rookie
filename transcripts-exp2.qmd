@@ -395,3 +395,26 @@ multispeaker_lines |>
   separate_longer_delim(speaker, green_circle)
 
 ```
+
+```{r}
+tribble(
+  ~season, ~episode, ~transcript,
+  1, 1, "I felt him die. A guy I- I was just talking to.",
+  1, 2, "6-P-C-I-4-8 and a 1",
+  1, 3, "	I-I'm sorry. I'm so sorry.",
+  1, 4, "Wh- I- I don't understand. - Is something wrong?",
+  1, 7, "Catch-22",
+  1, 9, "<i>The</i> Shakespeare?",
+  2, 11, "♪ Stars shining bright above you ♪",
+  3, 7, "<i>Paul's_Place</i>. Yeah. That was a lifetime ago",
+  3, 7, "\U2757Paul's_Place\U2757. Yeah. That was a lifetime ago",
+) |> 
+  unnest_tokens(word, transcript)
+  # unnest_tokens(word, transcript, token = "regex", pattern = "</i>[\\s\\.]") |>
+  # mutate(
+  #   kind = if_else(str_detect(word, "^<i>"), "italics", NA_character_),
+  #   word = word |> str_remove_all("<i>")
+  # ) |>
+  # unnest_tokens(word, word)
+```
+

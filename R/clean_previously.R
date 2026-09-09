@@ -21,6 +21,7 @@ clean_previously <- function(tbl) {
         type == "previously" & str_detect(transcript, "Feds") 
         ~ "Previously on \"The Rookie\" and \"The Rookie: Feds\""
       )
-    )
+    ) |> 
+    relocate(type, .before = transcript)
   
 }

@@ -64,5 +64,6 @@ clean_scene_headings <- function(tbl) {
         str_c(prefix_lookup[transcript], ". ", transcript),
         transcript
       )
-    )
+    ) |> 
+    relocate(scene_type, .after = type)
 }

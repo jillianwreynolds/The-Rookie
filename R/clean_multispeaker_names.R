@@ -17,7 +17,7 @@ clean_multispeaker_names <- function(tbl) {
   
   tbl |> 
     mutate(
-      dialogue_type = case_when(
+      dialogue_type = dialogue_type |> replace_when(
         str_detect(speaker, "(BRADFORD/JAKE)|(CHEN/SAVA)") ~ "UC",
         str_detect(speaker, str_flatten(aliases$pattern, "|")) ~ "alias"
       ),

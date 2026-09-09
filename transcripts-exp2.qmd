@@ -22,8 +22,9 @@ test_base <- transcripts |>
   clean_speaker_names() |>
   remove_translations() |> 
   add_brackets() |>
-  add_space() |> 
   replace_italics() |> 
+  add_space() |> 
+  clean_proper_nouns() |> 
   split_transcripts() |>
   shift_italics_tags() |>
   clean_previously() |> 
@@ -31,6 +32,14 @@ test_base <- transcripts |>
   clean_captions() |> 
   clean_other() |> 
   pre_clean_lyrics()
+
+test_base2 <- test_base |> 
+  assign_speaker_names() |> 
+  extract_speaker_note() |> 
+  insert_sentinels() |> 
+  unitalicize_descriptions() |> 
+  unify_sentinels() |> 
+  separate_at_sentinels()
 
 ```
 
@@ -66,29 +75,21 @@ test4 <- test_base |>
   separate_at_sentinels() |> 
   arrow_table()
 
-test5 <- test_base |> 
-  assign_speaker_names() |> 
-  extract_speaker_note() |> 
-  insert_sentinels() |> 
-  unitalicize_descriptions() |> 
-  unify_sentinels() |> 
-  separate_at_sentinels() |> 
-  reclassify_type() |> 
+test5 <- test_base2 |> 
   arrow_table()
 
-test6 <- test_base |> 
-  assign_speaker_names() |> 
-  extract_speaker_note() |> 
-  insert_sentinels() |> 
-  unitalicize_descriptions() |> 
-  unify_sentinels() |> 
-  separate_at_sentinels() |> 
+test6 <- test_base2 |> 
   reclassify_type() |> 
   fill_speaker_info() |> 
   arrow_table()
 
-```
+# test7 <- test_base2 |> 
+#   reclassify_type() |> 
+#   fill_speaker_info() |> 
+#   clean_proper_nouns() |> 
+#   arrow_table()
 
+```
 
 ```{r}
 test |> 
@@ -199,7 +200,6 @@ test3 |>
   
 ```
 
-
 ```{r}
 test3a |> 
   select(season, episode, type, speaker, speaker_note, transcript) |> 
@@ -293,7 +293,6 @@ test5 |>
   # peek_rows(transcript, "<i>|\\(|\\[", fmt = "g")
   peek_rows(transcript, condition = transcript == "")
 ```
-
 
 ```{r}
 

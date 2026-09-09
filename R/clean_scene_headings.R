@@ -33,11 +33,16 @@ clean_scene_headings <- function(tbl) {
   tbl |> 
     mutate(
       type = type |> replace_when(
-        str_detect(transcript, "(INT|EXT)(\\.|,)")       ~ "scene_heading",
-        str_detect(transcript, "^(INT|EXT)(\\.|,|\\s)")  ~ "scene_heading",
-        str_detect(transcript, "PATROL\\sCAR")           ~ "scene_heading",
-        transcript %in% other_scene_headings$text        ~ "scene_heading",
-        str_detect(transcript, "MID-WILSHIRE\\sSTATION") ~ "scene_heading"
+        when_all(
+          when_any(
+            str_detect(transcript, "(INT|EXT)(\\.|,)"),
+            str_detect(transcript, "^(INT|EXT)(\\.|,|\\s)"),
+            str_detect(transcript, "PATROL\\sCAR"),
+            transcript %in% other_scene_headings$text,
+            str_detect(transcript, "MID-WILSHIRE\\sSTATION")
+          ),
+          !str_detect(transcript, "^<i>")
+        ) ~ "scene_heading"
       ),
       scene_type = case_when(
         type == "scene_heading" & 

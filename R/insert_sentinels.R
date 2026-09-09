@@ -1,6 +1,6 @@
 insert_sentinels <- function(tbl) {
   
-  tbl <- tbl |> 
+  tbl |> 
     mutate(
       # remove duplicate spaces
       transcript = transcript |> str_replace_all("(?<=.)\\s{2}(?=.)", " "),

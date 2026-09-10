@@ -27,9 +27,10 @@ run_cleaning_pipe <- function(tbl, clean = FALSE) {
     unify_sentinels() |> 
     separate_at_sentinels() |> 
     reclassify_type() |>
+    clean_dispatch_names() |> 
     fill_speaker_info() |>
     clean_multispeaker_names() |> 
+    separate_speaker_names() |> 
     unitalicize_descriptions2() |> 
     replace_italics2()
-  
 }

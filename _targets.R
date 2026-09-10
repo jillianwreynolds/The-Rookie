@@ -12,11 +12,11 @@ tar_source()
 
 token_values <- expand_grid(
   tibble(version = c("raw", "clean")),
-  tibble(n = c(NA, 2))
+  tibble(n = c(NA, 2, 3))
 ) |> 
   mutate(
     token = if_else(is.na(n), "words", "ngrams"),
-    abbr = case_when(n == 2 ~ "bi"),
+    abbr = case_when(n == 2 ~ "bi", n == 3 ~ "tri"),
     suffix = if_else(is.na(n), str_c(version), str_c(abbr, "_", version)),
     path = if_else(
       is.na(n),
@@ -25,24 +25,6 @@ token_values <- expand_grid(
     ),
     df = map(version, \(v) sym(paste0("df_", v)))
   )
-
-# token_values_long <- expand_grid(
-#   tibble(version = c("raw", "clean")),
-#   tibble(n = c(NA, 2, 3))
-# ) |> 
-#   mutate(
-#     token = if_else(is.na(n), "words", "ngrams"),
-#     abbr = case_when(n == 2 ~ "bi", n == 3 ~ "tri"),
-#     suffix = if_else(is.na(n), str_c(version), str_c(abbr, "_", version)),
-#     path = if_else(
-#       is.na(n),
-#       paste0("data/tokens_", version, ".parquet"),
-#       paste0("data/tokens_", abbr, "_", version, ".parquet"),
-#     ),
-#     df_path = if_else(
-#       version == "raw", "data/df_raw.parquet", "data/df_clean.parquet"
-#     )
-#   )
 
 list(
   tar_target(

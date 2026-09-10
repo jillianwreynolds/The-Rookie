@@ -52,6 +52,10 @@ fill_speaker_info <- function(tbl) {
         lag(speaker),
         speaker
       )
-    )
+    ) |> 
+    filter_out(when_all(
+      type == "dialogue",
+      transcript == ""
+    ))
 
 }

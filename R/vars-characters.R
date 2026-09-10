@@ -168,7 +168,7 @@ men <- c(
 
 char_status_long<- bind_rows(
   main_chars_long |> mutate(type = "main"),
-  recurring_main_chars_long |> mutate(type = "recurring")
+  recurring_chars_long |> mutate(type = "recurring")
 ) |> 
   select(-c(row, text))
 

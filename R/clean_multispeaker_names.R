@@ -10,7 +10,7 @@ clean_multispeaker_names <- function(tbl) {
     "ZACH",     "IGOR",   "alias",  "ZACH/IGOR"
   )
   
-  multispeaker_patterns <- c(
+  multispeaker_patterns <- c( # not currently in use
     ",\\s",
     ""
   ) |> str_flatten("|")
@@ -32,6 +32,7 @@ clean_multispeaker_names <- function(tbl) {
       dialogue_type = dialogue_type |> replace_when(
         str_detect(speaker, green_circle) ~ "multi"
       )
-    )
+    ) |> 
+    separate_longer_delim(speaker, green_circle)
   
 }

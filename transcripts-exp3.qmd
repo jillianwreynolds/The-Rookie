@@ -12,13 +12,14 @@ df_clean        <- open_dataset(df_clean)
 ```
 
 ```{r}
-tar_load(matches("tokens_[^v]"))
+tar_load(matches("^tokens_"))
 tokens_raw      <- open_dataset(tokens_raw)
 tokens_clean    <- open_dataset(tokens_clean)
 tokens_bi_raw   <- open_dataset(tokens_bi_raw)
 tokens_bi_clean <- open_dataset(tokens_bi_clean)
+tokens_tri_raw   <- open_dataset(tokens_tri_raw)
+tokens_tri_clean <- open_dataset(tokens_tri_clean)
 ```
-
 
 ```{r}
 list_df_tokens <- list(
@@ -32,6 +33,14 @@ list_df_tokens <- list(
 
 list_df_tokens |> map(\(x) dim(x))
 ```
+
+```{r}
+df_raw |> 
+  select(season:transcript) |> 
+  collect() |> 
+  peek_rows(transcript, condition = transcript == "")
+```
+
 
 ```{r}
 anti_join(df_clean, df_raw, join_by(season, episode, line)) |> collect()
@@ -208,3 +217,22 @@ exp_clean |>
   collect() |> 
   gt()
 ```
+
+```{r}
+
+tokens_bi_raw |> 
+  relocate(c(unnested, word), .after = speaker_note) |> 
+  select(season:word) |> 
+  head(300) |> 
+  collect() |> 
+  separate_wider_delim(word, " ", names = c("word1", "word2"))
+
+```
+
+```{r}
+tokens_tri_raw |> 
+  select(season:word3) |>
+  head(n=300) |> 
+  collect()
+```
+

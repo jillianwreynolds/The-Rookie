@@ -18,7 +18,8 @@ separate_speaker_names <- function(tbl) {
     ) |> 
     separate_wider_delim(
       speaker, delim = " ", names = c("sp1", "sp2", "sp3", "sp4"),
-      too_few = "align_end"
+      too_few = "align_end",
+      cols_remove = FALSE
     ) |>
     relocate(matches("sp\\d"), .after = transcript)
   

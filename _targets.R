@@ -23,10 +23,7 @@ token_values <- expand_grid(
       paste0("data/tokens_", version, ".parquet"),
       paste0("data/tokens_", abbr, "_", version, ".parquet"),
     ),
-    # df = if_else(version == "raw", "df_raw", "df_clean"),
-    df_path = if_else(
-      version == "raw", "data/df_raw.parquet", "data/df_clean.parquet"
-    )
+    df = map(version, \(v) sym(paste0("df_", v)))
   )
 
 # token_values_long <- expand_grid(
@@ -53,13 +50,13 @@ list(
     list.files("data/", pattern = "\\.pdf$", recursive = TRUE)
   ),
   tar_target(
-    transcripts_raw, read_pdfs(transcript_list), packages = "pdftools"
+    transcripts_pdf, read_pdfs(transcript_list), packages = "pdftools"
   ),
   tar_target(
     transcripts_html, parse_episode_html(), packages = c("rvest", "xml2")
   ),
   tar_target(
-    transcripts, join_pdf_html(transcripts_raw, transcripts_html)
+    transcripts, join_pdf_html(transcripts_pdf, transcripts_html)
   ),
   tar_target(
     transcripts_parquet,
@@ -98,13 +95,12 @@ list(
     tar_target(
       tokens,
       {
-        read_parquet(df_path) |>
+        read_parquet(df) |>
           unnest_transcripts(token = token, n = n) |>
           write_parquet(path)
         path
       },
-      format = "file",
-      cue = tar_cue()
+      format = "file"
     )
   )
 )

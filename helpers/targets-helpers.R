@@ -5,6 +5,7 @@ tar_outdated()
 tar_visnetwork()
 tar_visnetwork(targets_only = TRUE)
 tar_visnetwork(physics = TRUE)
+tar_visnetwork(targets_only = TRUE, physics = TRUE)
 
 tar_make()
 

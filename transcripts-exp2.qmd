@@ -498,6 +498,15 @@ test7 |>
 ```{r}
 test7 |> 
   select(season:transcript) |> 
+  unitalicize_descriptions2() |> 
+  replace_italics2() |> 
+  count(type) |> 
+  collect()
+```
+
+```{r}
+test7 |> 
+  select(season:transcript) |> 
   collect() |> 
   unitalicize_descriptions2() |> 
   replace_italics2() |> 

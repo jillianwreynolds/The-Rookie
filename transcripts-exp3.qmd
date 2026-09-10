@@ -14,6 +14,8 @@ df_clean        <- open_dataset(df_clean)
 ```{r}
 dim(df_raw)
 dim(df_clean)
+colnames(df_raw)
+colnames(df_clean)
 ```
 
 ```{r}

@@ -1,10 +1,11 @@
-# Load packages required to define the pipeline:
 library(targets)
+library(tarchetypes)
 library(arrow)
 library(gt)
 
 tar_option_set(
-  packages = c("tidyverse")
+  packages = c("tidyverse"),
+  error = "trim"
 )
 
 tar_source()

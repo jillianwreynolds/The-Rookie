@@ -1,0 +1,22 @@
+---
+title: "EDA"
+format: html
+execute:
+  echo: false
+---
+
+```{r}
+source("R/vars-characters.R")
+tar_load(starts_with("df"))
+tar_load(matches("^tokens_"))
+df_raw           <- open_dataset(df_raw)
+df_clean         <- open_dataset(df_clean)
+tokens_raw       <- open_dataset(tokens_raw)
+tokens_clean     <- open_dataset(tokens_clean)
+tokens_bi_raw    <- open_dataset(tokens_bi_raw)
+tokens_bi_clean  <- open_dataset(tokens_bi_clean)
+tokens_tri_raw   <- open_dataset(tokens_tri_raw)
+tokens_tri_clean <- open_dataset(tokens_tri_clean)
+```
+
+The Wikipedia Overview table for cast and characters includes `r characters |> filter(type == "main") |> count(type) |> pull(n)` characters. Below the table, the page lists `r characters |> filter(type == "recurring") |> count(type) |> pull(n)` recurring characters.

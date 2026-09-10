@@ -11,7 +11,164 @@ df_raw          <- open_dataset(df_raw)
 df_clean        <- open_dataset(df_clean)
 ```
 
+```{r}
+dim(df_raw)
+dim(df_clean)
+```
 
+```{r}
+test_df <- transcripts |> 
+  run_cleaning_pipe() |> 
+  arrow_table()
+```
+
+```{r}
+
+test_df |> 
+  select(season:transcript) |> 
+  filter(str_detect(speaker, green_circle)) |> 
+  collect() |> 
+  gt()
+
+test_df |> 
+  select(season:transcript) |> 
+  filter(str_detect(speaker, green_circle)) |> 
+  collect() |> 
+  separate_longer_delim(speaker, green_circle) |> 
+  gt()
+
+```
+
+```{r}
+
+test_df |> 
+  select(season:transcript) |> 
+  filter_out(is.na(speaker)) |> 
+  distinct(speaker) |> 
+  collect() |> 
+  mutate(n_words = str_count(speaker, "\\s") + 1)
+
+test_df |> 
+  select(season:transcript) |> 
+  filter_out(is.na(speaker)) |> 
+  distinct(speaker) |> 
+  collect() |> 
+  mutate(n_words = str_count(speaker, "\\s") + 1) |> 
+  count(n_words)
+
+test_df |> 
+  select(season:transcript) |> 
+  filter_out(is.na(speaker)) |> 
+  distinct(speaker) |> 
+  arrange(speaker) |> 
+  collect() |> 
+  mutate(n_words = str_count(speaker, "\\s") + 1) |> 
+  filter(n_words == 1)
+
+test_df |> 
+  select(season:transcript) |> 
+  filter_out(is.na(speaker)) |> 
+  distinct(speaker) |> 
+  arrange(speaker) |> 
+  collect() |> 
+  mutate(n_words = str_count(speaker, "\\s") + 1) |> 
+  filter(n_words == 2)
+
+test_df |> 
+  select(season:transcript) |> 
+  filter_out(is.na(speaker)) |> 
+  distinct(speaker) |> 
+  arrange(speaker) |> 
+  collect() |> 
+  mutate(n_words = str_count(speaker, "\\s") + 1) |> 
+  filter(n_words == 3)
+
+test_df |> 
+  select(season:transcript) |> 
+  filter_out(is.na(speaker)) |> 
+  distinct(speaker) |> 
+  arrange(speaker) |> 
+  collect() |> 
+  mutate(n_words = str_count(speaker, "\\s") + 1) |> 
+  filter(n_words == 4)
+
+```
+
+```{r}
+test_df |> 
+  select(season:transcript) |> 
+  filter_out(is.na(speaker)) |> 
+  distinct(speaker) |> 
+  arrange(speaker) |> 
+  collect() |> 
+  # filter(str_detect(speaker, "(DE|DEL|VAN|VON)\\s"))
+  filter(str_detect(speaker, "\\b[A-Z]{3}\\s"))
+```
+
+
+```{r}
+tibble(speaker = c(
+  "JOHN NOLAN",
+  "NOLAN",
+  "SEAN DEL MONTE",
+  "DEL MONTE",
+  "SANDRA DE LA CRUZ",
+  "DE LA CRUZ",
+  "VAN DOREN",
+  "AGENT BUTLER",
+  "CAPTAIN ZOE ANDERSEN",
+  "DETECTIVE NYLA HARPER",
+  "DET. KEVIN WOLFE",
+  "DR. GRACE SAWYER",
+  "D.S. RYAN CARADINE",
+  "M.E. LOWELL",
+  "MR. EDWARDS",
+  "MRS. CHEN",
+  "3EYEZ",
+  "BE-BOP",
+  "J.J.",
+  "ACTOR!LOPEZ",
+  "MAN 1",
+  "HENCHMAN #1",
+  "KID FRIEND #1",
+  "DEZ' BOSS",
+  "MAN IN DISTANCE",
+  "LONG BEACH PD OFFICER"
+)) |> 
+  separate_speaker_names()
+  
+# mutate(
+#   multiword_surname = if_else(
+#     when_any(
+#       str_detect(speaker, "^DEL\\sMONTE"),
+#       str_detect(speaker, "^DE\\sLA\\sCRUZ"),
+#       str_detect(speaker, "VAN\\sDOREN")
+#     ),
+#     speaker |> str_replace_all("\\s", "_"),
+#     NA_character_
+#   ),
+#   multiword_surname = if_else(
+#     str_detect(speaker, coll("SEAN DEL MONTE")) | str_detect(speaker, "SANDRA DE LA CRUZ"),
+#     speaker |> str_replace_all(" ", "_") |> str_replace("_", " "),
+#     multiword_surname
+#   )
+# )
+
+# str_replace_all(speaker, "(?<=[A-Z]\\s(?=[A-Z]+\\s#\\d)", "_")
+
+```
+
+
+```{r}
+test_df |> 
+  select(season:transcript) |> 
+  filter_out(is.na(speaker)) |> 
+  distinct(speaker) |> 
+  arrange(speaker) |> 
+  collect() |> 
+  filter(str_detect(speaker, "(?i)(operator|dispatch)")) |> 
+  clean_dispatch_names()
+```
 
 # df_raw
 
@@ -21,6 +178,15 @@ df_raw |>
   collect() |> 
   peek_rows(transcript, condition = transcript == "")
 ```
+
+```{r}
+df_raw |> 
+  select(season:transcript) |> 
+  collect() |> 
+  peek_rows(transcript, "Unlawfully attaching a propeller")
+
+```
+
 
 # df_clean
 

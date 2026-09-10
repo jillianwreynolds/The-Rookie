@@ -11,28 +11,9 @@ df_raw          <- open_dataset(df_raw)
 df_clean        <- open_dataset(df_clean)
 ```
 
-```{r}
-tar_load(matches("^tokens_"))
-tokens_raw      <- open_dataset(tokens_raw)
-tokens_clean    <- open_dataset(tokens_clean)
-tokens_bi_raw   <- open_dataset(tokens_bi_raw)
-tokens_bi_clean <- open_dataset(tokens_bi_clean)
-tokens_tri_raw   <- open_dataset(tokens_tri_raw)
-tokens_tri_clean <- open_dataset(tokens_tri_clean)
-```
 
-```{r}
-list_df_tokens <- list(
-  "df_raw" = df_raw,
-  "df_clean" = df_clean,
-  "tokens_raw" = tokens_raw,
-  "tokens_clean" = tokens_clean,
-  "tokens_bi_raw" = tokens_bi_raw,
-  "tokens_bi_clean" = tokens_bi_clean
-)
 
-list_df_tokens |> map(\(x) dim(x))
-```
+# df_raw
 
 ```{r}
 df_raw |> 
@@ -41,6 +22,29 @@ df_raw |>
   peek_rows(transcript, condition = transcript == "")
 ```
 
+# df_clean
+
+# df comparison
+
+```{r}
+
+df_raw |> 
+  select(season:transcript) |> 
+  # filter(season == 8, episode == 15) |> 
+  # filter(speaker == "INTERVIEWER") |> 
+  filter(transcript == "") |> 
+  collect()
+
+df_clean |> 
+  select(season:transcript) |> 
+  # filter(season == 8, episode == 15) |>
+  # filter(speaker == "INTERVIEWER") |> 
+  filter(str_detect(transcript, "I never said")) |> 
+  collect()
+
+```
+
+# Checking line mismatch (added alt line to `clean_other()`)
 
 ```{r}
 anti_join(df_clean, df_raw, join_by(season, episode, line)) |> collect()
@@ -73,24 +77,6 @@ check_line_mismatch <- function(x, y, s, e, offset = FALSE) {
 }
 
 check_line_mismatch(376, 379, 8, 15)
-
-```
-
-```{r}
-
-df_raw |> 
-  select(season:transcript) |> 
-  # filter(season == 8, episode == 15) |> 
-  # filter(speaker == "INTERVIEWER") |> 
-  filter(str_detect(transcript, "I never said")) |> 
-  collect()
-
-df_clean |> 
-  select(season:transcript) |> 
-  # filter(season == 8, episode == 15) |>
-  # filter(speaker == "INTERVIEWER") |> 
-  filter(str_detect(transcript, "I never said")) |> 
-  collect()
 
 ```
 
@@ -217,22 +203,3 @@ exp_clean |>
   collect() |> 
   gt()
 ```
-
-```{r}
-
-tokens_bi_raw |> 
-  relocate(c(unnested, word), .after = speaker_note) |> 
-  select(season:word) |> 
-  head(300) |> 
-  collect() |> 
-  separate_wider_delim(word, " ", names = c("word1", "word2"))
-
-```
-
-```{r}
-tokens_tri_raw |> 
-  select(season:word3) |>
-  head(n=300) |> 
-  collect()
-```
-

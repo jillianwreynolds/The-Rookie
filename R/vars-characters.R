@@ -118,6 +118,52 @@ recurring_chars_long <- recurring_chars_wide |>
   mutate(season = season |> str_remove("season") |> as.integer())
 
 
+# -------------------------------------------------------------------------
+
+women <- c(
+  "Abigail", "Abril", "Angela",
+  "Bailey", "Blair",
+  "Celina",
+  "Fiona",
+  "Genny", "Grace",
+  "Isabel",
+  "Jessica",
+  "Lila", "Lucy", "Luna",
+  "Monica",
+  "Nell", "Nyla",
+  "Rachel", "Rosalind",
+  "Sandra",
+  "Talia", "Tamara",
+  "Vivian",
+  "Zoe"
+) |> 
+  str_to_upper()
+
+men <- c(
+  "Aaron",
+  "Ben",
+  "Chris",
+  "Donovan", "Doug",
+  "Elijah", "Emmett",
+  "Henry",
+  "Jackson", "James", "Jason", "John",
+  "Kevin",
+  "Liam",
+  "Malcolm", "Miles",
+  "Nicholas",
+  "Oscar",
+  "Percy",
+  "Quigley",
+  "Randy", "Rodge", "Ruben",
+  "Sean", "Seth", "Sterling",
+  "Tim",
+  "Wade", "Wesley"
+) |> 
+  str_to_upper()
+
+# c(women, men) is one element shorter than characters$first_name because two
+# Elijah's
+
 # Characters --------------------------------------------------------------
 
 char_status_long<- bind_rows(
@@ -139,4 +185,5 @@ characters <- char_status_long|>
   distinct() |> 
   rename_with(.cols = starts_with("char"), \(x) {
     x |> str_remove("character_") %>% str_c(., "_name")
-  })
+  }) |> 
+  mutate(gender = if_else(first_name %in% women, "F", "M"), .before = type)

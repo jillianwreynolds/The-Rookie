@@ -1,0 +1,20 @@
+---
+title: "transcripts-exp4"
+format: html
+---
+
+```{r}
+tar_load(starts_with("df"))
+tar_load(starts_with("tokens_"))
+df_raw          <- open_dataset(df_raw)
+df_clean        <- open_dataset(df_clean)
+tokens_raw      <- open_dataset(tokens_raw)
+tokens_clean    <- open_dataset(tokens_clean)
+tokens_bi_raw   <- open_dataset(tokens_bi_raw)
+tokens_bi_clean <- open_dataset(tokens_bi_clean)
+```
+
+```{r}
+
+```
+

@@ -3,18 +3,52 @@ title: "transcripts-exp4"
 format: html
 ---
 
+Test tokenization
+
 ```{r}
 tar_load(starts_with("df"))
-tar_load(starts_with("tokens_"))
-df_raw          <- open_dataset(df_raw)
-df_clean        <- open_dataset(df_clean)
-tokens_raw      <- open_dataset(tokens_raw)
-tokens_clean    <- open_dataset(tokens_clean)
-tokens_bi_raw   <- open_dataset(tokens_bi_raw)
-tokens_bi_clean <- open_dataset(tokens_bi_clean)
+tar_load(matches("^tokens_"))
+df_raw           <- open_dataset(df_raw)
+df_clean         <- open_dataset(df_clean)
+tokens_raw       <- open_dataset(tokens_raw)
+tokens_clean     <- open_dataset(tokens_clean)
+tokens_bi_raw    <- open_dataset(tokens_bi_raw)
+tokens_bi_clean  <- open_dataset(tokens_bi_clean)
+tokens_tri_raw   <- open_dataset(tokens_tri_raw)
+tokens_tri_clean <- open_dataset(tokens_tri_clean)
+```
+
+```{r}
+list_df_tokens <- list(
+  "df_raw" = df_raw,
+  "df_clean" = df_clean,
+  "tokens_raw" = tokens_raw,
+  "tokens_clean" = tokens_clean,
+  "tokens_bi_raw" = tokens_bi_raw,
+  "tokens_bi_clean" = tokens_bi_clean
+)
+
+list_df_tokens |> map(\(x) dim(x))
 ```
 
 ```{r}
 
 ```
 
+```{r}
+
+tokens_bi_raw |> 
+  relocate(c(unnested, word), .after = speaker_note) |> 
+  select(season:word) |> 
+  head(300) |> 
+  collect() |> 
+  separate_wider_delim(word, " ", names = c("word1", "word2"))
+
+```
+
+```{r}
+tokens_tri_raw |> 
+  select(season:word3) |>
+  head(n=300) |> 
+  collect()
+```

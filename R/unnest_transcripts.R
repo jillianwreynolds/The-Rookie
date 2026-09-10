@@ -1,7 +1,14 @@
-unnest_transcripts <- function(tbl, ...) {
+unnest_transcripts <- function(tbl, token = "words", n = NULL) {
+  
+  if (token == "words") {
+    tbl <- tbl |> unnest_tokens(unnested, transcript, to_lower = FALSE)
+  } else {
+    tbl <- tbl |> unnest_tokens(
+      unnested, transcript, token = token, n = n, to_lower = FALSE
+    )
+  }
   
   tbl |> 
-    unnest_tokens(unnested, transcript, ..., to_lower = FALSE) |> 
     mutate(word = unnested |> str_to_lower(), .after = unnested)
   
 }

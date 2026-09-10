@@ -24,7 +24,7 @@ test_base <- transcripts |>
   add_brackets() |>
   replace_italics() |> 
   add_space() |> 
-  clean_proper_nouns() |> 
+  # clean_proper_nouns() |>  # instead of using _ to join words, check ngrams?
   split_transcripts() |>
   shift_italics_tags() |>
   clean_previously() |> 
@@ -498,16 +498,92 @@ test7 |>
 ```{r}
 test7 |> 
   select(season:transcript) |> 
+  collect() |> 
+  unitalicize_descriptions2() |> 
+  replace_italics2() |> 
+  # word on either side of dash
+  # filter(str_detect(transcript, "\\b[\\w]+-[\\w-]+\\b")) |> 
+  # number dash number (maybe more dash and number)
+  # filter(str_detect(transcript, "(\\s\\d+-\\d+)+\\s")) |> 
+  filter(str_detect(transcript, "5\\-4")) |> 
+  gt()
+```
+
+```{r}
+
+dashed <- test7 |> 
+  select(season:transcript) |> 
+  unitalicize_descriptions2() |> 
+  replace_italics2() |> 
+  pull(transcript) |>
+  str_extract_all("\\b[\\w]+-[\\w-]+\\b") |> 
+  unlist() |>
+  unique() |> 
+  tibble(term = _) |> 
+  mutate(
+    pattern = case_when(
+      str_detect(term, "(?<=(?i)Mid)-(?=(?i)Wilshire)")     ~ "Mid-Wilshire",
+      str_detect(term, "(\\d)\\-([A-Z][a-z]*)\\-(\\d{1,})") ~ "call_sign",
+      str_detect(term, "^\\d+-\\d+$")                 ~ "num-num",
+      str_detect(term, "^\\d")                        ~ "starts_with_digit",
+      str_detect(term, "^[A-Z]-")                 ~ "starts_with_letter_dash",
+      str_detect(term, "^[A-Z][a-z]+-[A-Z][a-z]+")    ~ "TitleCase-TitleCase",
+      str_detect(term, "-[A-Z][a-z]+-|-[A-Z][a-z]+$") ~
+        "contains_TitleCase_segment",
+      str_detect(term, "^[a-z]+-[a-z]+$")             ~ "lowercase-lowercase",
+      TRUE                                            ~ "other"
+    )
+  ) |> 
+  arrange(pattern, term)
+
+dashed |> filter(pattern == "Mid-Wilshire")
+dashed |> filter(pattern == "call_sign")
+dashed |> filter(pattern == "contains_TitleCase_segment")
+dashed |> filter(pattern == "num-num")
+dashed |> filter(pattern == "TitleCase-TitleCase")
+dashed |> filter(pattern == "starts_with_digit")
+dashed |> filter(pattern == "starts_with_letter_dash")
+dashed |> filter(pattern == "other")
+dashed |> filter(pattern == "lowercase-lowercase")
+
+dashed |> count(pattern) |> arrange(n)
+
+```
+
+```{r}
+test7 |> 
+  select(season:transcript) |> 
+  unitalicize_descriptions2() |> 
+  replace_italics2() |> 
+  filter(str_detect(transcript, "\\d\\-[A-Z][a-z]*\\-\\d{1,}")) |> 
+  mutate(
+    call_sign = str_extract_all(transcript, "\\d\\-[A-Z][a-z]*\\-\\d{1,}")
+  ) |> 
+  unnest_longer(call_sign) |> 
+  unnest_tokens(word, call_sign)
+
+test7 |> 
+  select(season:transcript) |> 
   unitalicize_descriptions2() |> 
   replace_italics2() |> 
   filter(str_detect(transcript, "\\d\\-[A-Z][a-z]*\\-\\d{1,}")) |> 
   mutate(call_sign = str_extract_all(transcript, "\\d\\-[A-Z][a-z]*\\-\\d{1,}")) |> 
-  # gt()
+  unnest_longer(call_sign) |> 
+  count(call_sign) |> 
+  arrange(call_sign)
+
+test7 |> 
+  select(season:transcript) |> 
+  unitalicize_descriptions2() |> 
+  replace_italics2() |> 
+  filter(str_detect(transcript, "\\d\\-[A-Z][a-z]*\\-\\d*")) |> 
+  mutate(call_sign = str_extract_all(transcript, "\\d\\-[A-Z][a-z]*\\-\\d*")) |>
   unnest_longer(call_sign) |> 
   count(call_sign) |> 
   arrange(call_sign)
 ```
 
+Replace italics with symbol so that <i> and </i> don't get unnested as "i" and "i" around the italicized text.
 
 ```{r}
 test7 |> 

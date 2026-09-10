@@ -8,9 +8,9 @@ insert_sentinels <- function(tbl) {
       # remove duplicate spaces
       transcript = transcript |> str_replace_all("(?<=.)\\s{2}(?=.)", " "),
       
-      # when type isn't italics
+      # when type is description or dialogue
       transcript = if_else(
-        type != "italics" & type != "scene_heading",
+        type %in% c("description", "dialogue"),
         transcript |> 
           # 🔴 before [ or (
           str_replace_all("\\s(?=\\(|\\[)", red_circle) |> 

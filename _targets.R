@@ -10,6 +10,43 @@ tar_option_set(
 
 tar_source()
 
+token_values <- expand_grid(
+  tibble(version = c("raw", "clean")),
+  tibble(n = c(NA, 2))
+) |> 
+  mutate(
+    token = if_else(is.na(n), "words", "ngrams"),
+    abbr = case_when(n == 2 ~ "bi"),
+    suffix = if_else(is.na(n), str_c(version), str_c(abbr, "_", version)),
+    path = if_else(
+      is.na(n),
+      paste0("data/tokens_", version, ".parquet"),
+      paste0("data/tokens_", abbr, "_", version, ".parquet"),
+    ),
+    # df = if_else(version == "raw", "df_raw", "df_clean"),
+    df_path = if_else(
+      version == "raw", "data/df_raw.parquet", "data/df_clean.parquet"
+    )
+  )
+
+# token_values_long <- expand_grid(
+#   tibble(version = c("raw", "clean")),
+#   tibble(n = c(NA, 2, 3))
+# ) |> 
+#   mutate(
+#     token = if_else(is.na(n), "words", "ngrams"),
+#     abbr = case_when(n == 2 ~ "bi", n == 3 ~ "tri"),
+#     suffix = if_else(is.na(n), str_c(version), str_c(abbr, "_", version)),
+#     path = if_else(
+#       is.na(n),
+#       paste0("data/tokens_", version, ".parquet"),
+#       paste0("data/tokens_", abbr, "_", version, ".parquet"),
+#     ),
+#     df_path = if_else(
+#       version == "raw", "data/df_raw.parquet", "data/df_clean.parquet"
+#     )
+#   )
+
 list(
   tar_target(
     transcript_list,
@@ -53,9 +90,58 @@ list(
       "data/df_clean.parquet"
     },
     format = "file"
-  )#,
+  ),
+  tar_map(
+    values = token_values,
+    names = suffix,
+    unlist = TRUE,
+    tar_target(
+      tokens,
+      {
+        read_parquet(df_path) |>
+          unnest_transcripts(token = token, n = n) |>
+          write_parquet(path)
+        path
+      },
+      format = "file",
+      cue = tar_cue()
+    )
+  )
+)
+
   # tar_target(
-  #   test_clean,
+  #   tokens_raw,
+  #   {
+  #     open_dataset(df_raw) |> 
+  #       unnest_transcripts() |>
+  #       write_parquet("data/tokens_raw.parquet")
+  #     "data/df_raw.parquet"
+  #   },
+  #   format = "file"
+  # ),
+  # tar_target(
+  #   tokens_raw,
+  #   {
+  #     open_dataset(df_clean) |> 
+  #       unnest_transcripts() |>
+  #       write_parquet("data/tokens_clean.parquet")
+  #     "data/tokens_clean.parquet"
+  #   },
+  #   format = "file"
+  # )
+  # tar_target(
+  #   transcripts_lines,
+  #   {
+  #     transcripts |> 
+  #       pre_split_clean() |> 
+  #       transcripts_to_lines() |>
+  #       write_parquet("data/transcripts_lines.parquet")
+  #     "data/transcripts_lines.parquet"
+  #   },
+  #   format = "file"
+  # ),
+  # tar_target(
+  #   transcripts_clean,
   #   {
   #     open_dataset(transcripts_lines) |>
   #       collect() |>
@@ -66,9 +152,8 @@ list(
   #         transcripts |> select(-c(pdf, html)),
   #         by = join_by(season, episode)
   #       ) |> 
-  #       write_parquet("data/test_clean.parquet")
-  #     "data/test_clean.parquet"
+  #       write_parquet("data/transcripts_clean.parquet")
+  #     "data/transcripts_clean.parquet"
   #   },
   #   format = "file"
-  # )
-)
+  # ),

@@ -217,4 +217,7 @@ character_status_wide <- character_status |>
 
 characters <- character_status |> 
   select(starts_with("char"), type) |> 
-  distinct()
+  distinct() |> 
+  rename_with(.cols = starts_with("char"), \(x) {
+    x |> str_remove("character_") %>% str_c(., "_name")
+  })

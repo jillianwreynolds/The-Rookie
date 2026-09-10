@@ -35,50 +35,22 @@ list(
     format = "file"
   ),
   tar_target(
-    transcripts_lines,
+    df_raw,
     {
       transcripts |> 
-        pre_split_clean() |> 
-        transcripts_to_lines() |>
-        write_parquet("data/transcripts_lines.parquet")
-      "data/transcripts_lines.parquet"
+        run_cleaning_pipe() |>
+        write_parquet("data/df_raw.parquet")
+      "data/df_raw.parquet"
     },
     format = "file"
   ),
   tar_target(
-    transcripts_clean,
-    {
-      open_dataset(transcripts_lines) |>
-        collect() |>
-        clean_transcripts() |>
-        split_italics_dialogue() |> 
-        split_dialogue_italicized_descriptions() |> 
-        left_join(
-          transcripts |> select(-c(pdf, html)),
-          by = join_by(season, episode)
-        ) |> 
-        write_parquet("data/transcripts_clean.parquet")
-      "data/transcripts_clean.parquet"
-    },
-    format = "file"
-  ),
-  tar_target(
-    test_lines,
+    df_clean,
     {
       transcripts |> 
-        pre_clean() |> 
-        clean_speaker_names() |>
-        remove_translations() |> 
-        add_brackets() |>
-        add_space() |> 
-        split_transcripts() |>
-        shift_italics_tags() |>
-        clean_previously() |> 
-        clean_scene_headings() |> 
-        clean_captions() |> 
-        clean_other() |> 
-        write_parquet("data/test_lines.parquet")
-      "data/test_lines.parquet"
+        run_cleaning_pipe(clean = TRUE) |>
+        write_parquet("data/df_clean.parquet")
+      "data/df_clean.parquet"
     },
     format = "file"
   )#,

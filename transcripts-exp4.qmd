@@ -35,6 +35,145 @@ list_df_tokens |> map(\(x) dim(x))
 
 ```
 
+# raw
+
+```{r}
+
+tokens_raw |> 
+  select(season:sp4) |>
+  filter(type == "dialogue") |> 
+  filter(when_any(
+    when_all(
+      sp3 %in% characters$first_name,
+      sp4 %in% characters$last_name
+    ),
+    when_all(
+      is.na(sp3),
+      sp4 %in% characters$last_name
+    )
+  )) |> 
+  collect() |> 
+  count(sp3, sp4) |> 
+  arrange(sp4, sp3)
+
+tokens_raw |> 
+  select(season:sp4) |>
+  filter(type == "dialogue") |> 
+  filter(when_any(
+    when_all(
+      sp3 %in% characters$first_name,
+      sp4 %in% characters$last_name
+    ),
+    when_all(
+      is.na(sp3),
+      sp4 %in% characters$last_name
+    )
+  )) |> 
+  collect() |> 
+  count(sp3, sp4) |> 
+  arrange(sp4, sp3) |> 
+  count(sp4)
+
+```
+
+Count words spoken
+
+```{r}
+tokens_raw |> 
+  select(season:sp4) |>
+  filter(type == "dialogue") |> 
+  filter(when_any(
+    when_all(
+      sp3 %in% characters$first_name,
+      sp4 %in% characters$last_name
+    ),
+    when_all(
+      is.na(sp3),
+      sp4 %in% characters$last_name
+    )
+  )) |> 
+  collect() |> 
+  filter(when_all(
+    when_any(
+      sp3 %in% characters[characters$type == "main", ]$first_name,
+      is.na(sp3)
+    ),
+    sp4 %in% characters[characters$type == "main", ]$last_name
+  )) |> 
+  count(sp4) |> 
+  arrange(desc(n))
+
+# for recurring characters, some are referred to by only last name and some are referred to by both first and last name
+# I can't count is.na(sp3) and sp4 == "BRADFORD" because those are Tim's lines, not Isabel's
+
+tokens_raw |> 
+  select(season:sp4) |>
+  filter(type == "dialogue") |> 
+  filter(when_any(
+    when_all(
+      sp3 %in% characters$first_name,
+      sp4 %in% characters$last_name
+    ),
+    when_all(
+      is.na(sp3),
+      sp4 %in% characters$last_name
+    )
+  )) |> 
+  collect() |> 
+  filter(when_all(
+    sp3 %in% characters[characters$type == "recurring", ]$first_name,
+    sp4 %in% characters[characters$type == "recurring", ]$last_name
+  )) |> 
+  count(sp3, sp4) |> 
+  arrange(desc(n))
+```
+
+Season appearances by type
+
+```{r}
+character_status |> 
+  # filter(type == "main") |> 
+  group_by(character_first, character_last) |> 
+  count(status) |> 
+  filter_out(is.na(status)) |> 
+  pivot_wider(names_from = status, values_from = n) |> 
+  relocate(c(main, recurring, guest), .after = character_last) |> 
+  arrange(desc(main), desc(recurring), desc(guest), character_last) |> 
+  mutate(total = sum(main, recurring, guest, na.rm = TRUE))
+```
+
+Filter out stop words
+
+```{r}
+tokens_raw |> 
+  select(season:sp4) |>
+  filter(type == "dialogue") |> 
+  filter(when_any(
+    when_all(
+      sp3 %in% characters$first_name,
+      sp4 %in% characters$last_name
+    ),
+    when_all(
+      is.na(sp3),
+      sp4 %in% characters$last_name
+    )
+  )) |> 
+  anti_join(stop_words) |> 
+  collect() |> 
+  filter(when_all(
+    when_any(
+      sp3 %in% characters[characters$type == "main", ]$first_name,
+      is.na(sp3)
+    ),
+    sp4 %in% characters[characters$type == "main", ]$last_name
+  )) |> 
+  count(sp4) |> 
+  arrange(desc(n))
+```
+
+
+## bi
+
 ```{r}
 
 tokens_bi_raw |> 
@@ -46,9 +185,13 @@ tokens_bi_raw |>
 
 ```
 
+## tri
+
 ```{r}
 tokens_tri_raw |> 
   select(season:word3) |>
   head(n=300) |> 
   collect()
 ```
+
+# clean

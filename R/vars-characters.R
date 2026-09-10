@@ -9,70 +9,17 @@ main_chars <- tribble(
 ) |> separate_wider_delim(
   name,
   delim = " ",
-  names = c("first_name", "last_name"),
-  too_many = "merge"
+  names = c("first_name", "last_name")
 ) |> 
   mutate(across(ends_with("name"), str_to_upper))
 
-characters_tribble <- tribble(
-  ~name,             ~gender,
-  "John Nolan",       "M",
-  "Lucy Chen",        "F",
-  "Jackson West",     "M",
-  "Tim Bradford",     "M",
-  "Angela Lopez",     "F",
-  "Talia Bishop",     "F",
-  "Nyla Harper",      "F",
-  "Wade Grey",        "M",
-  "Aaron Thorsen",    "M",
-  "Celina Juarez",    "F",
-  "Miles Penn",       "M",
-  "Seth Ridley",      "M",
-  "Quigley Smitty",   "M",
-  "Wesley Evers",     "M",
-  "James Murray",     "M",
-  "Bailey Nune",      "F",
-  "Tamara Colins",    "F",
-  "Luna Grey",        "F",
-  "Rodge Bronson",    "M",
-  "Sean Del Monte",   "M",
-  "Genny Bradford",   "F",
-  "Chris Sanford",    "M",
-  "Randy Spitz",      "M"
-  # "Zoe Andersen",     "F",
-  # "Nell Forester",    "F",
-  # "Isabel Bradford",  "F",
-  # "Henry Nolan",      "M",
-  # "Abigail Tierney",  "F",
-  # "Ben McRee",        "M",
-  # "Percy West",       "M",
-  # "Jessica Russo",    "F",
-  # "Grace Sawyer",     "F",
-  # "Oscar Hutchinson", "M",
-  # "Nick Armstrong",   "M",
-  # "Rosalind Dyer",    "M",
-  # "Monica Stevens",   "F",
-  # "Elijah Stone",     "M",
-  # "Liam Glasser",     "M",
-  # "Malcolm Walsh",    "M",
-  # "Vivian Eckert",    "F"
-) |> 
-  separate_wider_delim(
-    name,
-    delim = " ",
-    names = c("first_name", "last_name"),
-    too_many = "merge"
-  ) |> 
-  mutate(caps = str_to_upper(last_name))
-
-
 # Main characters from Wikipedia table -----------------------------------------
 
-characters_df <- "characters.csv" |> 
+main_chars_wide <- "characters.csv" |> 
   read_csv(show_col_types = FALSE) |> 
   relocate(actor, .after = last_col())
 
-characters_long <- characters_df |> 
+main_chars_long <- main_chars_wide |> 
   pivot_longer(
     starts_with("season"), names_to = "season", values_to = "status"
   ) |> 
@@ -84,18 +31,12 @@ characters_long <- characters_df |>
 
 # Recurring characters from Wikipedia list --------------------------------
 
-recurring_characters <- "recurring_characters.csv" |> 
+recurring_chars_wide <- "recurring_characters.csv" |> 
   read_csv(show_col_types = FALSE) |> 
   mutate(
     row = row_number(),
     actor = text |> str_extract("^.+?(?=\\sas\\s)"),
     character = text |> str_extract("(?<=\\sas\\s).+?(?=\\:|\\s\\()"),
-    # character = text |> str_extract("(?<=\\sas\\s).+(?=\\s\\()"),
-    # character = if_else(
-    #   !str_detect(text, "\\(season"),
-    #   str_extract(text, "(?<=\\s\\as\\s).+(?=\\:)"),
-    #   character
-    # ),
     seasons = text |> 
       str_extract("(?<=\\().+(?=\\))") |> 
       str_replace_all("\\-|–", ":") |> 
@@ -148,21 +89,9 @@ recurring_characters <- "recurring_characters.csv" |>
       tibble(season3, season4, season5, season6, season7, season8),
       tibble(g_season3, g_season4, g_season5, g_season6, g_season7, g_season8),
       \(x, y) x = coalesce(x, y)
-    ) |> as_tibble()
-    # season3 = coalesce(season3, g_season3),
-    # season4 = coalesce(season4, g_season4),
-    # season5 = coalesce(season5, g_season5),
-    # season6 = coalesce(season6, g_season6),
-    # season7 = coalesce(season7, g_season7),
-    # season8 = coalesce(season8, g_season8),
+    ) |> 
+      as_tibble()
   ) |> 
-  # pivot_wider(
-  #   names_from = c(col_name, col_name2),
-  #   values_from = c(recurring, guest)
-  # ) |>
-  # mutate(
-  #   across(starts_with("season"), \(x) x |> str_replace_all(".", "recurring"))
-  # ) |> 
   select(row:season8) |>
   relocate(text, .after = last_col()) |> 
   mutate(character = character |> 
@@ -180,18 +109,8 @@ recurring_characters <- "recurring_characters.csv" |>
     character, " ", names = c("character_first", "character_last")
   ) |> 
   mutate(across(starts_with("char"), str_to_upper))
-  
-recurring_characters |>   
-  gt() |> 
-  tab_style(
-    style = cell_fill("grey95"),
-    locations = list(
-      cells_body(columns = matches("[13579]")),
-      cells_column_labels(columns = matches("[13579]"))
-    )
-  )
 
-recurring_characters_long <- recurring_characters |> 
+recurring_chars_long <- recurring_chars_wide |> 
   pivot_longer(
     starts_with("season"), names_to = "season", values_to = "status"
   ) |> 
@@ -201,13 +120,13 @@ recurring_characters_long <- recurring_characters |>
 
 # Characters --------------------------------------------------------------
 
-character_status <- bind_rows(
-  characters_long |> mutate(type = "main"),
-  recurring_characters_long |> mutate(type = "recurring")
+char_status_long<- bind_rows(
+  main_chars_long |> mutate(type = "main"),
+  recurring_main_chars_long |> mutate(type = "recurring")
 ) |> 
   select(-c(row, text))
 
-character_status_wide <- character_status |> 
+char_status_wide <- char_status_long|> 
   pivot_wider(
     names_from = season,
     names_prefix = "season_",
@@ -215,7 +134,7 @@ character_status_wide <- character_status |>
   ) |> 
   relocate(actor, .after = last_col())
 
-characters <- character_status |> 
+characters <- char_status_long|> 
   select(starts_with("char"), type) |> 
   distinct() |> 
   rename_with(.cols = starts_with("char"), \(x) {

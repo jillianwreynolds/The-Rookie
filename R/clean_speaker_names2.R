@@ -69,23 +69,23 @@ clean_speaker_names2 <- function(tbl) {
       # MICHAEL MURRAY
       sp3 = if_else(
         when_all(is.na(sp3), season == 3, episode == 2),
-        sp3 |> replace_when(sp4 == "MICHAEL", "MICHAEL"),
+        sp3 |> replace_when(sp4 == "MICHAEL" ~ "MICHAEL"),
         sp3
       ),
       sp4 = if_else(
         when_all(is.na(sp3), season == 3, episode == 2),
-        sp4 |> replace_when(sp4 == "MICHAEL", ~ "MURRAY"),
+        sp4 |> replace_when(sp4 == "MICHAEL" ~ "MURRAY"),
         sp4
       ),
       # AARON MURRAY
       sp3 = if_else(
         when_all(is.na(sp3), season == 3, episode == 2),
-        sp3 |> replace_when(sp4 == "AARON", "AARON"),
+        sp3 |> replace_when(sp4 == "AARON" ~ "AARON"),
         sp3
       ),
       sp4 = if_else(
         when_all(is.na(sp3), season == 3, episode == 2),
-        sp4 |> replace_when(sp4 == "AARON", ~ "MURRAY"),
+        sp4 |> replace_when(sp4 == "AARON" ~ "MURRAY"),
         sp4
       ),
       # JAMES MURRAY
@@ -94,15 +94,33 @@ clean_speaker_names2 <- function(tbl) {
         sp3 |> replace_when(sp4 == "MURRAY" ~ "JAMES"),
         sp3
       ),
+      # FIONA RYAN
+      sp3 = if_else(
+        when_all(is.na(sp3), season == 3, episode %in% 6:14),
+        sp3 |> replace_when(sp4 == "RYAN" ~ "FIONA"),
+        sp3
+      ),
       # MARK MURRAY
       sp3 = if_else(
         when_all(is.na(sp3), season == 3, episode == 13),
         sp3 |> replace_when(sp4 == "MURRAY" ~ "MARK"),
         sp3
       ),
+      # CHRIS SANFORD
+      sp3 = if_else(
+        when_all(is.na(sp3), season %in% 4:5),
+        sp3 |> replace_when(sp4 == "SANFORD" ~ "CHRIS"),
+        sp3
+      ),
+      # JASON WYLER
+      sp3 = if_else(
+        when_all(is.na(sp3), season %in% c(4, 7)),
+        sp3 |> replace_when(sp4 == "JASON" ~ "JASON"),
+        sp3
+      ),
       sp4 = if_else(
-        when_all(season == 3, episode == 13),
-        sp4 |> replace_when(sp4 == "MURRAY"),
+        season %in% c(4, 7),
+        sp4 |> replace_when(sp4 == "JASON" ~ "WYLER"),
         sp4
       ),
       # TOM BRADFORD
@@ -116,6 +134,53 @@ clean_speaker_names2 <- function(tbl) {
         sp4 |> replace_when(sp4 == "TOM" ~ "BRADFORD"),
         sp4
       ),
+      # MONICA STEVENS
+      sp3 = if_else(
+        when_all(is.na(sp3), season %in% 5:8),
+        sp3 |> replace_when(sp4 == "MONICA" ~ "MONICA"),
+        sp3
+      ),
+      sp4 = if_else(
+        season %in% 5:8,
+        sp4 |> replace_when(sp4 == "MONICA" ~ "STEVENS"),
+        sp4
+      ),
+      sp3 = if_else(
+        when_any(
+          when_all(is.na(sp3), season == 5, episode == 12),
+          season %in% 6:7
+        ),
+        sp3 |> replace_when(sp4 == "STEVENS" ~ "MONICA"),
+        sp3
+      ),
+      # TYLER BRADFORD
+      sp3 = if_else(
+        when_all(is.na(sp3), season == 5, episode == 11),
+        sp3 |> replace_when(sp4 == "TYLER" ~ "TYLER"),
+        sp3
+      ),
+      sp4 = if_else(
+        when_all(season == 5, episode == 11),
+        sp4 |> replace_when(sp4 == "TYLER" ~ "BRADFORD"),
+        sp4
+      ),
+      # TYLER and AUSTIN BRADFORD
+      sp3 = if_else(
+        when_all(is.na(sp3), season == 7, episode == 8),
+        sp3 |> replace_when(
+          sp4 == "TYLER" ~ "TYLER",
+          sp4 == "AUSTIN" ~ "AUSTIN"
+        ),
+        sp3
+      ),
+      sp4 = if_else(
+        when_all(season == 7, episode == 8),
+        sp4 |> replace_when(
+          sp4 == "TYLER"  ~ "BRADFORD",
+          sp4 == "AUSTIN" ~ "BRADFORD"
+        ),
+        sp4
+      ),
       # LINCOLN THORSEN
       sp3 = if_else(
         when_all(is.na(sp3), season == 4, episode == 16),
@@ -127,11 +192,17 @@ clean_speaker_names2 <- function(tbl) {
         sp4 |> replace_when(sp4 == "LINCOLN" ~ "THORSEN"),
         sp4
       ),
-      # 5x9 "NYPD SMITTY" as moniker
-      sp4 = if_else(
-        when_all(sp3 == "NYPD", sp4 == "SMITTY"), "NYPD_SMITTY", sp4
+      # MALCOLM WALSH
+      sp3 = if_else(
+        when_all(is.na(sp3), season == 8),
+        sp3 |> replace_when(sp4 == "MALCOLM" ~ "MALCOLM"),
+        sp3
       ),
-      sp3 = if_else(sp4 == "NYPD_SMITTY", NA_character_, sp3),
+      sp4 = if_else(
+        season == 8,
+        sp4 |> replace_when(sp4 == "MALCOLM" ~ "WALSH"),
+        sp4
+      ),
       # LEAH MURRAY
       sp3 = if_else(
         when_all(is.na(sp3), season == 8, episode == 7),
@@ -140,7 +211,8 @@ clean_speaker_names2 <- function(tbl) {
       ),
       sp4 = if_else(
         when_all(season == 8, episode == 7),
-        sp4 |> replace_when(sp4 == "LEAH" ~ "MURRAY")
+        sp4 |> replace_when(sp4 == "LEAH" ~ "MURRAY"),
+        sp4
       )
     )
   

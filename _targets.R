@@ -27,8 +27,10 @@ token_values <- expand_grid(
   )
 
 list(
-  tar_target(main_chars_csv, "characters.csv", format = "file"),
-  tar_target(recurring_chars_csv, "recurring_characters.csv", format = "file"),
+  tar_target(main_chars_csv, "data/characters.csv", format = "file"),
+  tar_target(
+    recurring_chars_csv, "data/recurring_characters.csv", format = "file"
+  ),
   tar_target(
     episode_ratings_parquet, "data/episode_ratings.parquet", format = "file"
   ),

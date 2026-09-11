@@ -11,17 +11,23 @@
 #' \dontrun{
 #' df_raw |> find_episodes("RANDY")
 #' }
-find_which_episodes <- function(tbl = df_raw, name_pattern) {
+find_which_episodes <- function(tbl, name_pattern, print_inf = TRUE) {
   
   if (!str_detect(name_pattern, "Ma?c[A-Z]") && 
       str_detect(name_pattern, "[a-z]")) {
     name_pattern <- name_pattern |> str_to_upper()
   }
   
-  tbl |> 
+  tbl <- tbl |> 
     select(season, episode, type, speaker) |> 
     filter(type == "dialogue", str_detect(speaker, name_pattern)) |> 
     collect() |> 
     distinct(season, episode)
+  
+  if (print_inf) {
+    tbl |> print_inf()
+  } else {
+    tbl
+  }
   
 }

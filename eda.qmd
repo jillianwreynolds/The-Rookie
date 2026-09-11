@@ -19,4 +19,16 @@ tokens_tri_raw   <- open_dataset(tokens_tri_raw)
 tokens_tri_clean <- open_dataset(tokens_tri_clean)
 ```
 
+```{r}
+counts_top6 <- tokens_raw |> 
+  select(type, word:sp4) |> 
+  filter(type == "dialogue") |> 
+  filter_characters("top6") |> 
+  count(sp4, sort = TRUE) |> 
+  collect()
+```
+
+
 The Wikipedia Overview table for cast and characters includes `r characters |> filter(type == "main") |> count(type) |> pull(n)` characters. Below the table, the page lists `r characters |> filter(type == "recurring") |> count(type) |> pull(n)` recurring characters.
+
+The six characters to say the most words are `r `.

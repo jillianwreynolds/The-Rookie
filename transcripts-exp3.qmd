@@ -189,6 +189,91 @@ df_raw |>
 
 ```
 
+```{r}
+df_raw |> 
+  select(season:sp4) |> 
+  filter(when_any(
+    when_all(
+      when_any(
+        sp3 %in% characters$first_name,
+        is.na(sp3)
+      ),
+      sp4 %in% characters$last_name
+    ),
+    sp4 %in% characters$first_name
+  )) |> 
+  collect() |> 
+  distinct(pick(sp1:sp4)) |> 
+  arrange(sp4, sp3, sp2, sp1)
+
+df_raw |> 
+  select(season:sp4) |> 
+  filter(when_any(
+    when_all(
+      when_any(
+        sp3 %in% characters$first_name,
+        is.na(sp3)
+      ),
+      sp4 %in% characters$last_name
+    ),
+    sp4 %in% characters$first_name
+  )) |> 
+  collect() |> 
+  distinct(pick(sp1:sp4)) |> 
+  arrange(sp4, sp3, sp2, sp1) |> 
+  gt()
+```
+```{r}
+tibble(name = c(
+  "LUCY CHEN", "CHEN",
+  "JOHN NOLAN", "NOLAN", "HENRY NOLAN",
+  "SEAN DEL_MONTE", "DEL_MONTE",
+  "SANDRA DE_LA_CRUZ", "DE_LA_CRUZ")
+) |> 
+  pull(name) |> 
+  str_view("^[A-Z_]+$")
+```
+
+```{r}
+tribble(
+  ~first_name, ~last_name,
+  "LUCY",      "CHEN",
+  NA,          "CHEN",
+  "JOHN",      "NOLAN",
+  NA,          "NOLAN",
+  "HENRY",     "NOLAN",
+  "SEAN",      "DEL_MONTE",
+  NA,          "DEL_MONTE",
+  "SANDRA",    "DE_LA_CRUZ",
+  NA,          "DE_LA_CRUZ"
+) |>
+  unite(
+    speaker,
+    first_name, last_name,
+    sep = " ",
+    remove = FALSE,
+    na.rm = TRUE
+  ) |> 
+  mutate(
+    speaker = if_else(
+      is.na(first_name) & str_detect(last_name, "^[A-Z_]+$"),
+      TRUE,
+      FALSE
+    )
+  )
+
+
+#|> 
+  # mutate(
+    
+    # first_name = first_name |> replace_when(
+    #   when_all(
+    #     is.na(first_name),
+    #     last_name %in% pull(characters, last_name)
+    #   ) ~ pull(characters, first_name)
+    # )
+  # )
+```
 
 # df_clean
 

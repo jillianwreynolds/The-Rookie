@@ -14,6 +14,9 @@ tar_meta(fields = error, complete_only = TRUE)
 
 tar_meta(fields = name)
 tar_meta(fields = name) |> print_inf()
+tar_meta(fields = name) |> View()
 tar_meta(fields = name) |> filter(str_detect(name, ""))
 
 tar_manifest()
+
+tar_prune_list()

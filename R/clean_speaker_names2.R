@@ -25,8 +25,35 @@ clean_speaker_names2 <- function(tbl) {
           sp4 == "NUNE"     ~ "BAILEY"
         ),
         sp3
+      ),
+      sp4 = if_else(
+        when_all(is.na(sp3), season == 4, episode == 9),
+        sp4 |> replace_when(
+          sp4 == "TOM" ~ "BRADFORD"
+        ),
+        sp4
+      ),
+      sp3 = if_else(
+        when_all(is.na(sp3), season == 4, episode == 9),
+        sp3 |> replace_when(
+          sp4 == "BRADFORD" ~ "TOM"
+        ),
+        sp3
+      ),
+      sp4 = if_else(
+        when_all(is.na(sp3), season == 4, episode == 16),
+        sp4 |> replace_when(
+          sp4 == "LINCOLN" ~ "THORSEN"
+        ),
+        sp4
+      ),
+      sp3 = if_else(
+        when_all(is.na(sp3), season == 4, episode == 16),
+        sp3 |> replace_when(
+          sp4 == "THORSEN" ~ "LINCOLN"
+        ),
+        sp3
       )
-      
     )
   
 }

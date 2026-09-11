@@ -38,6 +38,11 @@ clean_speaker_names <- function(tbl) {
         ) |> 
         # 3x4
         str_replace_all(coll("GREY'S VOICE"), "GREY (voicemail)") |> 
+        # 5x9
+        str_replace(
+          coll("SANFORD WESLEY\nBut until we know for sure"),
+          "SANFORD\nBut until we know for sure"
+        ) |> 
         # 7x14
         str_replace_all("V/O", "VOICEOVER")
     )

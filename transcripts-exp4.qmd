@@ -76,7 +76,7 @@ tokens_raw |>
 
 ```
 
-Count words spoken
+## Count words spoken
 
 ```{r}
 tokens_raw |> 
@@ -128,7 +128,48 @@ tokens_raw |>
   arrange(desc(n))
 ```
 
-Season appearances by type
+```{r}
+
+tokens_raw |> 
+  select(season:sp4) |>
+  filter(type == "dialogue") |> 
+  filter(when_any(
+    when_all(
+      sp3 %in% characters$first_name,
+      sp4 %in% characters$last_name
+    ),
+    when_all(
+      is.na(sp3),
+      sp4 %in% characters$last_name
+    )
+  )) |> 
+  dim()
+
+tokens_raw |> 
+  select(season:sp4) |>
+  filter(type == "dialogue") |> 
+  filter_characters("all") |> 
+  dim()
+
+```
+
+```{r}
+tokens_raw |> 
+  select(season:sp4) |>
+  filter(type == "dialogue") |> 
+  filter_characters("top6") |> 
+  count(sp4, sort = TRUE) |> 
+  collect()
+
+tokens_raw |> 
+  select(season:sp4) |>
+  filter(type == "dialogue") |> 
+  filter_characters("main") |> 
+  count(sp4, sort = TRUE) |> 
+  collect()
+```
+
+## Season appearances by type
 
 ```{r}
 character_status |> 
@@ -142,7 +183,7 @@ character_status |>
   mutate(total = sum(main, recurring, guest, na.rm = TRUE))
 ```
 
-Filter out stop words
+## Filter out stop words
 
 ```{r}
 tokens_raw |> 

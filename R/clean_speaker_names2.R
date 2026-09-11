@@ -8,6 +8,7 @@ clean_speaker_names2 <- function(tbl) {
         sp4 |> replace_when(
           sp4 == "ANGELA" ~ "LOPEZ",
           sp4 == "BAILEY" ~ "NUNE",
+          sp4 == "ELIJAH" ~ "STONE",
           sp4 == "TIM"    ~ "BRADFORD",
           sp4 == "WESLEY" ~ "EVERS"
         ),
@@ -27,20 +28,21 @@ clean_speaker_names2 <- function(tbl) {
           sp4 == "BRADFORD" ~ "TIM",
           sp4 == "EVERS"    ~ "WESLEY",
           sp4 == "LOPEZ"    ~ "ANGELA",
-          sp4 == "NUNE"     ~ "BAILEY"
+          sp4 == "NUNE"     ~ "BAILEY",
+          sp4 == "STONE"    ~ "ELIJAH"
         ),
         sp3
       ),
       # RACHEL HALL
-      sp4 = if_else(
-        when_all(is.na(sp3), season != 1, episode != 11),
-        sp4 |> replace_when(sp4 == "RACHEL" ~ "HALL"),
-        sp4
-      ),
       sp3 = if_else(
         when_all(is.na(sp3), season != 1, episode != 11),
-        sp3 |> replace_when(sp4 == "HALL" ~ "RACHEL"),
+        sp3 |> replace_when(sp4 == "RACHEL" ~ "RACHEL"),
         sp3
+      ),
+      sp4 = if_else(
+        when_all(season != 1, episode != 11),
+        sp4 |> replace_when(sp4 == "RACHEL" ~ "HALL"),
+        sp4
       ),
       # COLIN HALL
       sp3 = if_else(
@@ -53,33 +55,93 @@ clean_speaker_names2 <- function(tbl) {
         sp4 |> replace_when(sp4 == "COLIN" ~ "HALL"),
         sp4
       ),
-      # TOM BRADFORD
+      # SIMON SAWYER
+      sp3 = ifelse(
+        when_all(is.na(sp3), season == 2, episode == 18),
+        sp3 |> replace_when(sp4 == "SIMON" ~ "SIMON"),
+        sp3
+      ),
       sp4 = if_else(
+        when_all(season == 2, episode == 18),
+        sp4 |> replace_when(sp4 == "SIMON" ~ "SAWYER"),
+        sp4
+      ),
+      # MICHAEL MURRAY
+      sp3 = if_else(
+        when_all(is.na(sp3), season == 3, episode == 2),
+        sp3 |> replace_when(sp4 == "MICHAEL", "MICHAEL"),
+        sp3
+      ),
+      sp4 = if_else(
+        when_all(is.na(sp3), season == 3, episode == 2),
+        sp4 |> replace_when(sp4 == "MICHAEL", ~ "MURRAY"),
+        sp4
+      ),
+      # AARON MURRAY
+      sp3 = if_else(
+        when_all(is.na(sp3), season == 3, episode == 2),
+        sp3 |> replace_when(sp4 == "AARON", "AARON"),
+        sp3
+      ),
+      sp4 = if_else(
+        when_all(is.na(sp3), season == 3, episode == 2),
+        sp4 |> replace_when(sp4 == "AARON", ~ "MURRAY"),
+        sp4
+      ),
+      # JAMES MURRAY
+      sp3 = if_else(
+        when_all(is.na(sp3), season <= 3, episode <= 6),
+        sp3 |> replace_when(sp4 == "MURRAY" ~ "JAMES"),
+        sp3
+      ),
+      # MARK MURRAY
+      sp3 = if_else(
+        when_all(is.na(sp3), season == 3, episode == 13),
+        sp3 |> replace_when(sp4 == "MURRAY" ~ "MARK"),
+        sp3
+      ),
+      sp4 = if_else(
+        when_all(season == 3, episode == 13),
+        sp4 |> replace_when(sp4 == "MURRAY"),
+        sp4
+      ),
+      # TOM BRADFORD
+      sp3 = if_else(
         when_all(is.na(sp3), season == 4, episode == 9),
+        sp3 |> replace_when(sp4 == "TOM" ~ "TOM"),
+        sp3
+      ),
+      sp4 = if_else(
+        when_all(season == 4, episode == 9),
         sp4 |> replace_when(sp4 == "TOM" ~ "BRADFORD"),
         sp4
       ),
+      # LINCOLN THORSEN
       sp3 = if_else(
-        when_all(is.na(sp3), season == 4, episode == 9),
-        sp3 |> replace_when(sp4 == "BRADFORD" ~ "TOM"),
+        when_all(is.na(sp3), season == 4, episode == 16),
+        sp3 |> replace_when(sp4 == "LINCOLN" ~ "LINCOLN"),
         sp3
       ),
-      # LINCOLN THORSEN
       sp4 = if_else(
-        when_all(is.na(sp3), season == 4, episode == 16),
+        when_all(season == 4, episode == 16),
         sp4 |> replace_when(sp4 == "LINCOLN" ~ "THORSEN"),
         sp4
-      ),
-      sp3 = if_else(
-        when_all(is.na(sp3), season == 4, episode == 16),
-        sp3 |> replace_when(sp4 == "THORSEN" ~ "LINCOLN"),
-        sp3
       ),
       # 5x9 "NYPD SMITTY" as moniker
       sp4 = if_else(
         when_all(sp3 == "NYPD", sp4 == "SMITTY"), "NYPD_SMITTY", sp4
       ),
-      sp3 = if_else(sp4 == "NYPD_SMITTY", NA_character_, sp3)
+      sp3 = if_else(sp4 == "NYPD_SMITTY", NA_character_, sp3),
+      # LEAH MURRAY
+      sp3 = if_else(
+        when_all(is.na(sp3), season == 8, episode == 7),
+        sp3 |> replace_when(sp4 == "LEAH" ~ "LEAH"),
+        sp3
+      ),
+      sp4 = if_else(
+        when_all(season == 8, episode == 7),
+        sp4 |> replace_when(sp4 == "LEAH" ~ "MURRAY")
+      )
     )
   
 }

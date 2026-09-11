@@ -29,6 +29,13 @@ token_values <- expand_grid(
 list(
   tar_target(main_chars_csv, "characters.csv", format = "file"),
   tar_target(recurring_chars_csv, "recurring_characters.csv", format = "file"),
+  tar_target(
+    episode_ratings_parquet, "data/episode_ratings.parquet", format = "file"
+  ),
+  tar_target(
+    episode_ratings,
+    clean_episode_ratings(episode_ratings_parquet |> read_parquet())
+  ),
   tar_target(main_chars_wide, create_main_chars_wide(main_chars_csv)),
   tar_target(main_chars_long, create_main_chars_long(main_chars_wide)),
   tar_target(

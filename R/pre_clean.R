@@ -61,6 +61,7 @@ pre_clean <- function(tbl) {
           coll("NOLAND and BEN are putting away the party."),
           "NOLAN and BEN are putting away the party."
         ) |> 
+        str_replace_all("(?<=RUBEN\\s)DARIEN", "DERIAN") |> 
         str_replace(coll("La gente pa♪a"), "La gente paga") |>  # 4x12
         str_replace_all("BRADFORDD", "BRADFORD") |>  # 4x20
         str_replace( # 5x19

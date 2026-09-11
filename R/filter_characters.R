@@ -1,6 +1,6 @@
 filter_characters <- function(
     tbl,
-    filter = c("top6", "main", "recurring")
+    filter = c("top6", "main", "recurring", "all")
 ) {
 
   filter <- match.arg(filter)
@@ -8,10 +8,11 @@ filter_characters <- function(
   chars <- switch(filter,
                   top6      = main_chars,
                   main      = characters[characters$type == "main", ],
-                  recurring = characters[characters$type == "recurring", ]
+                  recurring = characters[characters$type == "recurring", ],
+                  all       = characters
   )
   
-  if (filter %in% c("top6", "main")) {
+  if (filter %in% c("top6", "main", "all")) {
     tbl |> filter(when_all(
       when_any(
         sp3 %in% chars$first_name,

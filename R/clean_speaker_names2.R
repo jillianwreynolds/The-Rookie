@@ -56,7 +56,7 @@ clean_speaker_names2 <- function(tbl) {
         sp4
       ),
       # SIMON SAWYER
-      sp3 = ifelse(
+      sp3 = if_else(
         when_all(is.na(sp3), season == 2, episode == 18),
         sp3 |> replace_when(sp4 == "SIMON" ~ "SIMON"),
         sp3

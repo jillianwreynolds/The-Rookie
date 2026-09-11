@@ -1,0 +1,47 @@
+---
+title: "stopwords-exp"
+format: html
+---
+
+```{r}
+library(stopwords)
+stop_words |> dim()
+stop_words |> count(lexicon)
+```
+
+# tidytext::stop_words
+
+```{r}
+stop_words |> 
+  distinct(word, lexicon, .keep_all = TRUE) |> 
+  pivot_wider(names_from = lexicon, values_from = lexicon) |> 
+  unnest(-word) |> 
+  mutate(
+    across(-word, \(x) if_else(!is.na(x), TRUE, FALSE)),
+    sum = rowSums(pick(SMART, snowball, onix), na.rm = TRUE)
+  )
+
+stop_words |> 
+  distinct(word, lexicon, .keep_all = TRUE) |> 
+  pivot_wider(names_from = lexicon, values_from = lexicon) |> 
+  unnest(-word) |> 
+  mutate(
+    across(-word, \(x) if_else(!is.na(x), TRUE, FALSE)),
+    sum = rowSums(pick(SMART, snowball, onix), na.rm = TRUE)
+  ) |> 
+  count(sum)
+
+stop_words |> 
+  distinct(word, lexicon, .keep_all = TRUE) |> 
+  pivot_wider(
+    names_from = lexicon, names_prefix = "lex_", values_from = lexicon
+  ) |> 
+  unnest(-word) |> 
+  mutate(
+    across(-word, \(x) if_else(!is.na(x), TRUE, FALSE))
+  ) |> 
+  count(pick(starts_with("lex")))
+```
+
+# `stopwords` package
+

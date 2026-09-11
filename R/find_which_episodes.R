@@ -13,6 +13,11 @@
 #' }
 find_which_episodes <- function(tbl = df_raw, name_pattern) {
   
+  if (!str_detect(name_pattern, "Ma?c[A-Z]") && 
+      str_detect(name_pattern, "[a-z]")) {
+    name_pattern <- name_pattern |> str_to_upper()
+  }
+  
   tbl |> 
     select(season, episode, type, speaker) |> 
     filter(type == "dialogue", str_detect(speaker, name_pattern)) |> 

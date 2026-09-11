@@ -8,19 +8,35 @@
 #'
 #' @examples
 #' \dontrun{
-#' df_raw |> check_names("JOHN\\b")
+#' df_raw |> check_names("WESLEY")
+#' df_raw |> check_names("JOHN", FALSE)
 #' }
-check_names <- function(tbl, pattern) {
+check_names <- function(tbl, pattern, peek = TRUE, print_inf = TRUE) {
   
   if (!str_detect(pattern, "Ma?c[A-Z]") && str_detect(pattern, "[a-z]")) {
     pattern <- pattern |> str_to_upper()
   }
   
-  tbl |> check_name_variations(pattern) |> print()
+  print_tibble <- tbl |> check_name_variations(pattern)
   
-  tbl |> 
-    select(ep_ID, speaker, transcript) |> 
-    collect() |> 
-    peek_rows(speaker, pattern)
+  if (print_inf) {
+    print_tibble |> print_inf()
+  } else {
+    print_tibble |> print()
+  }
+    
+  if (peek) {
+    tbl |> 
+      select(ep_ID, speaker, transcript) |> 
+      collect() |> 
+      peek_rows(speaker, pattern)
+  } else {
+    n_rows <- tbl |> 
+      select(ep_ID, speaker, transcript) |> 
+      collect() |> 
+      peek_rows(speaker, pattern, fmt = "t") |> 
+      dim() %>% .[[1]]
+    message(glue("{n_rows} rows in the peek_rows table()"))
+  }
   
 }

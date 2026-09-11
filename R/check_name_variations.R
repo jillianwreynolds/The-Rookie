@@ -8,6 +8,7 @@ check_name_variations <- function(tbl = df_raw, pattern) {
     select(speaker) |> 
     filter(str_detect(speaker, pattern)) |> 
     collect() |> 
-    distinct(speaker)
+    distinct(speaker) |> 
+    arrange(speaker)
   
 }

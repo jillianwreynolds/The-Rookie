@@ -13,6 +13,10 @@
 #' }
 check_names <- function(tbl, pattern, peek = TRUE, print_inf = TRUE) {
   
+  if (!str_detect(pattern, "Ma?c[A-Z]") && str_detect(pattern, "[a-z]")) {
+    pattern <- pattern |> str_to_upper()
+  }
+  
   print_tibble <- tbl |> check_name_variations(pattern)
   
   if (print_inf) {

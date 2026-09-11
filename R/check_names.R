@@ -12,6 +12,10 @@
 #' }
 check_names <- function(tbl, pattern) {
   
+  if (!str_detect(pattern, "Ma?c[A-Z]") && str_detect(pattern, "[a-z]")) {
+    pattern <- pattern |> str_to_upper()
+  }
+  
   tbl |> check_name_variations(pattern) |> print()
   
   tbl |> 

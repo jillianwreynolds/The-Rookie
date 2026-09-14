@@ -1,7 +1,7 @@
 create_recurring_chars_wide <- function(file_path) {
   
   file_path |>
-    read_csv(show_col_types = FALSE) |>
+    read_parquet() |>
     mutate(
       row = row_number(),
       actor = text |> str_extract("^.+?(?=\\sas\\s)"),

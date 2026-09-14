@@ -22,6 +22,8 @@ clean_speaker_names2 <- function(tbl, lookup_data) {
     mutate(
       sp3 = if_else(is.na(sp3) & !is.na(new_first), new_first, sp3),
       sp3 = if_else(sp3 == "GENNIFER" & sp4 == "BRADFORD", "GENNY", sp3),
+      
+      # episode-specific replacements
       # RACHEL HALL
       sp3 = if_else(
         when_all(is.na(sp3), season != 1, episode != 11),
@@ -32,6 +34,12 @@ clean_speaker_names2 <- function(tbl, lookup_data) {
         when_all(season != 1, episode != 11),
         sp4 |> replace_when(sp4 == "RACHEL" ~ "HALL"),
         sp4
+      ),
+      # DETECTIVE MURPHY
+      sp3 = if_else(
+        when_all(sp4 == "MURPHY", season == 1, episode == 16),
+        "DET.",
+        sp3
       ),
       # COLIN HALL
       sp3 = if_else(

@@ -6,7 +6,7 @@ create_crossover_chars_wide <- function(tbl) {
       season = season |> str_replace("\\d+", "appears")
     ) |>
     pivot_wider(names_from = col_names, values_from = season) |>
-    select(-c(`NA`, text)) |>
+    select(-text) |>
     relocate(c(alias, actor), .after = season_8)
   
 }

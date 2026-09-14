@@ -1,18 +1,18 @@
 transcripts_html$transcript[41] |> peek_match("totally playing mind games", before = 104)
 
-transcripts$html[85] |> peek_match("until we know for")
+transcripts$html[105] |> peek_match("NOLAN TO JUAREZ")
 
 transcripts_lines |>
   select(season, episode, transcript) |>
-  filter(season == 8, episode == 15) |>
-  filter(str_detect(transcript, "Clips from")) |> 
+  # filter(season == 8, episode == 15) |>
+  filter(str_detect(transcript, "SIMON")) |> 
   collect()
 
 transcripts_lines |>
   select(season, episode, transcript) |>
   # filter(season == 8, episode == 1) |>
   collect() |>
-  peek_rows(transcript, "VAN DOREN", fmt = "g", after = 2)
+  peek_rows(transcript, "I have to sell", fmt = "g", after = 2)
 
 transcripts_clean |> 
   select(season, episode, line, type, speaker, speaker_note, transcript) |> 
@@ -113,3 +113,12 @@ test7 |>
   collect()
   # collect() |>
   # peek_rows(transcript, "(?i)HI-RISE", after = 2)
+
+
+# df_raw ------------------------------------------------------------------
+
+df_raw |> 
+  select(season:sp4) |> 
+  # filter(season == 6, episode == 7) |>
+  collect() |> 
+  peek_rows(speaker, "JASON")

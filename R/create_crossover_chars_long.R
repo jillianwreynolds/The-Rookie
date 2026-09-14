@@ -39,6 +39,7 @@ create_crossover_chars_long <- function(file_path) {
       season = season |> as.integer(),
       across(ends_with("name"), str_to_upper)
     ) |>
+    select(-text) |> 
     relocate(c(alias, actor), .after = season)
   
 }

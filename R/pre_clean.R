@@ -51,6 +51,10 @@ pre_clean <- function(tbl) {
           coll("<i>CHILDREN\nCelina!</i>"),
           "CHILDREN (in memory)\nCelina!"
         ) |> 
+        str_replace( # 6x7
+          coll("later?\n\nNOLAN TO JUAREZ\nHaving"),
+          "later? (to JUAREZ) Having"
+        ) |> 
         
         # capitalization
         str_replace(coll("GREY's VOICE"), "GREY'S VOICE") |>  # 3x4

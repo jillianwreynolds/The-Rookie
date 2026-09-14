@@ -1,3 +1,15 @@
+cards_home <- list(
+  directory = card(
+    card_header("Episode Directory", class = "bg-secondary"),
+    DTOutput("episodes"),
+    min_height = "600px"
+  ),
+  n_episodes = card(
+    card_header("Number of Episodes by Season", class = "bg-secondary"),
+    tableOutput("n_episodes")
+  )
+)
+
 home_panel <- nav_panel(
   title = "Home",
   p("By Jillian W. Reynolds", style = "font-size:22px"),
@@ -17,10 +29,11 @@ home_panel <- nav_panel(
     column(9)
   ),
   p(),
-  h2("Episode Directory", style = "font-size:26px"),
   titlePanel(""),
-  fluidRow(
-    column(7, DTOutput("episodes")),
-    column(2, tableOutput("n_episodes"))
+  layout_columns(
+    cards_home$directory,
+    cards_home$n_episodes,
+    col_widths = c(6, -1, 2),
+    fillable = FALSE
   )
 )

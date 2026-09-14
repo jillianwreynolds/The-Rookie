@@ -4,10 +4,11 @@
 *DS_Store
 
 *_files
-*html
+/*.html
 
 data/html*
 data/Season*/
+data/IMDb*.html
 data/*.parquet
 
 helpers/check_lines.R
@@ -16,3 +17,5 @@ temp/
 
 !docs/*/*
 !app/*/*
+
+docs2/

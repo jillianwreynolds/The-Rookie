@@ -46,11 +46,28 @@ list(
     format = "file"
   ),
   tar_target(
-    episode_ratings_parquet, "data/episode_ratings.parquet", format = "file"
+    episode_ratings_data, "data/episode_ratings_data.parquet", format = "file"
   ),
   tar_target(
     episode_ratings,
-    clean_episode_ratings(episode_ratings_parquet |> read_parquet())
+    clean_episode_ratings(episode_ratings_data |> read_parquet())
+  ),
+  tar_target(
+    episode_ratings_parqeut,
+    {
+      episode_ratings |> 
+        write_parquet("data/episode_ratings.parquet")
+      file.copy(
+        "data/episode_ratings.parquet",
+        "app/episode_ratings.parquet"
+      )
+      file.copy(
+        "data/episode_ratings.parquet",
+        "episode_ratings.parquet"
+      )
+      "data/episode_ratings.parquet"
+    },
+    format = "file"
   ),
   
   # Wikipedia cast and character lists

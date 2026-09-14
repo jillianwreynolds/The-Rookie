@@ -27,9 +27,9 @@ token_values <- expand_grid(
   )
 
 list(
-  tar_target(main_chars_csv, "data/characters.csv", format = "file"),
+  tar_target(main_chars_csv, "data/characters.parquet", format = "file"),
   tar_target(
-    recurring_chars_csv, "data/recurring_characters.csv", format = "file"
+    recurring_chars_csv, "data/recurring_characters.parquet", format = "file"
   ),
   tar_target(
     episode_ratings_parquet, "data/episode_ratings.parquet", format = "file"
@@ -52,6 +52,18 @@ list(
   ),
   tar_target(char_status_wide, create_char_status_wide(char_status_long)),
   tar_target(characters, create_characters_tbl(char_status_long)),
+  tar_target(
+    characters_parquet,
+    {
+      characters |> write_parquet("data/characters_parquet.parquet")
+      file.copy(
+        "data/characters_parquet.parquet",
+        "app/data/characters_parquet.parquet"
+      )
+      "data/characters_parquet.parquet"
+    },
+    format = "file"
+  ),
   tar_target(
     transcript_list,
     list.files("data/", pattern = "\\.pdf$", recursive = TRUE)

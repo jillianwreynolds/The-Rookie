@@ -71,6 +71,11 @@ list(
       transcripts |>
         select(ep_number, season, episode, title) |>
         write_parquet("data/transcripts_parquet.parquet")
+      file.copy(
+        "data/transcripts_parquet.parquet",
+        "app/data/transcripts_parquet.parquet",
+        overwrite = TRUE
+      )
       "data/transcripts_parquet.parquet"
     },
     format = "file"

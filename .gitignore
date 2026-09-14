@@ -5,10 +5,10 @@
 
 *_files
 *html
-*parquet
 
 data/html*
 data/Season*/
+data/*.parquet
 
 helpers/check_lines.R
 helpers/write_rds.R

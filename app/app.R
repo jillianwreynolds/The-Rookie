@@ -7,6 +7,7 @@ library(bslib)
 # read data ---------------------------------------------------------------
 
 tbl_transcripts <- nanoparquet::read_parquet("transcripts_parquet.parquet")
+tbl_episode_ratings <- nanoparquet::read_parquet("episode_ratings.parquet")
 tbl_characters <- nanoparquet::read_parquet("characters_parquet.parquet")
 
 # Number of seasons
@@ -114,6 +115,40 @@ cards_home <- list(
   n_episodes = card(
     card_header("Number of Episodes by Season", class = "bg-secondary"),
     tableOutput("n_episodes")
+  ),
+  ratings = card(
+    card_header("Episode Ratings", class = "bg-secondary"),
+    DTOutput("ratings"),
+    card_footer("Data downloaded from IMDb (https://datasets.imdbws.com) on July 31, 2026")
+  ),
+  episodes = navset_card_tab(
+    title = "Episodes",
+    accordion(
+      open = FALSE,
+      accordion_panel(
+        "Filter by Season",
+        fluidRow(
+          column(4, selectInput(
+            "filter_season",
+            label = NULL,
+            choices = 1:n_seasons,
+            multiple = TRUE
+          )),
+          column( 3, actionButton(
+            "reset_season_filter", "Reset Filter", class = "btn-reset"
+          ))
+        )
+      )
+    ),
+    nav_panel(
+      "Directory",
+      DTOutput("episodes")
+    ),
+    nav_panel(
+      "Ratings",
+      DTOutput("ratings")
+    )
+    
   )
 )
 
@@ -128,9 +163,11 @@ home_panel <- nav_panel(
   p(),
   titlePanel(""),
   layout_columns(
-    cards_home$directory,
+    cards_home$episodes,
+    # cards_home$directory,
     cards_home$n_episodes,
-    col_widths = c(6, -1, 2),
+    # cards_home$ratings,
+    col_widths = c(6, 2, 4),
     fillable = FALSE
   )
 )
@@ -204,6 +241,13 @@ server <- function(input, output, session) {
       select(season, episode) |>
       count(season) |>
       rename(Season = season, Episodes = n)
+  )
+  
+  output$ratings <- renderDT(
+    tbl_episode_ratings |> 
+      arrange(season, episode) |> 
+      rename(number_of_votes = n_votes) |> 
+      clean_col_names()
   )
   
   output$characters_tbl <- renderDT(

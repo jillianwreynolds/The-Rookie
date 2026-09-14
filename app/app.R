@@ -3,7 +3,6 @@ library(tidyverse)
 library(DT)
 library(bslib)
 
-
 # read data ---------------------------------------------------------------
 
 tbl_transcripts <- nanoparquet::read_parquet("transcripts_parquet.parquet")
@@ -23,9 +22,11 @@ clean_col_names <- function(tbl, ...) {
 
 # UI setup ----------------------------------------------------------------
 
-dark_teal  <- "#0a333f"
-teal       <- "#2f8b9d"
-code_color <- "#7c13ba"
+dark_teal   <- "#0a333f"
+teal        <- "#2f8b9d"
+code_color  <- "#7c13ba"
+yellow      <- "#facf21"
+light_green <- "#b9d4bd"
 
 theme <- bs_theme(
   version = 5,
@@ -117,7 +118,10 @@ ui <- page_navbar(
   theme = theme,
   fillable = FALSE,
   navbar_options = navbar_options(bg = dark_teal),
-  title = h1(em("The Rookie"), " Transcript Analysis", style = "color:#fff"),
+  title = h1(
+    em("The Rookie"), " Transcript Analysis",
+    style = "color:#facf21"
+  ),
   nav_spacer(),
   home_panel,
   characters_panel

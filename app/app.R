@@ -6,20 +6,13 @@ library(bslib)
 
 # setup -------------------------------------------------------------------
 
+source("theme.R")
+
 tbl_transcripts <- nanoparquet::read_parquet("transcripts_parquet.parquet")
 
 # for testing tbl_transcripts
 # tbl_transcripts <- nanoparquet::read_parquet("app/transcripts_parquet.parquet")
 
-theme <- bs_theme(
-  primary = "#0a333f",
-  secondary = "#2f8b9d"
-) |>
-  bs_add_variables(
-    "headings-color" = "#0a333f",
-    "link-color" = "#2f8b9d",
-    "code-color" = "purple"
-  )
 
 # About section -----------------------------------------------------------
 

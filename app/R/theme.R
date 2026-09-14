@@ -1,9 +1,15 @@
+dark_teal  <- "#0a333f"
+teal       <- "#2f8b9d"
+code_color <- "#7c13ba"
+
 theme <- bs_theme(
-  primary = "#0a333f",
-  secondary = "#2f8b9d"
+  version = 5,
+  bootswatch = "cosmo",
+  primary = dark_teal,
+  secondary = teal
 ) |>
   bs_add_variables(
-    "headings-color" = "#0a333f",
-    "link-color" = "#2f8b9d",
-    "code-color" = "#7c13ba"
+    "headings-color" = dark_teal,
+    "link-color" = teal,
+    "code-color" = code_color
   )

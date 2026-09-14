@@ -275,6 +275,75 @@ tribble(
   # )
 ```
 
+```{r}
+df_raw |> 
+  select(season:sp4) |> 
+  distinct(sp3) |> 
+  arrange(sp3) |> 
+  collect()
+
+```
+
+```{r}
+
+csn3 <- function(tbl) {
+  
+  tbl |> 
+    mutate(
+      sp2_new = if_else(
+        when_all(
+          sp3 %in% c("DET.", "DETECTIVE"),
+          sp4 %in% c("VESTRI", "WOLFE")
+        ),
+        "DETECTIVE",
+        sp2
+      ),
+      sp3_new = if_else(
+        when_any(
+          when_all(
+          sp3 %in% c("DET.", "DETECTIVE"),
+          sp4 %in% c("VESTRI", "WOLFE")
+          ),
+          when_all(
+            sp3 == "SGT.",
+            sp4 == "GREY"
+          )
+        ),
+        case_when(
+          sp4 == "VESTRI" ~ "ELIJAH",
+          sp4 == "WOLFE"  ~ "KEVIN",
+          sp4 == "GREY"   ~ "WADE"
+        ),
+        NA_character_
+      ),
+      across(sp2:sp3, \(x) {
+        x |> 
+          str_replace("DET\\.", "DETECTIVE") |> 
+          str_replace("SGT\\.?", "SERGEANT")
+      })
+    )
+  
+}
+
+df_raw |> 
+  select(season, episode, speaker, sp1:sp4) |> 
+  filter(str_detect(sp3, "^DET|^SERG|^SGT|^DR\\.|^AGEN")) |> 
+  distinct(speaker, .keep_all = TRUE) |> 
+  arrange(sp3, season, episode) |> 
+  collect() |> 
+  csn3()
+```
+
+```{r}
+df_raw |> 
+  select(season, episode, speaker, sp1:sp4) |> 
+  filter(str_detect(speaker, "^DET|^SERGE|^SGT|^DR\\.|^AGEN")) |> 
+  distinct(speaker, .keep_all = TRUE) |> 
+  arrange(sp3, season, episode) |> 
+  collect()
+```
+
+
 # df_clean
 
 # df comparison

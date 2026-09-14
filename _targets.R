@@ -27,9 +27,23 @@ token_values <- expand_grid(
   )
 
 list(
-  tar_target(main_chars_parquet, "data/characters.parquet", format = "file"),
   tar_target(
-    recurring_chars_parquet, "data/recurring_characters.parquet", format = "file"
+    main_chars_parquet, "data/Wikipedia/characters.parquet", format = "file"
+  ),
+  tar_target(
+    recurring_chars_parquet,
+    "data/Wikipedia/recurring_characters.parquet",
+    format = "file"
+  ),
+  tar_target(
+    crossover_characters_txt,
+    "data/Wikipedia/crossover_characters.txt",
+    format = "file"
+  ),
+  tar_target(
+    notable_guests_txt,
+    "data/Wikipedia/notable_guests.txt",
+    format = "file"
   ),
   tar_target(
     episode_ratings_parquet, "data/episode_ratings.parquet", format = "file"
@@ -38,6 +52,8 @@ list(
     episode_ratings,
     clean_episode_ratings(episode_ratings_parquet |> read_parquet())
   ),
+  
+  # Wikipedia cast and character lists
   tar_target(main_chars_wide, create_main_chars_wide(main_chars_parquet)),
   tar_target(main_chars_long, create_main_chars_long(main_chars_wide)),
   tar_target(
@@ -45,6 +61,17 @@ list(
   ),
   tar_target(
     recurring_chars_long, create_recurring_chars_long(recurring_chars_wide)
+  ),
+  tar_target(
+    crossover_chars_long,
+    create_crossover_chars_long(crossover_characters_txt)
+  ),
+  tar_target(
+    crossover_chars_wide,
+    create_crossover_chars_wide(crossover_chars_long)
+  ),
+  tar_target(
+    notable_guest_chars, create_notable_guest_chars(notable_guests_txt)
   ),
   tar_target(
     char_status_long,
@@ -69,6 +96,9 @@ list(
     format = "file"
   ),
   tar_target(lookup_chars, create_lookup_chars(characters)),
+  
+  # transcripts
+  
   tar_target(
     transcript_list,
     list.files("data/", pattern = "\\.pdf$", recursive = TRUE)

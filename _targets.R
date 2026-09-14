@@ -110,12 +110,19 @@ list(
     transcripts_html, parse_episode_html(), packages = c("rvest", "xml2")
   ),
   tar_target(
-    transcripts, join_pdf_html(transcripts_pdf, transcripts_html)
+    transcripts,
+    {
+      join_pdf_html(transcripts_pdf, transcripts_html) |> 
+        write_parquet("data/transcripts.parquet")
+      "data/transcripts.parquet"
+    },
+    format = "file"
   ),
   tar_target(
     transcripts_parquet,
     {
       transcripts |>
+        read_parquet() |> 
         select(ep_number, season, episode, title) |>
         write_parquet("data/transcripts_parquet.parquet")
       file.copy(
@@ -136,6 +143,7 @@ list(
     df_raw,
     {
       transcripts |>
+        read_parquet() |> 
         run_cleaning_pipe(char_lookup = lookup_chars) |>
         write_parquet("data/df_raw.parquet")
       "data/df_raw.parquet"
@@ -146,6 +154,7 @@ list(
   #   df_clean,
   #   {
   #     transcripts |>
+  #       read_parquet() |> 
   #       run_cleaning_pipe(clean = TRUE) |>
   #       write_parquet("data/df_clean.parquet")
   #     "data/df_clean.parquet"

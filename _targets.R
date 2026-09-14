@@ -58,7 +58,11 @@ list(
       characters |> write_parquet("data/characters_parquet.parquet")
       file.copy(
         "data/characters_parquet.parquet",
-        "app/data/characters_parquet.parquet"
+        "app/characters_parquet.parquet"
+      )
+      file.copy(
+        "data/characters_parquet.parquet",
+        "characters_parquet.parquet"
       )
       "data/characters_parquet.parquet"
     },
@@ -86,7 +90,12 @@ list(
         write_parquet("data/transcripts_parquet.parquet")
       file.copy(
         "data/transcripts_parquet.parquet",
-        "app/data/transcripts_parquet.parquet",
+        "app/transcripts_parquet.parquet",
+        overwrite = TRUE
+      )
+      file.copy(
+        "data/transcripts_parquet.parquet",
+        "transcripts_parquet.parquet",
         overwrite = TRUE
       )
       "data/transcripts_parquet.parquet"

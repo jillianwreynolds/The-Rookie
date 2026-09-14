@@ -102,11 +102,13 @@ list(
       characters |> write_parquet("data/characters_parquet.parquet")
       file.copy(
         "data/characters_parquet.parquet",
-        "app/characters_parquet.parquet"
+        "app/characters_parquet.parquet",
+        overwrite = TRUE
       )
       file.copy(
         "data/characters_parquet.parquet",
-        "characters_parquet.parquet"
+        "characters_parquet.parquet",
+        overwrite = TRUE
       )
       "data/characters_parquet.parquet"
     },

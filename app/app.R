@@ -1,4 +1,5 @@
 library(shiny)
+library(shinyjs)
 library(tidyverse)
 library(DT)
 library(bslib)
@@ -8,7 +9,8 @@ library(bslib)
 tbl_transcripts <- nanoparquet::read_parquet("transcripts_parquet.parquet")
 tbl_characters <- nanoparquet::read_parquet("characters_parquet.parquet")
 
-
+# Number of seasons
+n_seasons <- 8
 
 # functions ---------------------------------------------------------------
 
@@ -23,7 +25,9 @@ clean_col_names <- function(tbl, ...) {
 # UI setup ----------------------------------------------------------------
 
 dark_teal   <- "#0a333f"
+dark_teal2  <- "#0a333f30"
 teal        <- "#2f8b9d"
+teal2       <- "#2f8b9d30"
 code_color  <- "#7c13ba"
 yellow      <- "#facf21"
 light_green <- "#b9d4bd"
@@ -41,8 +45,44 @@ theme <- bs_theme(
     "card-title-color"   = teal
   ) |> 
   bs_add_rules(
-    ".card { border-radius: 8px !important; }"
+    glue::glue(
+      "
+    .card {
+      border-radius: var(--bs-border-radius-lg);
+    }
+    .accordion {
+      --bs-accordion-btn-bg: {{teal2}};
+      --bs-accordion-active-bg: {{light_green}};
+    }
+    .btn-reset {
+      background-color: {{teal2}};
+      border-color: var(--bs-border-color);
+      color: {{dark_teal}};
+    }
+    .btn-reset:hover {
+      background-color: {{yellow}};
+      border-color: {{dark_teal}};
+      color: {{dark_teal}};
+    }
+    ",
+      .open = "{{",
+      .close = "}}"
+    )
   )
+
+## About section -----------------------------------------------------------
+
+about_section <- tagList(
+  tags$details(
+    tags$summary(
+      "About This Project", style = "display: list-item; font-size:20px"
+    ),
+    p(
+      "This project uses HTML downloads of episode transcripts from ", tags$a(href="https://the-rookie.fandom.com/", "the-rookie.fandom.com", .noWS = "after", target = "_blank"), ". It uses various ", code("R"), " packages and functions to parse the HTML, extract information, and clean and analyze the data. The tables below were not a product of manual typing and counting or copying and pasting information from existing lists. This project is still in progress.",
+      style = "font-size:16px"
+    )
+  )
+)
 
 
 ## home panel --------------------------------------------------------------
@@ -51,8 +91,25 @@ theme <- bs_theme(
 cards_home <- list(
   directory = card(
     card_header("Episode Directory", class = "bg-secondary"),
+    accordion(
+      open = FALSE,
+      accordion_panel(
+        "Filter by Season",
+        fluidRow(
+          column(4, selectInput(
+            "filter_season",
+            label = NULL,
+            choices = 1:n_seasons,
+            multiple = TRUE
+          )),
+          column( 3, actionButton(
+              "reset_season_filter", "Reset Filter", class = "btn-reset"
+          ))
+        )
+      )
+    ),
     DTOutput("episodes"),
-    min_height = "600px"
+    min_height = "670px"
   ),
   n_episodes = card(
     card_header("Number of Episodes by Season", class = "bg-secondary"),
@@ -61,21 +118,11 @@ cards_home <- list(
 )
 
 home_panel <- nav_panel(
+  useShinyjs(),
   title = "Home",
   p("By Jillian W. Reynolds", style = "font-size:22px"),
   fluidRow(
-    column(
-      3,
-      tags$details(
-        tags$summary(
-          "About This Project", style = "display: list-item; font-size:20px"
-        ),
-        p(
-          "This project uses HTML downloads of episode transcripts from ", tags$a(href="https://the-rookie.fandom.com/", "the-rookie.fandom.com", .noWS = "after", target = "_blank"), ". It uses various ", code("R"), " packages and functions to parse the HTML, extract information, and clean and analyze the data. The tables below were not a product of manual typing and counting or copying and pasting information from existing lists. This project is still in progress.",
-          style = "font-size:16px"
-        )
-      )
-    ),
+    column(3, about_section),
     column(9)
   ),
   p(),
@@ -131,12 +178,20 @@ ui <- page_navbar(
 
 server <- function(input, output, session) {
   
+  observeEvent(input$reset_season_filter, reset("filter_season"))
+  
   output$episodes <- renderDT(
-    tbl_transcripts |> 
-      tibble() |> 
-      select(ep_number, season, episode, title) |>
-      rename(number = ep_number) |> 
-      rename_with(str_to_title),
+    {
+      tbl <- tbl_transcripts |> 
+        select(ep_number, season, episode, title)
+      if (length(input$filter_season) > 0) {
+        tbl <- tbl |> filter(season %in% input$filter_season)
+      }
+      tbl |> 
+        rename(number = ep_number) |> 
+        rename_with(str_to_title)
+      
+    },
     server = FALSE,
     options = list(
       pageLength = 10,

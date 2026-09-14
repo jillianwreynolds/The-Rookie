@@ -1,38 +1,27 @@
-clean_speaker_names2 <- function(tbl) {
+clean_speaker_names2 <- function(tbl, lookup_data) {
+  
+  move_tbl <- lookup_data |>
+    filter(type == "move_first_add_last") |>
+    select(sp4_match = name, new_last = replacement)
+  
+  add_tbl <- lookup_data |>
+    filter(type == "add_first") |>
+    select(sp4_match = name, new_first = replacement)
   
   tbl |>
+    # handle move_first_add_last: sp4 is a first name, move to sp3, replace with last
+    left_join(move_tbl, by = c("sp4" = "sp4_match")) |>
     mutate(
-      sp4 = if_else(
-        is.na(sp3),
-        # replace first name with last name
-        sp4 |> replace_when(
-          sp4 == "ANGELA" ~ "LOPEZ",
-          sp4 == "BAILEY" ~ "NUNE",
-          sp4 == "ELIJAH" ~ "STONE",
-          sp4 == "TIM"    ~ "BRADFORD",
-          sp4 == "WESLEY" ~ "EVERS"
-        ),
-        sp4
-      ),
-      sp3 = if_else(
-        is.na(sp3),
-        sp3 |> replace_when(
-          # add first name in sp3
-          sp4 == "ANDERSEN" ~ "ZOE",
-          sp4 == "BRADFORD" ~ "TIM",
-          sp4 == "CHEN"     ~ "LUCY",
-          sp4 == "HARPER"   ~ "NYLA",
-          sp4 == "NOLAN"    ~ "JOHN",
-          sp4 == "RUSSO"    ~ "JESSICA",
-          # add first name (sp4 originally first name)
-          sp4 == "BRADFORD" ~ "TIM",
-          sp4 == "EVERS"    ~ "WESLEY",
-          sp4 == "LOPEZ"    ~ "ANGELA",
-          sp4 == "NUNE"     ~ "BAILEY",
-          sp4 == "STONE"    ~ "ELIJAH"
-        ),
-        sp3
-      ),
+      do_move = is.na(sp3) & !is.na(new_last),   # evaluate once, before any mutation
+      sp3 = if_else(do_move, sp4,      sp3),
+      sp4 = if_else(do_move, new_last, sp4)
+    ) |>
+    select(-new_last, -do_move) |>
+    # handle add_first: sp4 is a last name, fill sp3 with first name
+    left_join(add_tbl, by = c("sp4" = "sp4_match")) |>
+    mutate(
+      sp3 = if_else(is.na(sp3) & !is.na(new_first), new_first, sp3),
+      sp3 = if_else(sp3 == "GENNIFER" & sp4 == "BRADFORD", "GENNY", sp3),
       # RACHEL HALL
       sp3 = if_else(
         when_all(is.na(sp3), season != 1, episode != 11),
@@ -214,6 +203,7 @@ clean_speaker_names2 <- function(tbl) {
         sp4 |> replace_when(sp4 == "LEAH" ~ "MURRAY"),
         sp4
       )
-    )
+    ) |>
+    select(-new_first)
   
 }

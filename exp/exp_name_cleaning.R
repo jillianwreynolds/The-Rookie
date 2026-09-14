@@ -1,12 +1,12 @@
-source("R/clean_speaker_names2.R")
+# source("R/clean_speaker_names2.R")
 
 check_names_vec <- c(
   # move first name, add last name
-  "ABIGAIL", "ABRIL",
+  "ABIGAIL", "ABRIL", "AUSTIN",
   "BAILEY", "^BEN$", "BLANCA",
   "DIEGO", "DOMINIQUE", "DONOVAN",
   "ELIJAH", "EMMETT",
-  "GENNIFER", "GENNY", "GRACE",
+  "GENNIFER", "GENNY", "GRACE$",
   "ISABEL",
   "JACKSON", "JESSICA", "JOY",
   "KARLA",
@@ -14,8 +14,9 @@ check_names_vec <- c(
   "NELL",
   "OSCAR",
   "PERCY",
-  "RANDY", "RODGE", "ROSALIND", "RUBEN",
-  "TAMARA", "TIM",
+  "RANDY", "RODGE", "ROSALIND", "RUBEN$",
+  "SIMON",
+  "TAMARA", "TIM", "TYLER",
   "VIVIAN",
   "WESLEY",
   "YVONNE",
@@ -27,9 +28,9 @@ check_names_vec <- c(
   "ECKERT",
   "FREEMAN",
   "GLASSER", "GREY",
-  "HALL", "HARPER", "HUTCHINSON",
+  "HALL$", "HARPER", "HUTCHINSON",
   "JUAREZ",
-  "LANG", "LONDON", "LOPEZ",
+  "LANG", "LONDON", "LOPEZ$",
   "NOLAN",
   "PENN",
   "RIDLEY", "RUSSO", "RYAN",
@@ -71,9 +72,16 @@ df_raw |>
   collect() |> 
   csn2() |> 
   distinct(pick(starts_with("sp")), .keep_all = TRUE) |> 
-  arrange(sp4, sp3) |> 
+  arrange(sp4, sp3, speaker, season, episode) |> 
   print_inf()
 
+
+df_raw |> select(season, episode, speaker, sp1:sp4, transcript) |> 
+  filter(str_detect(speaker, check_names_pattern)) |> 
+  collect() |> 
+  distinct(pick(starts_with("sp")), .keep_all = TRUE) |> 
+  arrange(sp4, sp3, speaker, season, episode) |> 
+  print_inf()
 
 df_raw |> check_names("malcolm")
 df_raw |> check_names("bradford", FALSE)
@@ -82,7 +90,5 @@ df_raw |> check_names("bradford", FALSE)
 source("R/check_name_variations.R")
 source("R/check_names.R")
 source("R/find_which_episodes.R")
-
-# gennifer bradford 5x2
 
 # jason wyler: 4x9, 4x10, 4x11, 6x10, 7x5

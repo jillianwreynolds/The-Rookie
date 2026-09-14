@@ -11,7 +11,8 @@ theme <- bs_theme(
   bs_add_variables(
     "headings-color"     = dark_teal,
     "link-color"         = teal,
-    "code-color"         = code_color
+    "code-color"         = code_color,
+    "card-title-color"   = teal
   ) |> 
   bs_add_rules(
     ".card { border-radius: 8px !important; }"

@@ -1,50 +1,31 @@
 library(shiny)
-library(nanoparquet)
 library(tidyverse)
 library(DT)
 library(bslib)
 
 # setup -------------------------------------------------------------------
 
-source("theme.R")
+c(
+  "R/theme.R",
+  "R/utils.R",
+  "R/home_panel.R",
+  "R/characters_panel.R"
+) |> 
+  walk(\(x) source(x))
 
-tbl_transcripts <- nanoparquet::read_parquet("transcripts_parquet.parquet")
-
-# for testing tbl_transcripts
-# tbl_transcripts <- nanoparquet::read_parquet("app/transcripts_parquet.parquet")
+tbl_transcripts <- nanoparquet::read_parquet("data/transcripts_parquet.parquet")
+tbl_characters <- nanoparquet::read_parquet("data/characters_parquet.parquet")
 
 # UI ----------------------------------------------------------------------
 
-ui <- fluidPage(
+ui <- page_navbar(
   theme = theme,
-  titlePanel(h1(em("The Rookie"), " Transcript Analysis")),
-  p("By Jillian W. Reynolds", style = "font-size:22px"),
-  titlePanel(""),
-  # tags$details(about_section),
-  fluidRow(
-    column(
-      3,
-      tags$details(
-        tags$summary(
-          "About This Project", style = "display: list-item; font-size:20px"
-        ),
-        p(
-          "This project uses HTML downloads of episode transcripts from ", tags$a(href="https://the-rookie.fandom.com/", "the-rookie.fandom.com", .noWS = "after", target = "_blank"), ". It uses various ", code("R"), " packages and functions to parse the HTML, extract information, and clean and analyze the data. The tables below were not a product of manual typing and counting or copying and pasting information from existing lists. This project is still in progress.",
-          style = "font-size:16px"
-        )
-      )
-    ),
-    column(9)
-  ),
-  titlePanel(""),
-  h2("Episode Directory", style = "font-size:26px"),
-  titlePanel(""),
-  fluidRow(
-    column(7, DTOutput("episodes")),
-    column(2, tableOutput("n_episodes"))
-  ),
-  titlePanel(""),
-  titlePanel("")
+  fillable = FALSE,
+  navbar_options = navbar_options(bg = dark_teal),
+  title = h1(em("The Rookie"), " Transcript Analysis", style = "color:#fff"),
+  nav_spacer(),
+  home_panel,
+  characters_panel
 )
 
 # Server ------------------------------------------------------------------
@@ -69,6 +50,16 @@ server <- function(input, output, session) {
       select(season, episode) |>
       count(season) |>
       rename(Season = season, Episodes = n)
+  )
+  
+  output$characters_tbl <- renderDT(
+    tbl_characters |> 
+      select(1:2) |> 
+      mutate(across(
+        everything(),
+        \(x) x |> str_replace_all("_", " ") |>  str_to_title()
+      )) |> 
+      clean_col_names()
   )
   
 }

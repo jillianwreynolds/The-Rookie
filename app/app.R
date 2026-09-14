@@ -3,11 +3,15 @@ library(tidyverse)
 library(DT)
 library(bslib)
 
-# setup -------------------------------------------------------------------
+
+# read data ---------------------------------------------------------------
 
 tbl_transcripts <- nanoparquet::read_parquet("transcripts_parquet.parquet")
 tbl_characters <- nanoparquet::read_parquet("characters_parquet.parquet")
 
+
+
+# functions ---------------------------------------------------------------
 
 clean_col_names <- function(tbl, ...) {
   tbl |> 
@@ -38,6 +42,10 @@ theme <- bs_theme(
   bs_add_rules(
     ".card { border-radius: 8px !important; }"
   )
+
+
+## home panel --------------------------------------------------------------
+
 
 cards_home <- list(
   directory = card(
@@ -80,13 +88,15 @@ home_panel <- nav_panel(
 )
 
 
+## characters panel --------------------------------------------------------
+
 cards_characters <- list(
   note = card(markdown(
     "This table lists characters from *The Rookie's* Wikipedia page, specifically those in the lists of main or recurring characters. Analysis will focus on a subset of these characters."
   )),
   table = card(
     card_header("Main and Recurring Characters", class = "bg-secondary"),
-    tableOutput("characters_tbl"),
+    DTOutput("characters_tbl"),
     min_height = "600px"
   )
 )

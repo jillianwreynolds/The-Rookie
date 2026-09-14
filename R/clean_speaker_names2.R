@@ -210,7 +210,45 @@ clean_speaker_names2 <- function(tbl, lookup_data) {
         when_all(season == 8, episode == 7),
         sp4 |> replace_when(sp4 == "LEAH" ~ "MURRAY"),
         sp4
-      )
+      ),
+      
+      # move title, add first name
+      sp2 = if_else(
+        when_any(
+          when_all(
+            sp3 %in% c("DET.", "DETECTIVE"),
+            sp4 %in% c("VESTRI", "WOLFE")
+          ),
+          when_all(sp3 == "GRACE", sp4 == "SAWYER")
+        ),
+        sp2 |> replace_when(
+          sp4 %in% c("VESTRI", "WOLFE") ~ "DETECTIVE",
+          sp4 == "SAWYER"               ~ "DR."
+        ),
+        sp2
+      ),
+      sp3 = if_else(
+        when_any(
+          when_all(
+            sp3 %in% c("DET.", "DETECTIVE"),
+            sp4 %in% c("VESTRI", "WOLFE")
+          ),
+          when_all(sp3 == "SGT.", sp4 == "GREY")
+        ),
+        case_when(
+          sp4 == "VESTRI" ~ "ELIJAH",
+          sp4 == "WOLFE"  ~ "KEVIN",
+          sp4 == "GREY"   ~ "WADE"
+        ),
+        sp3
+      ),
+      
+      # unabbreviate titles
+      across(sp2:sp3, \(x) {
+        x |> 
+          str_replace("DET\\.", "DETECTIVE") |> 
+          str_replace("SGT\\.?", "SERGEANT")
+      })
     ) |>
     select(-new_first)
   

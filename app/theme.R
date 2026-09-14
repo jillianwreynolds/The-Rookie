@@ -5,5 +5,5 @@ theme <- bs_theme(
   bs_add_variables(
     "headings-color" = "#0a333f",
     "link-color" = "#2f8b9d",
-    "code-color" = "purple"
+    "code-color" = "#7c13ba"
   )

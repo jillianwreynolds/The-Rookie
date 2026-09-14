@@ -64,6 +64,7 @@ list(
     },
     format = "file"
   ),
+  tar_target(lookup_chars, create_lookup_chars(characters)),
   tar_target(
     transcript_list,
     list.files("data/", pattern = "\\.pdf$", recursive = TRUE)
@@ -96,35 +97,35 @@ list(
     df_raw,
     {
       transcripts |>
-        run_cleaning_pipe() |>
+        run_cleaning_pipe(char_lookup = lookup_chars) |>
         write_parquet("data/df_raw.parquet")
       "data/df_raw.parquet"
     },
     format = "file"
-  ),
-  tar_target(
-    df_clean,
-    {
-      transcripts |>
-        run_cleaning_pipe(clean = TRUE) |>
-        write_parquet("data/df_clean.parquet")
-      "data/df_clean.parquet"
-    },
-    format = "file"
-  ),
-  tar_map(
-    values = token_values,
-    names = suffix,
-    unlist = TRUE,
-    tar_target(
-      tokens,
-      {
-        read_parquet(df) |>
-          unnest_transcripts(token = token, n = n) |>
-          write_parquet(path)
-        path
-      },
-      format = "file"
-    )
-  )
+  )#,
+  # tar_target(
+  #   df_clean,
+  #   {
+  #     transcripts |>
+  #       run_cleaning_pipe(clean = TRUE) |>
+  #       write_parquet("data/df_clean.parquet")
+  #     "data/df_clean.parquet"
+  #   },
+  #   format = "file"
+  # ),
+  # tar_map(
+  #   values = token_values,
+  #   names = suffix,
+  #   unlist = TRUE,
+  #   tar_target(
+  #     tokens,
+  #     {
+  #       read_parquet(df) |>
+  #         unnest_transcripts(token = token, n = n) |>
+  #         write_parquet(path)
+  #       path
+  #     },
+  #     format = "file"
+  #   )
+  # )
 )

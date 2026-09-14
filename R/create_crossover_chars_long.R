@@ -4,11 +4,11 @@ create_crossover_chars_long <- function(file_path) {
     read_file() |> 
     str_replace(
       coll("Ryan Seacrest, Katy Perry, Luke Bryan and Lionel Richie as themselves: The host and judges of American Idol.[27]"),
-      "Ryan Seacrest as himself: Host and judge of American Idol\nKaty Perry as herself: Host and judge of American Idol\nLuke Bryan as himself: Host and judge of American Idol\nLionel Richie as himself: Host and judge of American Idol"
+      "Ryan Seacrest as himself (season 2): Host and judge of American Idol\nKaty Perry as herself (season 2): Host and judge of American Idol\nLuke Bryan as himself (season 2): Host and judge of American Idol\nLionel Richie as himself (season 2): Host and judge of American Idol"
     ) |> 
     str_replace(
       coll("The cast of Game Changer (Anna Garcia, Vic Michaelis, Zac Oyama, Sam Reich, and Jacob Wysocki) as themselves"),
-      "Anna Garcia as herself: Host of Game Changer (game show)\nVic Michaelis as himself: Host of Game Changer (game show)\nZac Oyama as himself: Host of Game Changer (game show)\nSam Reich as himself: Host of Game Changer (game show)\nJacob Wysocki as himself: Host of Game Changer (game show)"
+      "Anna Garcia as herself (season 8): Host of Game Changer (game show)\nVic Michaelis as himself (season 8): Host of Game Changer (game show)\nZac Oyama as himself (season 8): Host of Game Changer (game show)\nSam Reich as himself (season 8): Host of Game Changer (game show)\nJacob Wysocki as himself (season 8): Host of Game Changer (game show)"
     ) |> 
     str_split("\n") |> 
     unlist() |> 
@@ -22,7 +22,7 @@ create_crossover_chars_long <- function(file_path) {
       alias = character |> str_extract("(?<=\").+(?=\")"),
       character = character |> str_remove("\".+\"\\s"),
       season = text |> 
-        str_extract("(?<=seasons?\\s).+(?=\\))") |> 
+        str_extract("(?<=seasons?\\s).+?(?=\\))") |> 
         str_replace_all("present", "8") |> 
         str_replace_all("–", ":"),
       season = season |> 
@@ -33,12 +33,12 @@ create_crossover_chars_long <- function(file_path) {
       character,
       delim = " ",
       names = c("first_name", "last_name")
-    ) |> 
-    separate_longer_delim(season, ",") |> 
+    ) |>
+    separate_longer_delim(season, ",") |>
     mutate(
-      status = case_when(!is.na(season) ~ "appears"),
+      season = season |> as.integer(),
       across(ends_with("name"), str_to_upper)
-    ) |> 
-    relocate(c(status, alias, actor), .after = season)
+    ) |>
+    relocate(c(alias, actor), .after = season)
   
 }

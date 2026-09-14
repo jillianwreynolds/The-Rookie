@@ -1,4 +1,4 @@
-run_cleaning_pipe <- function(tbl, clean = FALSE) {
+run_cleaning_pipe <- function(tbl, clean = FALSE, char_lookup) {
   
   tbl <- tbl |> 
     pre_clean() |> 
@@ -31,6 +31,7 @@ run_cleaning_pipe <- function(tbl, clean = FALSE) {
     fill_speaker_info() |>
     clean_multispeaker_names() |> 
     separate_speaker_names() |> 
+    clean_speaker_names2(lookup_data = char_lookup) |> 
     unitalicize_descriptions2() |> 
     replace_italics2()
 }

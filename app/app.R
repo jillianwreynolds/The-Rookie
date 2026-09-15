@@ -15,6 +15,13 @@ n_seasons <- 8
 
 # functions ---------------------------------------------------------------
 
+titles_to_string <- function(tbl) {
+  tbl |>
+    mutate(string = str_c(title, " (", season, "x", episode, ")")) |>
+    pull(string) |>
+    str_flatten_comma(last = ", and ")
+}
+
 clean_col_names <- function(tbl, ...) {
   tbl |> 
     rename_with(
@@ -22,15 +29,6 @@ clean_col_names <- function(tbl, ...) {
       ...
     )
 }
-
-
-# tibbles -----------------------------------------------------------------
-
-ratings <- tbl_episode_ratings |> 
-  left_join(tbl_transcripts, join_by(season, episode)) |> 
-  select(-ep_number) |> 
-  relocate(title, .after = episode) |> 
-  arrange(season, episode)
 
 # themes ------------------------------------------------------------------
 
@@ -40,9 +38,10 @@ dark_teal   <- "#0a333f"
 dark_teal2  <- "#0a333f30"
 teal        <- "#2f8b9d"
 teal2       <- "#2f8b9d30"
-code_color  <- "#7c13ba"
 yellow      <- "#facf21"
+yellow2     <- "#facf2125"
 light_green <- "#b9d4bd"
+code_color  <- "#7c13ba"
 
 theme <- bs_theme(
   version = 5,
@@ -57,7 +56,7 @@ theme <- bs_theme(
     "card-title-color"   = teal
   ) |> 
   bs_add_rules(
-    glue::glue(
+    glue(
       "
     .card {
       border-radius: var(--bs-border-radius-lg);
@@ -76,14 +75,17 @@ theme <- bs_theme(
       border-color: {{dark_teal}};
       color: {{dark_teal}};
     }
+    .vb-yellow {
+      background-color: {{yellow2}} !important;
+      color: {{dark_teal}}!important;
+    }
     ",
       .open = "{{",
       .close = "}}"
     )
   )
 
-
-# ggplot ------------------------------------------------------------------
+## ggplot -----------------------------------------------------------------
 
 gg_theme <- theme(
   axis.title = element_text(size = 15),
@@ -91,6 +93,14 @@ gg_theme <- theme(
   legend.title = element_text(size = 14),
   legend.text = element_text(size = 13)
 )
+
+# tibbles -----------------------------------------------------------------
+
+ratings <- tbl_episode_ratings |> 
+  left_join(tbl_transcripts, join_by(season, episode)) |> 
+  select(-ep_number) |> 
+  relocate(title, .after = episode) |> 
+  arrange(season, episode)
 
 # plots -------------------------------------------------------------------
 
@@ -148,6 +158,7 @@ about_section <- tagList(
 
 ## home panel --------------------------------------------------------------
 
+### cards ------------------------------------------------------------------
 
 cards_home <- list(
   directory = card(
@@ -178,6 +189,9 @@ cards_home <- list(
   )
 )
 
+
+### nav_panel -------------------------------------------------------------
+
 home_panel <- nav_panel(
   useShinyjs(),
   title = "Home",
@@ -200,6 +214,8 @@ home_panel <- nav_panel(
 
 ## characters panel --------------------------------------------------------
 
+### cards ------------------------------------------------------------------
+
 cards_characters <- list(
   note = card(markdown(
     "This table lists characters from *The Rookie's* Wikipedia page, specifically those in the lists of main or recurring characters. Analysis will focus on a subset of these characters."
@@ -210,6 +226,8 @@ cards_characters <- list(
     min_height = "600px"
   )
 )
+
+### nav_panel -------------------------------------------------------------
 
 characters_panel <- nav_panel(
   title = "Characters",
@@ -222,6 +240,9 @@ characters_panel <- nav_panel(
 )
 
 ## ratings panel -----------------------------------------------------------
+
+
+### cards ------------------------------------------------------------------
 
 cards_ratings <- list(
   note = card(
@@ -247,66 +268,75 @@ cards_ratings <- list(
   )
 )
 
+### value boxes -----------------------------------------------------------
+
 vbs <- list(
   highest = value_box(
     "Highest Rating",
     value = ratings$rating |> max(),
     p(
-      ratings |> slice_max(rating) |> 
-        pull(title) |>str_flatten(collapse = ", ", last = " and "),
+      ratings |> slice_max(rating) |> titles_to_string(),
       style = "font-size:15px"
-    )
+    ),
+    showcase = bsicons::bs_icon("arrow-up"),
+    theme = "success-subtle"
   ),
   lowest = value_box(
     "Lowest Rating",
     value = ratings$rating |> min(),
     p(
-      ratings |> slice_min(rating) |> 
-        pull(title) |> str_flatten(collapse = ", ", last = " and "),
+      ratings |> slice_min(rating) |> titles_to_string(),
       style = "font-size:15px"
-    )
+    ),
+    showcase = bsicons::bs_icon("arrow-down"),
+    theme = "danger-subtle"
   ),
   average = value_box(
     "Average Rating",
     value = ratings$rating |> mean() |> round(1),
     p(
-      ratings |> filter(rating == round(mean(rating), 1)) |> 
-        pull(title) |> str_flatten(collapse = ", ", last = " and "),
+      ratings |> filter(rating == round(mean(rating), 1)) |> titles_to_string(),
       style = "font-size:15px"
-    )
+    ),
+    theme = NULL,
+    class = "vb-yellow"
   )
 )
 
+### nav_panel -------------------------------------------------------------
+
+# ratings_panel <- nav_panel(
+#   title = "Episode Ratings",
+#   layout_column_wrap(
+#     width = 1/2,
+#     heights_equal = "row",
+#     layout_column_wrap(
+#       cards_ratings$note,
+#       vbs$highest,
+#       vbs$average,
+#       vbs$lowest,
+#       width = 1/2
+#     ),
+#     cards_ratings$plot
+#   ),
+#   layout_columns(
+#     cards_ratings$ratings,
+#     col_widths = c(6),
+#     fillable = FALSE
+#   )
+# )
+
 ratings_panel <- nav_panel(
   title = "Episode Ratings",
-  layout_column_wrap(
-    width = 1/2,
-    heights_equal = "row",
-    layout_column_wrap(
+  layout_columns(
       cards_ratings$note,
       vbs$highest,
       vbs$average,
-      vbs$lowest,
-      width = 1/2
+      vbs$lowest
     ),
-    cards_ratings$plot
-  ),
-  # layout_columns(
-  #   cards_ratings$note,
-  #   vbs$highest,
-  #   cards_ratings$plot,
-  #   col_widths = c(3, 3, 6),
-  #   fillable = FALSE
-  # ),
-  # layout_columns(
-  #   vbs$average,
-  #   vbs$lowest,
-  #   col_widths = c(3, 3, 6),
-  #   fillable = FALSE
-  # ),
-  layout_columns(
+    layout_columns(
     cards_ratings$ratings,
-    # cards_ratings$plot,
+    cards_ratings$plot,
     fillable = FALSE
   )
 )
@@ -319,7 +349,7 @@ ui <- page_navbar(
   navbar_options = navbar_options(bg = dark_teal),
   title = h1(
     em("The Rookie"), " Transcript Analysis",
-    style = "color:#facf21"
+    style = glue("color:{yellow}")
   ),
   nav_spacer(),
   home_panel,

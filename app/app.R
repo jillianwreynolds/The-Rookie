@@ -88,12 +88,13 @@ theme <- bs_theme(
 
 ## ggplot -----------------------------------------------------------------
 
-gg_theme <- theme(
-  axis.title = element_text(size = 15),
-  axis.text = element_text(size = 14),
-  legend.title = element_text(size = 14),
-  legend.text = element_text(size = 13)
-)
+gg_theme <- theme_light() +
+  theme(
+    axis.title = element_text(size = 15),
+    axis.text = element_text(size = 14),
+    legend.title = element_text(size = 14),
+    legend.text = element_text(size = 13)
+  )
 
 # tibbles -----------------------------------------------------------------
 
@@ -105,7 +106,7 @@ ratings <- tbl_episode_ratings |>
 
 # plots -------------------------------------------------------------------
 
-plot_ratings_code <- tbl_episode_ratings |> 
+plot_ratings_stats_code <- tbl_episode_ratings |> 
   group_by(season) |> 
   summarise(
     min = min(rating),
@@ -135,9 +136,19 @@ plot_ratings_code <- tbl_episode_ratings |>
     ),
     labels = \(x) x |> str_to_title()
   ) +
-  labs(x = "Season", y = "Rating", color = "Statistic", linetype = "Statistic") +
-  theme_light() +
+  labs(
+    x = "Season", y = "Rating", color = "Statistic", linetype = "Statistic"
+  ) +
   coord_cartesian(ylim = c(0, 10)) +
+  gg_theme
+
+plot_ratings_dist_code <- tbl_episode_ratings |> 
+  group_by(rating) |> 
+  count() |> 
+  ggplot(aes(rating, n)) +
+  geom_col(fill = teal) +
+  scale_y_continuous(expand = expansion(c(0, 0.05))) +
+  labs(x = "Rating", y = "Number of Episodes") +
   gg_theme
 
 # UI setup ----------------------------------------------------------------
@@ -262,10 +273,16 @@ cards_ratings <- list(
     DTOutput("ratings"),
     min_height = "640px"
   ),
-  plot = card(
+  plot_stats = card(
     full_screen = TRUE,
     card_header("Summary Statistics by Season", class = "bg-secondary"),
-    plotOutput("plot_ratings")
+    plotOutput("plot_ratings_stats")
+  ),
+  plot_counts = card(
+    full_screen = TRUE,
+    card_header("Distribution of Ratings", class = "bg-secondary"),
+    checkboxInput("view_full_scale", "View full rating scale (0 to 10)?"),
+    plotOutput("plot_ratings_dist")
   )
 )
 
@@ -318,11 +335,11 @@ ratings_panel <- nav_panel(
       vbs$lowest,
       width = 1/2
     ),
-    cards_ratings$plot
+    cards_ratings$plot_stats
   ),
   layout_columns(
     cards_ratings$ratings,
-    col_widths = c(6),
+    cards_ratings$plot_counts,
     fillable = FALSE
   )
 )
@@ -395,12 +412,28 @@ server <- function(input, output, session) {
   output$ratings <- renderDT(
     ratings |> 
       rename(number_of_votes = n_votes) |> 
-      clean_col_names()
+      clean_col_names(),
+    options = list(
+      pageLength = 10,
+      lengthMenu = c(5, 10, seq(20, 40, 10))
+    )
   )
   
-  output$plot_ratings <- renderPlot(
-    plot_ratings_code
+  output$plot_ratings_stats <- renderPlot(
+    plot_ratings_stats_code
   )
+  
+  output$plot_ratings_dist <- renderPlot({
+    plot <- plot_ratings_dist_code
+    if (input$view_full_scale) {
+      plot +
+        scale_x_continuous(breaks = 0:10) +
+        coord_cartesian(xlim = c(0, 10))
+    } else {
+      plot +
+        scale_x_continuous(breaks = seq(0, 10, 0.5))
+    }
+  })
   
 }
 

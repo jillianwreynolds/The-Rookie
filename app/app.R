@@ -1,6 +1,7 @@
 library(shiny)
 library(shinyjs)
 library(tidyverse)
+library(glue)
 library(DT)
 library(bslib)
 
@@ -305,38 +306,23 @@ vbs <- list(
 
 ### nav_panel -------------------------------------------------------------
 
-# ratings_panel <- nav_panel(
-#   title = "Episode Ratings",
-#   layout_column_wrap(
-#     width = 1/2,
-#     heights_equal = "row",
-#     layout_column_wrap(
-#       cards_ratings$note,
-#       vbs$highest,
-#       vbs$average,
-#       vbs$lowest,
-#       width = 1/2
-#     ),
-#     cards_ratings$plot
-#   ),
-#   layout_columns(
-#     cards_ratings$ratings,
-#     col_widths = c(6),
-#     fillable = FALSE
-#   )
-# )
-
 ratings_panel <- nav_panel(
   title = "Episode Ratings",
-  layout_columns(
+  layout_column_wrap(
+    width = 1/2,
+    heights_equal = "row",
+    layout_column_wrap(
       cards_ratings$note,
       vbs$highest,
       vbs$average,
-      vbs$lowest
+      vbs$lowest,
+      width = 1/2
     ),
-    layout_columns(
+    cards_ratings$plot
+  ),
+  layout_columns(
     cards_ratings$ratings,
-    cards_ratings$plot,
+    col_widths = c(6),
     fillable = FALSE
   )
 )

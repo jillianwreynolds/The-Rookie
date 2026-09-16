@@ -6,12 +6,12 @@
 
 I use the [targets](https://docs.ropensci.org/targets/) package to create a computation pipeline. The package automatically tracks dependencies, so code is only run when code that it depends on is outdated. This pipeline is defined in `_targets.R`.
 
-`scrape_*.R` files contain code for scraping the main cast and characters table and recurring characters list from _The Rookie_'s [Wikipedia page](https://en.wikipedia.org/wiki/The_Rookie). The scraped data is written to `csv` files located in `data/`.
+`scrape_Wikipedia/` contains scripts for scraping the cast and characters table and lists from _The Rookie_'s [Wikipedia page](https://en.wikipedia.org/wiki/The_Rookie). The scraped data is written to `parquet` and `txt` files located in `data/Wikipedia/`.
 
-Episode rating data comes from IMDb data downloaded on July 31, 2026 from https://datasets.imdbws.com. It was downloaded and cleaned for another project; I wrote the data to a parquet for this project.
+Episode rating data comes from IMDb data downloaded on July 31, 2026 from https://datasets.imdbws.com. It was downloaded and cleaned for another project; I wrote the data to a parquet file for this project.
 
 The scripts and files for the Shinylive app are located in `app/`; the rendered version that is published through GitHub pages is located in `docs/`.
 
-`helpers/` contains scripts that ease the data cleaning/analysis process or have single-use code (cleaning `HTML` and PDF file names).
+`helpers/` contains scripts that ease the data cleaning/analysis process or have single-use code (cleaning `HTML` and PDF file names, for example).
 
-`transcripts-exp*.qmd` contain code from exploring the data and testing functions.
+`exp/` contains files written while exploring the data and testing functions.

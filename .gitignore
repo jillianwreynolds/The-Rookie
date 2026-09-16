@@ -4,15 +4,22 @@
 *DS_Store
 
 *_files
-*html
+/*.html
+/*.parquet
 
 data/html*
 data/Season*/
+data/IMDb*.html
 data/*.parquet
 
-helpers/check_lines.R
+eda/*.html
+
+exp/check_lines.R
+helpers/test-app.R
 helpers/write_rds.R
 temp/
 
 !docs/*/*
 !app/*/*
+
+docs2/

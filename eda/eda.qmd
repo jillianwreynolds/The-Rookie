@@ -1,0 +1,84 @@
+---
+title: "EDA"
+format: html
+execute:
+  echo: false
+---
+
+```{r}
+tar_config_set(store = "../_targets")
+tar_source("../R")
+tar_load(episode_ratings)
+```
+
+```{r}
+episode_ratings |> 
+  summarise(
+    min = min(rating),
+    q1 = quantile(rating, 0.25),
+    median = median(rating),
+    q3 = quantile(rating, 0.75),
+    mean = mean(rating),
+    max = max(rating)
+  ) |> 
+  pivot_longer(everything(), names_to = "statistic", values_to = "value")
+```
+
+```{r}
+episode_ratings |> 
+  ggplot(aes(rating)) + 
+  geom_bar() +
+  scale_y_continuous(expand = expansion(c(0, 0.05))) +
+  coord_cartesian(xlim = c(0, 10)) + 
+  theme_light()
+```
+
+```{r}
+episode_ratings |> 
+  group_by(season) |> 
+  summarise(
+    min = min(rating),
+    q1 = quantile(rating, 0.25),
+    median = median(rating),
+    q3 = quantile(rating, 0.75),
+    mean = mean(rating),
+    max = max(rating)
+  )
+```
+
+```{r}
+episode_ratings |> 
+  group_by(season) |> 
+  summarise(
+    min = min(rating),
+    q1 = quantile(rating, 0.25),
+    median = median(rating),
+    q3 = quantile(rating, 0.75),
+    mean = mean(rating),
+    max = max(rating)
+  ) |> 
+  pivot_longer(2:last_col(), names_to = "stat", values_to = "value") |> 
+  ggplot() +
+  # geom_line(aes(season, value, color = stat)) +
+  geom_line(
+    aes(
+      season, value,
+      color = fct_reorder2(stat, season, value),
+      linetype = fct_reorder2(stat, season, value)
+    ),
+    linewidth = 0.75
+  ) +
+  scale_x_continuous(breaks = 1:8, minor_breaks = NULL) +
+  scale_y_continuous(expand = expansion(c(0, 0))) +
+  scale_color_viridis_d(end = 0.85, labels = \(x) x |> str_to_title()) +
+  scale_linetype_manual(
+    values = c(
+      "max" = "solid", "q3" = "dotdash", "median" = "dashed",
+      "mean" = "dotted", "q1" = "twodash", "min" = "longdash"
+    ),
+    labels = \(x) x |> str_to_title()
+  ) +
+  labs(x = "Season", y = "Rating", color = "Statistic", linetype = "Statistic") +
+  theme_light() +
+  coord_cartesian(ylim = c(0, 10))
+```

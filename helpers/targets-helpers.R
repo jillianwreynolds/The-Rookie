@@ -12,9 +12,10 @@ tar_make()
 tar_meta(fields = warnings, complete_only = TRUE)
 tar_meta(fields = error, complete_only = TRUE)
 
+View(tar_meta())
 tar_meta(fields = name)
 tar_meta(fields = name) |> print_inf()
-tar_meta(fields = name) |> View()
+View(tar_meta(fields = name))
 tar_meta(fields = name) |> filter(str_detect(name, ""))
 
 tar_manifest()

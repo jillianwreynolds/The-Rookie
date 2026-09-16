@@ -142,15 +142,6 @@ plot_ratings_stats_code <- tbl_episode_ratings |>
   coord_cartesian(ylim = c(0, 10)) +
   gg_theme
 
-plot_ratings_dist_code <- tbl_episode_ratings |> 
-  group_by(rating) |> 
-  count() |> 
-  ggplot(aes(rating, n)) +
-  geom_col(fill = teal) +
-  scale_y_continuous(expand = expansion(c(0, 0.05))) +
-  labs(x = "Rating", y = "Number of Episodes") +
-  gg_theme
-
 # UI setup ----------------------------------------------------------------
 
 ## About section -----------------------------------------------------------
@@ -281,8 +272,18 @@ cards_ratings <- list(
   plot_counts = card(
     full_screen = TRUE,
     card_header("Distribution of Ratings", class = "bg-secondary"),
-    checkboxInput("view_full_scale", "View full rating scale (0 to 10)?"),
-    plotOutput("plot_ratings_dist")
+    fluidRow(
+      column(5, checkboxInput(
+        "view_full_scale", "View full rating scale (0 to 10)?"
+      )),
+      column(3, radioButtons(
+        "view_type", "Filter or Compare?",
+        c("Filter", "Compare")
+      )),
+      column(4, uiOutput("ui_options"))
+    ),
+    plotOutput("plot_ratings_dist"),
+    min_height = "640px"
   )
 )
 
@@ -364,7 +365,6 @@ ui <- page_navbar(
 
 server <- function(input, output, session) {
   
-
 ## home -------------------------------------------------------------------
   
   observeEvent(input$reset_season_filter, reset("filter_season"))
@@ -423,16 +423,64 @@ server <- function(input, output, session) {
     plot_ratings_stats_code
   )
   
-  output$plot_ratings_dist <- renderPlot({
-    plot <- plot_ratings_dist_code
-    if (input$view_full_scale) {
-      plot +
-        scale_x_continuous(breaks = 0:10) +
-        coord_cartesian(xlim = c(0, 10))
+  output$ui_options <- renderUI({
+    if (input$view_type == "Filter") {
+      selectInput(
+        "filter_season2",
+        "Filter by Season",
+        choices = 1:n_seasons,
+        multiple = TRUE
+      )
     } else {
-      plot +
-        scale_x_continuous(breaks = seq(0, 10, 0.5))
+      radioButtons(
+        "choose_geom",
+        "Compare with one plot or multiple?",
+        c("Stacked" = 1, "Faceted" = 2)
+      )
     }
+    
+  })
+  
+  output$plot_ratings_dist <- renderPlot({
+    
+    ratings_dist <- tbl_episode_ratings |> 
+      group_by(season) |> 
+      count(rating) |> 
+      mutate(season = season |> as_factor())
+    
+    if (input$view_type == "Filter" && length(input$filter_season2) > 0) {
+      ratings_dist <- ratings_dist |> filter(season %in% input$filter_season2)
+    }
+    
+    plot <- ratings_dist |> 
+      ggplot(aes(rating, n)) +
+      # scale_y_continuous(expand = expansion(c(0, 0.05))) +
+      labs(x = "Rating", y = "Number of Episodes") +
+      gg_theme
+    
+    if (input$view_full_scale) {
+      plot <- plot +
+        coord_cartesian(xlim = c(0, 10))
+    }
+    if (input$view_type == "Filter") {
+      plot <- plot + 
+        geom_col(fill = teal) +
+        scale_x_continuous(breaks = 0:10) +
+        scale_y_continuous(expand = expansion(c(0, 0.05)))
+    }
+    if (input$view_type == "Compare" && input$choose_geom == 1) {
+      plot <- plot + 
+        geom_col(aes(fill = season)) +
+        # scale_x_continuous(breaks = seq(0, 10, 1)) +
+        scale_fill_viridis_d(breaks = seq(0, 10, 1))
+    } else if (input$view_type == "Compare") {
+      plot <- plot + 
+        geom_col(fill = teal) +
+        scale_x_continuous(breaks = seq(0, 10, 1)) +
+        scale_y_continuous(expand = expansion(c(0, 0.05)), minor_breaks = NULL) +
+        facet_wrap(~ season)
+    }
+    plot
   })
   
 }

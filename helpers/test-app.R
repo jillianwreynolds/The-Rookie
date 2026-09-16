@@ -5,4 +5,4 @@ shinylive::export(
   template_params = list(title = "The Rookie Transcript Analysis")
 )
 
-httpuv::runStaticServer("docs", port = 3838)
+httpuv::runStaticServer("docs", port = 9000)

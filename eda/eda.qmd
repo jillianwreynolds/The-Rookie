@@ -26,12 +26,115 @@ episode_ratings |>
 
 ```{r}
 episode_ratings |> 
-  ggplot(aes(rating)) + 
-  geom_bar() +
+  group_by(rating) |> 
+  count() |> 
+  ggplot(aes(rating, n)) + 
+  geom_col(fill = teal) +
+  scale_x_continuous(breaks = seq(0, 10, 1)) +
   scale_y_continuous(expand = expansion(c(0, 0.05))) +
-  coord_cartesian(xlim = c(0, 10)) + 
-  theme_light()
+  labs(x = "Rating", y = "Number of Episodes") +
+  theme_light() +
+  gg_theme +
+  coord_cartesian(xlim = c(0, 10))
+
+episode_ratings |> 
+  group_by(rating) |> 
+  count() |> 
+  ggplot(aes(rating, n)) + 
+  geom_col(fill = teal) +
+  scale_x_continuous(breaks = seq(0, 10, 0.5)) +
+  scale_y_continuous(expand = expansion(c(0, 0.05)), breaks = seq(0, 20, 4)) +
+  labs(x = "Rating", y = "Number of Episodes") +
+  theme_light() +
+  gg_theme
 ```
+
+```{r}
+episode_ratings |> 
+  group_by(season) |> 
+  count(rating) |> 
+  mutate(season = season |> as_factor() %>% str_c("Season ", .)) |> 
+  ggplot(aes(rating, n)) + 
+  # geom_col(fill = teal) +
+  geom_col(aes(fill = season)) +
+  # geom_col(fill = teal, alpha = 0.3) +
+  # geom_line() +
+  # geom_line(aes(color = season), linewidth = 0.75) +
+  scale_x_continuous(breaks = seq(0, 10, 1)) +
+  scale_y_continuous(expand = expansion(c(0, 0.05))) +
+  scale_fill_viridis_d(guide = guide_legend(position = "top")) +
+  labs(x = "Rating", y = "Number of Episodes", fill = "Season") +
+  gg_theme
+```
+
+```{r}
+strip_labels <- setNames(
+  str_c("Season ", 1:8),
+  as.character(1:8)
+)
+
+episode_ratings |> 
+  group_by(season) |> 
+  count(rating) |> 
+  mutate(season = season |> as_factor()) |> 
+  ggplot(aes(rating, n)) + 
+  geom_col(fill = teal) + 
+  facet_wrap(
+    ~ season,
+    labeller = as_labeller(strip_labels),
+    axes = "all_x"
+  ) +
+  scale_x_continuous(breaks = seq(0, 10, 1)) +
+  scale_y_continuous(expand = expansion(c(0, 0.05)), minor_breaks = NULL) +
+  labs(x = "Rating", y = "Number of Episodes") +
+  gg_theme +
+  theme(
+    strip.background = element_rect(fill = yellow2),
+    strip.text = element_text(color = dark_teal)
+  )
+```
+
+
+```{r}
+#| eval: false
+episode_ratings |> 
+  # group_by(season) |> 
+  # count(rating) |> 
+  mutate(season = season |> as_factor() %>% str_c("Season ", .)) |> 
+  # ggplot(aes(rating, n)) + 
+  ggplot(aes(rating)) +
+  geom_dotplot(
+    aes(color = season, fill = season),
+    binwidth = 0.1,
+    stackgroups = TRUE
+  ) +
+  # geom_line(aes(color = season)) +
+  # geom_point(aes(color = season)) +
+  scale_x_continuous(breaks = seq(0, 10, 0.5)) +
+  scale_y_continuous(expand = expansion(c(0, 0.05))) +
+  # scale_color_viridis_d(guide = guide_legend(position = "top")) +
+  scale_color_viridis_d(guide = guide_legend(position = "top")) +
+  scale_fill_viridis_d(guide = guide_legend(position = "top")) +
+  labs(x = "Rating", y = "Number of Episodes", color = "Season", fill = "Season") +
+  gg_theme  
+  # coord_cartesian(ylim = c(0, 5))
+```
+
+
+```{r}
+#| eval: false
+{episode_ratings |> 
+  group_by(season) |> 
+  count(rating) |> 
+  # mutate(season = season |> as_factor() %>% str_c("Season ", .)) |> 
+  ggplot(aes(rating, n, frame = season)) + 
+  geom_bar(fill = teal, stat = "identity") +
+  scale_y_continuous(expand = expansion(c(0, 0.05)), minor_breaks = NULL) +
+  labs(x = "Rating", y = "Number of Episodes") +
+  gg_theme} %>%
+  ggplotly()
+```
+
 
 ```{r}
 episode_ratings |> 

@@ -165,21 +165,25 @@ about_section <- tagList(
 
 cards_home <- list(
   directory = card(
-    card_header("Episode Directory", class = "bg-secondary"),
-    accordion(
-      open = FALSE,
-      accordion_panel(
-        "Filter by Season",
-        fluidRow(
-          column(4, selectInput(
-            "filter_season",
-            label = NULL,
-            choices = 1:n_seasons,
-            multiple = TRUE
-          )),
-          column( 3, actionButton(
-              "reset_season_filter", "Reset Filter", class = "btn-reset"
-          ))
+    card_header(
+      "Episode Directory",
+      class = "bg-secondary",
+      tooltip(
+        bsicons::bs_icon("question-circle"),
+        "To filter episodes by season, click the gear to the right.",
+        placement = "right"
+      ),
+      popover(
+        bsicons::bs_icon("gear", title = "Settings", class = "ms-auto"),
+        title = "Filter by Season",
+        selectInput(
+          "filter_season",
+          label = NULL,
+          choices = 1:n_seasons,
+          multiple = TRUE
+        ),
+        actionButton(
+          "reset_season_filter", "Reset Filter", class = "btn-reset"
         )
       )
     ),
@@ -270,12 +274,16 @@ cards_ratings <- list(
   ),
   plot_counts = card(
     full_screen = TRUE,
-    # card_header("Distribution of Ratings", class = "bg-secondary"),
     card_header(
       "Distribution of Ratings",
-      class = "bg-secondary d-flex justify-content-between",
+      class = "bg-secondary d-flex align-items-center gap-1",
+      tooltip(
+        bsicons::bs_icon("question-circle"),
+        "To filter by season or change other plot options, click the gear to the right.",
+        placement = "right"
+      ),
       popover(
-        bsicons::bs_icon("gear", title = "Settings"),
+        bsicons::bs_icon("gear", title = "Settings", class = "ms-auto"),
         title = "View Options",
         checkboxInput("view_full_scale", "View full rating scale (0 to 10)?"),
         selectInput(
@@ -285,52 +293,11 @@ cards_ratings <- list(
           multiple = TRUE
         ),
         checkboxInput("compare_seasons", "Compare seasons?"),
-        radioButtons(
-          "compare_view",
-          "Compare seasons with",
-          c("Colors" = 1, "Multiple plots" = 2)
-        ),
+        uiOutput("compare_options"),
         actionButton("reset_plot_ratings_dist", "Reset", class = "btn-reset")
       )
     ),
     plotOutput("plot_ratings_dist"),
-    # layout_sidebar(
-    #   sidebar = sidebar(
-    #     checkboxInput("view_full_scale", "View full rating scale (0 to 10)?"),
-    #     selectInput(
-    #       "filter_season2",
-    #       "Filter by Season",
-    #       choices = 1:n_seasons,
-    #       multiple = TRUE
-    #     ),
-    #     checkboxInput("compare_seasons", "Compare seasons?"),
-    #     radioButtons(
-    #       "compare_view",
-    #       "Compare seasons with",
-    #       c("Colors" = 1, "Multiple plots" = 2)
-    #     )
-    #   ),
-    #   plotOutput("plot_ratings_dist")
-    # ),
-    # column layout
-    # fluidRow(
-    #   column(5, checkboxInput(
-    #     "view_full_scale", "View full rating scale (0 to 10)?"
-    #   )),
-      # column(4, selectInput(
-      #   "filter_season2",
-      #   "Filter by Season",
-      #   choices = 1:n_seasons,
-      #   multiple = TRUE
-      # )),
-    #   column(3, checkboxInput("compare_seasons", "Compare seasons?"),
-    #          radioButtons(
-    #     "compare_view",
-    #     "Compare seasons with",
-    #     c("Colors" = 1, "Multiple plots" = 2)
-    #   ))
-    # ),
-    # plotOutput("plot_ratings_dist"),
     min_height = "640px"
   )
 )
@@ -471,6 +438,23 @@ server <- function(input, output, session) {
     plot_ratings_stats_code
   )
   
+  output$compare_options <- renderUI(
+    if (input$compare_seasons) {
+      radioButtons(
+        "compare_view",
+        "Compare seasons with",
+        c("Colors" = 1, "Multiple plots" = 2)
+      )
+    }
+  )
+  
+  observeEvent(input$reset_plot_ratings_dist, {
+    reset("view_full_scale")
+    reset("filter_season2")
+    reset("compare_seasons")
+    reset("reset_plot_ratings_dist")
+  })
+  
   output$plot_ratings_dist <- renderPlot({
     
     ratings_dist <- tbl_episode_ratings |> 
@@ -501,6 +485,7 @@ server <- function(input, output, session) {
     }
     
     if (input$compare_seasons) {
+      req(input$compare_view)
       if (input$compare_view == 1) {
         plot <- plot + 
           geom_col(aes(fill = season)) +
@@ -515,9 +500,19 @@ server <- function(input, output, session) {
           plot <- plot + scale_x_continuous(breaks = seq(0, 10, 0.5))
         }
       } else if (input$compare_view == 2) {
+        strip_labels <- setNames(
+          str_c("Season ", 1:8),
+          as.character(1:8)
+        )
+        facet_cols <- if (length(input$filter_season2) %in% 2:3) 1 else NULL
         plot <- plot +
           geom_col(fill = teal) +
-          facet_wrap(~season) +
+          facet_wrap(
+            ~season,
+            ncol = facet_cols,
+            labeller = as_labeller(strip_labels),
+            axes = "all_x"
+          ) +
           scale_x_continuous(breaks = seq(0, 10, 1)) +
           scale_y_continuous(
             expand = expansion(c(0, 0.05)), minor_breaks = NULL

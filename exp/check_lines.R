@@ -1,6 +1,8 @@
 transcripts_html$transcript[41] |> peek_match("totally playing mind games", before = 104)
 
-transcripts$html[105] |> peek_match("NOLAN TO JUAREZ")
+transcripts |> pull(html) |> 
+  nth(100) |> 
+  peek_match("I'm gonna win for you", before = 70, after = 140)
 
 transcripts_lines |>
   select(season, episode, transcript) |>
@@ -115,10 +117,20 @@ test7 |>
   # peek_rows(transcript, "(?i)HI-RISE", after = 2)
 
 
-# df_raw ------------------------------------------------------------------
+# transcripts as arrow / df_raw -------------------------------------------
+
+transcripts |> 
+  select(season, episode, html) |> 
+  filter(str_detect(html, "six months.\n\nWESLEY\nWell")) |> 
+  collect()
+
+transcripts |> pull(html) |> 
+  nth(134) |> 
+  peek_match("Package is secure", before = 70, after = 140)
 
 df_raw |> 
   select(season:sp4) |> 
-  # filter(season == 6, episode == 7) |>
+  filter(season == 6) |>
+  # filter(season == 2, episode == 11) |>
   collect() |> 
-  peek_rows(speaker, "JASON")
+  peek_rows(transcript, "I'm waiting")

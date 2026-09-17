@@ -1,4 +1,4 @@
-clean_speaker_names2 <- function(tbl, lookup_data) {
+clean_speaker_name_parts <- function(tbl, lookup_data) {
   
   move_tbl <- lookup_data |>
     filter(type == "move_first_add_last") |>

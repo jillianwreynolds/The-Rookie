@@ -104,6 +104,9 @@ pre_clean <- function(tbl) {
         str_replace( # 3x8
           coll("TEXT FROM EMMETT\nHey, sorry to do this by text, but it's just not working with us. I can get my stuff back from Bradford, next time I see him, sorry."),
           "[Text from Emmett: \"Hey, sorry to do this by text, but it's just not working with us. I can get my stuff back from Bradford, next time I see him, sorry.\"]"
+        ) |> 
+        str_remove(
+          "(?<=waiting\\.)\n\n♪ Whoa, oh, oh, oh, oh, oh, oh ♪\n♪ I'm gonna win for you ♪(?=\n\nINT)"
         )
     )
   

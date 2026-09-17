@@ -96,10 +96,14 @@ pre_clean <- function(tbl) {
           "Clips from <i>300 Days of Hell</i>"
         ) |> 
         
-        # remove extraneous/incorrect info
+        # other
         str_replace(  # 3x1
           coll("Previously on \"The Rookie\"...\n\"The Q Word\""),
           "Previously on \"The Rookie\""
+        ) |> 
+        str_replace( # 3x8
+          coll("TEXT FROM EMMETT\nHey, sorry to do this by text, but it's just not working with us. I can get my stuff back from Bradford, next time I see him, sorry."),
+          "[Text from Emmett: \"Hey, sorry to do this by text, but it's just not working with us. I can get my stuff back from Bradford, next time I see him, sorry.\"]"
         )
     )
   

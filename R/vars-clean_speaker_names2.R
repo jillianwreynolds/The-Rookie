@@ -10,7 +10,7 @@ move_first_add_last_tbl <- tibble(name = c(
   "LILA", "LUNA",
   "NELL",
   "OSCAR",
-  "PERCY",
+  "PERCY", "PETE",
   "RANDY", "RODGE", "ROSALIND", "RUBEN",
   "TAMARA", "TIM",
   "VIVIAN",
@@ -46,5 +46,6 @@ additional_chars <- tribble(
   "GENNIFER",  "BRADFORD",
   "JOY",       "BRADFORD",
   "KARLA",     "JUAREZ",
+  "PETE",      "NOLAN",
   "YVONNE",    "THORSEN"
 )

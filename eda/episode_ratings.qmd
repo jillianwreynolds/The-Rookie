@@ -1,5 +1,5 @@
 ---
-title: "EDA"
+title: "Episode ratings"
 format: html
 execute:
   echo: false

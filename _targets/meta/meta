@@ -40,7 +40,6 @@ char_status_long|stem|dbee346814588b75|a4bb134ed24b0e49|cc1e9e505da910ba|1110220
 transcripts_parquet|stem|fe97e87fbc04d1b3|45b40200106e97dc|810f9fcc873e0dbc|636542482|data/transcripts_parquet.parquet|t20710.8408637428s|s4167b|4167|file|local|vector|||0.011||
 char_status_wide|stem|f2c1d4bd0b058554|df55b442c4efb72d|ad7560e106910a22|581246566||t20710.8408638692s|s1583b|1583|rds|local|vector|||0.003||
 characters|stem|998aa4088e3b2113|55a322e5b08be243|cf898ecbc04c35e6|1325240192||t20710.8408639648s|s772b|772|rds|local|vector|||0.002||
-lookup_chars|stem|c531f8d52ad87fb9|bf927f0ec647027d|6cca1220fe85ca48|1558419889||t20710.8408641305s|s809b|809|rds|local|vector|||0.008||
 episode_ratings_data|stem|c9baf4162b915af8|418af5c243ecb035|2c530c1562a7fbd1|512788402|data/episode_ratings_data.parquet|t20707.0046986733s|s3278b|3278|file|local|vector|||0||
 episode_ratings|stem|ff71829c1439a799|f2c5874a3d171594|81ba77d3816ec9d7|-1905129487||t20710.8832444792s|s1061b|1061|rds|local|vector|||0.015||
 episode_ratings_parqeut|stem|efda3bf681da57c9|7ea4afbbe30b5da0|8be3ff6dfef53e47|563754088|data/episode_ratings.parquet|t20710.889527836s|s2600b|2600|file|local|vector|||0.02||
@@ -48,8 +47,8 @@ characters_parquet|stem|9ab7b465c7861a55|d3c05ffc2430d98c|6ecb3338ee4f1a5e|17889
 transcripts_to_lines|function|851ba41be077bb1a
 create_recurring_chars_long|function|cd8e7389d5d9d57d
 add_first_tbl|object|d8055568a004aecf
-additional_chars|object|01aba4ba612e723b
-move_first_add_last_tbl|object|76dfbbddc9357213
+additional_chars|object|83f4ff22cc4a5aa6
+move_first_add_last_tbl|object|fb55d1f0b0b8c8c8
 pre_split_clean|function|eb41fa46dc6c4365
 clean_proper_nouns|function|50eeb0507965bb9a
 stutter_cutoff_letters|object|c3951f6809e034b0
@@ -68,7 +67,7 @@ clean_captions|function|ac4fa8f56afa1d0e
 clean_dispatch_names|function|cb774d2a3d718bc8
 clean_other|function|b2b604508ee21e05
 clean_speaker_names|function|b1ebd3682875659f
-clean_speaker_names2|function|a2326657aa6897c5
+clean_speaker_names2|function|6836f88a13c44870
 extract_speaker_note|function|8e1f4ac6f23ba732
 fill_speaker_info|function|727fee3d4b860187
 pre_clean|function|8d183e41972244b7
@@ -86,10 +85,10 @@ green_square|object|049826860a1cca17
 all_caps_pattern|object|f5fcaee4fe351c0f
 stutter_cutoff_letters_pattern|object|bf5a8a52d6030a45
 red_heart|object|4793eb8985a97ff7
-.Random.seed|object|a19f9fcba56a8a6c
+.Random.seed|object|ee2bb265b623a3b9
 orange_circle|object|5a4086d32fe29852
 print_inf|function|3ac456e5c3ca93ba
-check_name_variations|function|bf3ed874ed75b1ab
+check_name_variations|function|b784d4337ecdc50b
 peek_rows|function|6651c0755c3e236f
 symbols|object|52ee4db13be09a7c
 str_range_to_num_range|function|ccbbb1b479e9e04a
@@ -131,11 +130,11 @@ make_single_words|function|30d4de49a9b2d880
 create_main_chars_long|function|b7256d57d368f4d2
 unnest_transcripts|function|0b52c16934991eea
 token_values|object|8912ceb80603d375
-create_lookup_chars|function|d7631f3ccc12f221
+create_lookup_chars|function|679e023a81fa9215
 replace_italics2|function|cfc5575ecb099b0f
 assign_speaker_names|function|800ebec1803ead27
 clean_transcripts|function|9a2481ff4cbe7cfa
-check_names|function|48a25bc3105c65f4
+check_names|function|296af6e93bb2649a
 create_crossover_chars_long|function|496761bbdf79ae35
 create_recurring_chars_wide|function|675243eccd41e248
 separate_at_sentinels|function|a0f4486bd1fa79a3
@@ -146,5 +145,6 @@ filter_main_chars|function|c61a3fb8412af469
 filter_characters|function|5dfdb361e29fff22
 clean_multispeaker_names|function|db2095c73855f8d8
 create_characters_tbl|function|18c993ef20bd1670
-run_cleaning_pipe|function|94beedbc1290b719
-df_raw|stem|4b894ec89300a6ba|da582b07d7053491|780baa2615f162cf|-796806726|data/df_raw.parquet|t20713.0483815957s|s3581195b|3581195|file|local|vector|||56.324||
+run_cleaning_pipe|function|d71e50f5a98c254a
+lookup_chars|stem|f6947b2af54a045b|bf927f0ec647027d|ff9c5969f24cd6b2|1558419889||t20713.0720774861s|s820b|820|rds|local|vector|||0.014||
+df_raw|stem|d0a8e46f80f0a4b9|da582b07d7053491|47f6bb58b22b2fc7|-796806726|data/df_raw.parquet|t20713.0727272792s|s3577966b|3577966|file|local|vector|||56.128||

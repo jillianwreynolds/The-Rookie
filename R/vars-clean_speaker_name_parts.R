@@ -40,12 +40,22 @@ add_first_tbl <- tibble(name = c(
 
 additional_chars <- tribble(
   ~name,       ~replacement,
-  "BLANCA",    "JUAREZ",
-  "DIEGO",     "DE_LA_CRUZ",
-  "DOMINIQUE", "GREY",
+  # move first and add last
   "GENNIFER",  "BRADFORD",
   "JOY",       "BRADFORD",
+  "SIMONE",    "CLARK",
+  "DIEGO",     "DE_LA_CRUZ",
+  "JACK",      "EVERS",
+  "PATRICE",   "EVERS",
+  "DOMINIQUE", "GREY",
+  "BLANCA",    "JUAREZ",
   "KARLA",     "JUAREZ",
+  "BENNY",     "LOPEZ",
+  "DAMIEN",    "LOPEZ",
   "PETE",      "NOLAN",
-  "YVONNE",    "THORSEN"
+  "YVONNE",    "THORSEN",
+  # add first name
+  "ACRES",     "BRENDAN",
+  "HOPE",      "CARTER",
+  "STENSEN",   "LAURA"
 )

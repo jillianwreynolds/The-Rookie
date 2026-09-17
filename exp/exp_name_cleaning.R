@@ -1,4 +1,4 @@
-# source("R/clean_speaker_names2.R")
+# source("R/clean_speaker_name_parts.R")
 
 check_names_vec <- c(
   # move first name, add last name
@@ -83,12 +83,11 @@ df_raw |> select(season, episode, speaker, sp1:sp4, transcript) |>
   arrange(sp4, sp3, speaker, season, episode) |> 
   print_inf()
 
-df_raw |> check_names("malcolm")
-df_raw |> check_names("bradford", FALSE)
+df_raw |> check_names("sarah")
+df_raw |> check_names("hall", show_speaker_part_cols = TRUE)
+df_raw |> check_names("^MATT", peek = FALSE)
 
 
 source("R/check_name_variations.R")
 source("R/check_names.R")
 source("R/find_which_episodes.R")
-
-# jason wyler: 4x9, 4x10, 4x11, 6x10, 7x5

@@ -69,6 +69,7 @@ clean_speaker_name_parts <- function(tbl, lookup_data) {
         when_all(is.na(sp3), season == 2),
         sp3 |> replace_when(
           sp4 == "COLIN" ~ "COLIN",
+          sp4 == "JERRY" ~ "JERRY",
           sp4 == "SIMON" ~ "SIMON"
         ),
         sp3
@@ -77,6 +78,7 @@ clean_speaker_name_parts <- function(tbl, lookup_data) {
         season == 2,
         sp4 |> replace_when(
           sp4 == "COLIN" ~ "HALL",
+          sp4 == "JERRY" ~ "HAVEL",
           sp4 == "SIMON" ~ "SAWYER"
         ),
         sp4
@@ -135,6 +137,32 @@ clean_speaker_name_parts <- function(tbl, lookup_data) {
         sp4 |> replace_when(sp4 == "LINCOLN" ~ "THORSEN"),
         sp4
       ),
+      # ASHLEY McGRADY
+      sp3 = if_else(
+        when_all(
+          is.na(sp3),
+          when_any(
+            season == 4,
+            when_all(season == 5, episode == 5)
+          )
+        ),
+        sp3 |> replace_when(
+          sp4 == "ASHLEY" ~ "ASHLEY",
+          sp4 == "JERRY"  ~ "JERRY"
+        ),
+        sp3
+      ),
+      sp4 = if_else(
+        when_any(
+          season == 4,
+          when_all(season == 5, episode == 5)
+        ),
+        sp4 |> replace_when(
+          sp4 == "ASHLEY" ~ "McGRADY",
+          sp4 == "JERRY"  ~ "McGRADY"
+        ),
+        sp4
+      ),
       # JASON WYLER
       sp3 = if_else(
         when_all(is.na(sp3), season %in% c(4, 7)),
@@ -145,6 +173,12 @@ clean_speaker_name_parts <- function(tbl, lookup_data) {
         season %in% c(4, 7),
         sp4 |> replace_when(sp4 == "JASON" ~ "WYLER"),
         sp4
+      ),
+      # SIMONE CLARK
+      sp3 = if_else(
+        when_all(is.na(sp3), season == 5),
+        sp3 |> replace_when(sp4 == "CLARK" ~ "SIMONE"),
+        sp3
       ),
       # Seasons 5, 6, 7, 8: MONICA STEVENS and TYLER and AUSTIN BRADFORD
       sp3 = if_else(
@@ -169,6 +203,7 @@ clean_speaker_name_parts <- function(tbl, lookup_data) {
       sp3 = if_else(
         when_all(is.na(sp3), season == 8),
         sp3 |> replace_when(
+          sp4 == "FLORES"  ~ "ELENA",
           sp4 == "MALCOLM" ~ "MALCOLM",
           sp4 == "LEAH"    ~ "LEAH"
         ),

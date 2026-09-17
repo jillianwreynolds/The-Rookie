@@ -1,8 +1,14 @@
 create_characters_tbl <- function(tbl) {
   
   tbl |>
-    select(ends_with("name"), type) |>
+    select(ends_with("name"), type, actor) |>
     distinct() |>
-    mutate(gender = if_else(first_name %in% women, "F", "M"), .before = type)
+    mutate(
+      gender = case_when(
+        first_name %in% women ~ "F",
+        first_name %in% men   ~ "M"
+      ),
+      .before = type
+    )
   
 }

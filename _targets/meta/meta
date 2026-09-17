@@ -72,7 +72,7 @@ clean_speaker_name_parts|function|3c1d440e0da31bd9
 clean_speaker_names|function|b1ebd3682875659f
 extract_speaker_note|function|8e1f4ac6f23ba732
 fill_speaker_info|function|727fee3d4b860187
-pre_clean|function|e34d8f990c06cb05
+pre_clean|function|f56398017c0946b9
 pre_clean_lyrics|function|886551babb9bea54
 remove_translations|function|6ea2377305e26707
 replace_italics|function|054c078c26663f52
@@ -87,7 +87,7 @@ green_square|object|049826860a1cca17
 all_caps_pattern|object|f5fcaee4fe351c0f
 stutter_cutoff_letters_pattern|object|bf5a8a52d6030a45
 red_heart|object|4793eb8985a97ff7
-.Random.seed|object|ed51a48021578744
+.Random.seed|object|2d5dc37206e949ca
 orange_circle|object|5a4086d32fe29852
 print_inf|function|3ac456e5c3ca93ba
 check_name_variations|function|b784d4337ecdc50b
@@ -147,5 +147,5 @@ filter_main_chars|function|c61a3fb8412af469
 filter_characters|function|5dfdb361e29fff22
 clean_multispeaker_names|function|db2095c73855f8d8
 create_characters_tbl|function|18c993ef20bd1670
-run_cleaning_pipe|function|80a071d44af1d812
-df_raw|stem|44a21e8600fb9ce2|da582b07d7053491|0426abd90179f22d|-796806726|data/df_raw.parquet|t20713.1553567399s|s3582987b|3582987|file|local|vector|||56.559||
+run_cleaning_pipe|function|cc6bb092dd8ae32f
+df_raw|stem|6378349babb19522|da582b07d7053491|687c32722e389450|-796806726|data/df_raw.parquet|t20713.2986080322s|s3582546b|3582546|file|local|vector|||56.733||

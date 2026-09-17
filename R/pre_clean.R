@@ -97,17 +97,23 @@ pre_clean <- function(tbl) {
         ) |> 
         
         # other
-        str_replace(  # 3x1
+        str_remove("(?<=shh\\.\n\n)And now…\n(?=INT)") |>  # 2x11
+        # 3x1
+        str_replace(
           coll("Previously on \"The Rookie\"...\n\"The Q Word\""),
           "Previously on \"The Rookie\""
         ) |> 
+        str_remove("(?<=good.\n\n)\"The Hunt\"\n\n(?=HARPER)") |> 
         str_replace( # 3x8
           coll("TEXT FROM EMMETT\nHey, sorry to do this by text, but it's just not working with us. I can get my stuff back from Bradford, next time I see him, sorry."),
           "[Text from Emmett: \"Hey, sorry to do this by text, but it's just not working with us. I can get my stuff back from Bradford, next time I see him, sorry.\"]"
         ) |> 
-        str_remove(
-          "(?<=waiting\\.)\n\n♪ Whoa, oh, oh, oh, oh, oh, oh ♪\n♪ I'm gonna win for you ♪(?=\n\nINT)"
-        )
+        str_remove("(?<=CHEN\nYeah), I do(?=\\.\n\nEXT)") |>  # 3x14
+        str_replace( # 4x14
+          "six months\\.\n\nWESLEY\nWell",
+          "six months\\.\n\nJAMES MURRAY\nSo what are you gonna do?\n\nWESLEY\nWell"
+        ) |> 
+        str_remove("(?<=waiting\\.)\n\n♪ Whoa, oh, oh, oh, oh, oh, oh ♪\n♪ I'm gonna win for you ♪(?=\n\nINT)") # 6x2
     )
   
 }

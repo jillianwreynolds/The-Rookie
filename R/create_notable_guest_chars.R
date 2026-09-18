@@ -3,7 +3,8 @@ create_notable_guest_chars <- function(file_path) {
   file_path |> 
     read_file() |> 
     str_remove_all("\\[.+?\\]") |> 
-    str_remove_all("Dr\\. ") |> 
+    str_remove_all("Dr\\. (?!Morgan)") |> 
+    str_replace("Mrs\\.(?=\\sChen)", "Vanessa") |> 
     str_replace(
       coll("Jeffrey Boyle / Eli Reynolds"),
       "Eli Reynolds / Jeffrey Boyle"

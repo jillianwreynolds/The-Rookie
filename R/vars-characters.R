@@ -15,19 +15,19 @@ main_chars <- tribble(
 
 women <- c(
   "Abigail", "Abril", "Angela", "Anna", "Antoinette", "Ashley",
-  "Bailey", "Blair",
-  "Celina", "Charlotte", "Claire",
+  "Bailey", "Bella", "Billie", "Blair",
+  "Celina", "Charlie", "Charlotte", "Claire",
   "Daylin", "Denise",
   "Elena", "Erin", "Evelyn",
   "Fiona",
   "Genny", "Grace",
   "Isabel",
   "Jessica", "Joy",
-  "Katerina", "Katie", "Katy", "Kylie",
+  "Katerina", "Katie", "Katy", "Kelly", "Kylie",
   "Laura", "Lila", "Lucy", "Luna",
-  "Megan", "Monica",
+  "Megan", "Monica", "Morgan",
   "Nell", "Nyla",
-  "Rachel", "Rosalind",
+  "Rachel", "Rex", "Rosalind",
   "Sandra", "Sarah", "Simone",
   "Talia", "Tamara",
   "Valerie", "Vanessa", "Vic", "Vivian",
@@ -44,26 +44,22 @@ men <- c(
   "Eli", "Elijah", "Elroy", "Emmett", "Eric",
   "Franco",
   "Harrison", "Henry",
-  "Jackson", "Jacob", "Jake", "James", "Jason", "Jeremy", "Jerry", "John",
+  "Jackson", "Jacob", "Jake", "James", "Jason", "Jeremy", "Jerry", "John", 
+    "Jordan",
   "Kevin",
   "Lance", "Larry", "Liam", "Lionel", "Luke",
   "Malcolm", "Malvado", "Mario", "Mark", "Matthew", "Max", "Michael", "Miles",
   "Nicholas", "Noah",
   "Oliver", "Oscar",
-  "Patrick", "Percy", "Pete", "Pierre",
+  "Paloma", "Patrick", "Percy", "Pete", "Pierre",
   "Quigley",
   "Rainn", "Randy", "Ray", "Robert", "Rodge", "Ruben", "Ryan",
-  "Sam", "Sanford", "Sean", "Seth", "Sterling",
+  "Sam", "Sanford", "Sean", "Seth", "Sharp", "Sterling",
   "Tim", "Tom", "Trent",
   "Wade", "Wesley", "will.i.am",
   "Zac"
 ) |> 
   str_to_upper()
 
-# last_name_only
-# Dr. Morgan ~ F
-# Sharp ~ M
+# two: Caleb, Chris, Elijah, Eric, Sam
 
-# two: Caleb, Elijah, Eric
-
-# Check for multiples: Jordan, Chris, Sam, Billie, Kelly, Charlie

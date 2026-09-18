@@ -8,7 +8,7 @@ create_lookup_chars <- function(chars_data) {
     "GENNY", "GRACE",
     "ISABEL",
     "JACKSON", "JESSICA", "JOY",
-    "KARLA",
+    "KARLA", "KATERINA",
     "LILA", "LUNA",
     "NELL",
     "OSCAR",

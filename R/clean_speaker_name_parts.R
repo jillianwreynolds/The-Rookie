@@ -223,6 +223,12 @@ clean_speaker_name_parts <- function(tbl, lookup_data) {
         ),
         sp4
       ),
+      # Season 6: SERGEANT FLORES
+      sp3 = if_else(
+        when_all(is.na(sp3), season == 6),
+        sp3 |> replace_when(sp4 == "FLORES" ~ "SERGEANT"),
+        sp3
+      ),
       # Season 8: MALCOLM WALSH and LEAH MURRAY
       sp3 = if_else(
         when_all(is.na(sp3), season == 8),

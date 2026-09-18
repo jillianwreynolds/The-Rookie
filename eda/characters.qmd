@@ -1,0 +1,129 @@
+---
+title: "Characters"
+format: 
+  html:
+    lightbox: true
+execute: 
+  echo: false
+---
+
+```{r}
+tar_config_set(store = "../_targets")
+tar_load(characters_long)
+tar_load(characters)
+characters_long <- characters_long |> 
+  left_join(
+    characters |> select(ends_with("name"), gender),
+    join_by(first_name, last_name)
+  ) |> 
+  relocate(gender, .after = last_name)
+```
+
+```{r}
+dark_teal   <- "#0a333f"
+dark_teal2  <- "#0a333f30"
+teal        <- "#2f8b9d"
+teal2       <- "#2f8b9d30"
+yellow      <- "#facf21"
+yellow2     <- "#facf2125"
+light_green <- "#b9d4bd"
+code_color  <- "#7c13ba"
+```
+
+```{r}
+gg_theme <- theme_light() +
+  theme(
+    axis.title = element_text(size = 15),
+    axis.text = element_text(size = 14),
+    legend.title = element_text(size = 14),
+    legend.text = element_text(size = 13)
+  )
+```
+
+```{r}
+characters |> 
+  group_by(type) |> 
+  count(gender) |> 
+  ungroup() |> 
+  mutate(
+    type = fct_relevel(type, c("main", "recurring")),
+    gender = gender |> 
+      replace_when(
+        gender == "F" ~ "Women",
+        gender == "M" ~ "Men"
+      ) |> 
+      fct_rev()
+  ) |> 
+  ggplot(aes(type, n, fill = gender)) + 
+  geom_col(position = "dodge") +
+  geom_text(aes(label = n), position = position_dodge(0.9), vjust = -0.2) +
+  scale_x_discrete(labels = ~ str_to_title(.)) +
+  scale_y_continuous(expand = expansion(c(0, 0.05))) +
+  scale_fill_viridis_d(end = 0.6) +
+  labs(x = "Type of Character", y = "Number of Characters", fill = "Gender") +
+  gg_theme
+```
+```{r}
+# library(reactable)
+characters_long |> 
+  group_by(season, type) |> 
+  count(gender) |> 
+  ungroup() |> 
+  pivot_wider(names_from = gender, values_from = n) |> 
+  rename(women = `F`, men = M) |> 
+  mutate(more_women = women > men, equal = women == men) |> 
+  # reactable()
+  DT::datatable()
+```
+
+<p></p>
+
+```{r}
+characters_long |> 
+  group_by(season, gender) |> 
+  count(type) |> 
+  filter_out(is.na(season)) |> 
+  mutate(
+    season = season |> as_factor(),
+    type = type |> str_to_title() |> fct_relevel(c("Main", "Recurring")),
+    gender = gender |> 
+      replace_when(
+        gender == "F" ~ "Women",
+        gender == "M" ~ "Men"
+      ) |> 
+      fct_rev()
+  ) |> 
+  ggplot(aes(season, n, fill = gender)) +
+  geom_col(position = "dodge") +
+  facet_wrap(~type) +
+  scale_y_continuous(breaks = seq(0, 12, 2), expand = expansion(c(0, 0.05))) +
+  scale_fill_viridis_d(end = 0.6) +
+  labs(x = "Season", y = "Number of Characters", fill = "Gender") +
+  gg_theme
+```
+
+```{r}
+characters_long |> 
+  filter(type %in% c("main", "recurring")) |> 
+  filter_out(is.na(status)) |> 
+  group_by(season) |> 
+  count(status, gender) |> 
+  mutate(
+    season = season |> as_factor(),
+    status = status |> str_to_title() |> fct_relevel(c("Main", "Recurring")),
+    gender = gender |> 
+      replace_when(
+        gender == "F" ~ "Women",
+        gender == "M" ~ "Men"
+      ) |> 
+      fct_rev()
+  ) |> 
+  ggplot(aes(season, n, fill = gender)) +
+  geom_col(position = "dodge") +
+  facet_wrap(~status)+
+  scale_y_continuous(breaks = seq(0, 12, 2), expand = expansion(c(0, 0.05))) +
+  scale_fill_viridis_d(end = 0.6) +
+  labs(x = "Season", y = "Number of Characters", fill = "Gender") +
+  gg_theme
+```
+

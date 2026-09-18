@@ -64,7 +64,6 @@ characters |>
   gg_theme
 ```
 ```{r}
-# library(reactable)
 characters_long |> 
   group_by(season, type) |> 
   count(gender) |> 
@@ -72,7 +71,6 @@ characters_long |>
   pivot_wider(names_from = gender, values_from = n) |> 
   rename(women = `F`, men = M) |> 
   mutate(more_women = women > men, equal = women == men) |> 
-  # reactable()
   DT::datatable()
 ```
 

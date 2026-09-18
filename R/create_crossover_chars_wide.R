@@ -7,6 +7,6 @@ create_crossover_chars_wide <- function(tbl) {
     ) |>
     pivot_wider(names_from = col_names, values_from = season) |>
     relocate(season_2, .before = season_4) |> 
-    relocate(c(alias, actor), .after = season_8)
+    relocate(actor, .after = last_col())
   
 }

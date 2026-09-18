@@ -1,0 +1,84 @@
+---
+title: "Call Signs"
+format: 
+  html:
+    lightbox: true
+    code-fold: true
+---
+
+```{r}
+#| echo: false
+tar_config_set(store = "../_targets")
+tar_load(df_raw)
+df_raw <- open_dataset(str_c("../", df_raw))
+```
+
+```{r}
+#| echo: false
+dark_teal   <- "#0a333f"
+dark_teal2  <- "#0a333f30"
+teal        <- "#2f8b9d"
+teal2       <- "#2f8b9d30"
+yellow      <- "#facf21"
+yellow2     <- "#facf2125"
+light_green <- "#b9d4bd"
+code_color  <- "#7c13ba"
+```
+
+```{r}
+#| echo: false
+gg_theme <- theme_light() +
+  theme(
+    axis.title = element_text(size = 15),
+    axis.text = element_text(size = 14),
+    legend.title = element_text(size = 14),
+    legend.text = element_text(size = 13)
+  )
+```
+
+```{r}
+df_raw |> 
+  select(season, episode, transcript) |> 
+  filter(str_detect(transcript, "\\d\\-[A-Z][a-z]*\\-\\d{1,}")) |> 
+  collect() |> 
+  mutate(
+    call_sign = transcript |> 
+      str_extract_all("\\d\\-[A-Z][a-z]*\\-\\d{1,}"),
+    .before = transcript
+  ) |> 
+  unnest(call_sign) |> 
+  group_by(season) |> 
+  count(call_sign) |> 
+  ggplot(aes(call_sign, n, fill = as_factor(season))) +
+  geom_col() + 
+  # scale_x_discrete(guide = guide_axis(n.dodge = 3)) +
+  scale_y_continuous(expand = expansion(c(0, 0.05))) +
+  scale_fill_viridis_d() +
+  theme_light() +
+  theme(axis.text.x = element_text(angle = 60, hjust = 1))
+  
+```
+
+```{r}
+df_raw |> 
+  select(season, episode, transcript) |> 
+  filter(str_detect(transcript, "\\d\\-[A-Z][a-z]*\\-\\d{1,}")) |> 
+  collect() |> 
+  mutate(
+    call_sign = transcript |> 
+      str_extract_all("\\d\\-[A-Z][a-z]*\\-\\d{1,}"),
+    .before = transcript
+  ) |> 
+  unnest(call_sign) |> 
+  group_by(season) |> 
+  count(call_sign) |> 
+  ggplot(aes(call_sign, n)) +
+  geom_col() + 
+  facet_wrap(~season) +
+  # scale_x_discrete(guide = guide_axis(n.dodge = 3)) +
+  scale_y_continuous(expand = expansion(c(0, 0.05))) +
+  scale_fill_viridis_d() +
+  theme_light() +
+  theme(axis.text.x = element_text(angle = 60, hjust = 1))
+```
+

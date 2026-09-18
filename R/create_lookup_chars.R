@@ -5,7 +5,7 @@ create_lookup_chars <- function(chars_data) {
     "BAILEY", "BEN", "BLANCA",
     "DIEGO", "DOMINIQUE", "DONOVAN",
     "ELIJAH", "EMMETT",
-    "GENNIFER", "GENNY", "GRACE",
+    "GENNY", "GRACE",
     "ISABEL",
     "JACKSON", "JESSICA", "JOY",
     "KARLA",
@@ -14,6 +14,7 @@ create_lookup_chars <- function(chars_data) {
     "OSCAR",
     "PERCY", "PETE",
     "RANDY", "RODGE", "ROSALIND", "RUBEN",
+    "SIMONE",
     "TAMARA", "TIM",
     "VIVIAN",
     "WESLEY",
@@ -21,31 +22,30 @@ create_lookup_chars <- function(chars_data) {
   ))
   
   add_first_tbl <- tibble(name = c(
-    "ANDERSEN", "ARMSTRONG",
+    "ACRES", "ANDERSEN", "ARMSTRONG",
     "BISHOP", "BRADFORD",
     "CHEN", "COLINS",
     "DE_LA_CRUZ", "DEL_MONTE", "DERIAN", "DYER",
     "ECKERT",
     "FREEMAN",
     "GLASSER", "GREY",
-    "HARPER", "HUTCHINSON",
-    "JUAREZ",
+    "HARPER", "HOPE", "HUTCHINSON",
+    "JOY", "JUAREZ",
     "LANG", "LONDON", "LOPEZ",
+    "MEJIA",
     "NOLAN",
     "PENN",
     "RIDLEY", "RUSSO",
-    "SANFORD", "SAWYER", "SMITTY", "STANTON", "STONE",
+    "SANFORD", "SAWYER", "SMITTY", "STANTON", "STENSEN", "STONE",
     "THORSEN",
     "VESTRI",
     "WALSH", "WEST", "WOLFE", "WYLER"
   ))
   
+  # characters not in Wikipedia's main, recurring, crossover, or notable lists
   additional_chars <- tribble(
     ~name,       ~replacement,
     # move first and add last
-    "GENNIFER",  "BRADFORD",
-    "JOY",       "BRADFORD",
-    "SIMONE",    "CLARK",
     "DIEGO",     "DE_LA_CRUZ",
     "JACK",      "EVERS",
     "PATRICE",   "EVERS",
@@ -53,13 +53,7 @@ create_lookup_chars <- function(chars_data) {
     "BLANCA",    "JUAREZ",
     "KARLA",     "JUAREZ",
     "BENNY",     "LOPEZ",
-    "DAMIEN",    "LOPEZ",
-    "PETE",      "NOLAN",
-    "YVONNE",    "THORSEN",
-    # add first name
-    "ACRES",     "BRENDAN",
-    "HOPE",      "CARTER",
-    "STENSEN",   "LAURA"
+    "DAMIEN",    "LOPEZ"
   )
   
   bind_rows(

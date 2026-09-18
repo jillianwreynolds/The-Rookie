@@ -83,14 +83,21 @@ clean_speaker_name_parts <- function(tbl, lookup_data) {
         ),
         sp4
       ),
+      # VANESSA CHEN
+      sp3 = sp3 |> replace_when(
+        when_all(sp3 == "MRS.", sp4 == "CHEN") ~ "VANESSA"
+      ),
       # Season 3: FIONA RYAN and EVELYN NOLAN and MICHAEL and AARON MURRAY
+      # and VANESSA CHEN
       sp3 = if_else(
         when_all(is.na(sp3), season == 3),
         sp3 |> replace_when(
           sp4 == "RYAN"    ~ "FIONA",
           sp4 == "MICHAEL" ~ "MICHAEL",
           sp4 == "AARON"   ~ "AARON",
-          sp4 == "EVELYN"  ~ "EVELYN"
+          sp4 == "EVELYN"  ~ "EVELYN",
+          sp4 == "VANESSA" ~ "VANESSA",
+          sp4 == "OWENS"   ~ "OFFICER"
         ),
         sp3
       ),
@@ -99,7 +106,8 @@ clean_speaker_name_parts <- function(tbl, lookup_data) {
         sp4 |> replace_when(
           sp4 == "MICHAEL" ~ "MURRAY",
           sp4 == "AARON"   ~ "MURRAY",
-          sp4 == "EVELYN"  ~ "NOLAN"
+          sp4 == "EVELYN"  ~ "NOLAN",
+          sp4 == "VANESSA" ~ "CHEN"
         ),
         sp4
       ),
@@ -114,6 +122,22 @@ clean_speaker_name_parts <- function(tbl, lookup_data) {
         when_all(is.na(sp3), season == 3, episode == 13),
         sp3 |> replace_when(sp4 == "MURRAY" ~ "MARK"),
         sp3
+      ),
+      # KATERINA ANTONOV
+      sp3 = if_else(
+        when_all(season == 4, episode == 4),
+        sp3 |> replace_when(sp4 == "LINDA" ~ "KATERINA"),
+        sp3
+      ),
+      sp4 = if_else(
+        when_all(season == 4, episode == 4),
+        sp4 |> replace_when(sp4 == "LINDA" ~ "ANTONOV"),
+        sp4
+      ),
+      dialogue_type = if_else(
+        when_all(sp3 == "KATERINA", sp4 == "ANTONOV"),
+        "alias",
+        dialogue_type
       ),
       # TOM BRADFORD
       sp3 = if_else(
@@ -137,7 +161,7 @@ clean_speaker_name_parts <- function(tbl, lookup_data) {
         sp4 |> replace_when(sp4 == "LINCOLN" ~ "THORSEN"),
         sp4
       ),
-      # ASHLEY McGRADY
+      # ASHLEY and JERRY McGRADY
       sp3 = if_else(
         when_all(
           is.na(sp3),

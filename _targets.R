@@ -74,10 +74,10 @@ list(
   tar_target(main_chars_wide, create_main_chars_wide(main_chars_parquet)),
   tar_target(main_chars_long, create_main_chars_long(main_chars_wide)),
   tar_target(
-    recurring_chars_wide, create_recurring_chars_wide(recurring_chars_parquet)
+    recurring_chars_long, create_recurring_chars_long(recurring_chars_parquet)
   ),
   tar_target(
-    recurring_chars_long, create_recurring_chars_long(recurring_chars_wide)
+    recurring_chars_wide, create_recurring_chars_wide(recurring_chars_long)
   ),
   tar_target(
     crossover_chars_long,

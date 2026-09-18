@@ -1,10 +1,13 @@
-create_recurring_chars_long <- function(tbl) {
+create_recurring_chars_wide <- function(tbl) {
   
   tbl |>
-    pivot_longer(
-      starts_with("season"), names_to = "season", values_to = "status"
-    ) |>
-    relocate(c(actor, text), .after = last_col()) |>
-    mutate(season = season |> str_remove("season") |> as.integer())
+    arrange(season) |> 
+    mutate(season = str_c("season_", season)) |> 
+    pivot_wider(
+      id_cols = c(first_name, last_name, actor),
+      names_from = season,
+      values_from = status
+    ) |> 
+    relocate(actor, .after = last_col())
   
 }

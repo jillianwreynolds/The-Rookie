@@ -1,4 +1,4 @@
-create_char_status_long <- function(main, recurring, crossover, notable) {
+create_characters_long <- function(main, recurring, crossover, notable) {
   
   bind_rows(
     main      |> mutate(type = "main"),
@@ -6,7 +6,6 @@ create_char_status_long <- function(main, recurring, crossover, notable) {
     crossover |> mutate(type = "crossover"),
     notable   |> mutate(type = "notable")
   ) |>
-    select(-c(row, text)) |>
     relocate(c(type, status), .before = actor)
   
 }

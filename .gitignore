@@ -20,6 +20,7 @@ helpers/write_rds.R
 temp/
 
 !docs/*/*
+docs/**/.DS_Store
 !app/*/*
 
 app2/*.parquet

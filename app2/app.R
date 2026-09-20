@@ -4,7 +4,6 @@ library(DT)
 library(bslib)
 library(nanoparquet)
 
-source("colors.R")
 source("my_theme.R")
 
 # UI ----------------------------------------------------------------------

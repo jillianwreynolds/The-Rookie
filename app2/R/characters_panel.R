@@ -1,3 +1,8 @@
+library(shiny)
+library(tidyverse)
+library(DT)
+library(bslib)
+
 cards_characters <- list(
   note = card(markdown(
     "This table lists characters from *The Rookie's* Wikipedia page, specifically those in the lists of main or recurring characters. Analysis will focus on a subset of these characters."

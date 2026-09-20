@@ -1,3 +1,8 @@
+library(shiny)
+library(tidyverse)
+library(DT)
+library(bslib)
+
 dark_teal  <- "#0a333f"
 teal       <- "#2f8b9d"
 code_color <- "#7c13ba"

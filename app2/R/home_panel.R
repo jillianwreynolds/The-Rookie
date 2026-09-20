@@ -1,3 +1,8 @@
+library(shiny)
+library(tidyverse)
+library(DT)
+library(bslib)
+
 cards_home <- list(
   directory = card(
     card_header("Episode Directory", class = "bg-secondary"),

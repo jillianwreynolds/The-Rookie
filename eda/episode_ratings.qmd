@@ -1,5 +1,5 @@
 ---
-title: "EDA"
+title: "Episode ratings"
 format: html
 execute:
   echo: false
@@ -9,6 +9,27 @@ execute:
 tar_config_set(store = "../_targets")
 tar_source("../R")
 tar_load(episode_ratings)
+```
+
+```{r}
+dark_teal   <- "#0a333f"
+dark_teal2  <- "#0a333f30"
+teal        <- "#2f8b9d"
+teal2       <- "#2f8b9d30"
+yellow      <- "#facf21"
+yellow2     <- "#facf2125"
+light_green <- "#b9d4bd"
+code_color  <- "#7c13ba"
+```
+
+```{r}
+gg_theme <- theme_light() +
+  theme(
+    axis.title = element_text(size = 15),
+    axis.text = element_text(size = 14),
+    legend.title = element_text(size = 14),
+    legend.text = element_text(size = 13)
+  )
 ```
 
 ```{r}
@@ -66,6 +87,23 @@ episode_ratings |>
   labs(x = "Rating", y = "Number of Episodes", fill = "Season") +
   gg_theme
 ```
+
+```{r}
+#| eval: FALSE
+episode_ratings |> 
+  group_by(season) |> 
+  count(rating) |> 
+  mutate(season = season |> as_factor() %>% str_c("Season ", .)) |> 
+  ggplot(aes(rating, n)) + 
+  geom_col(aes(fill = season)) +
+  scale_x_continuous(breaks = seq(0, 10, 1)) +
+  scale_y_continuous(expand = expansion(c(0, 0.05))) +
+  ggiraph
+  scale_fill_viridis_d(guide = guide_legend(position = "top")) +
+  labs(x = "Rating", y = "Number of Episodes", fill = "Season") +
+  gg_theme
+```
+
 
 ```{r}
 strip_labels <- setNames(

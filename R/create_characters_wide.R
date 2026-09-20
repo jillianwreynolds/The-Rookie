@@ -1,4 +1,4 @@
-create_char_status_wide <- function(tbl) {
+create_characters_wide <- function(tbl) {
   
   tbl |>
     pivot_wider(

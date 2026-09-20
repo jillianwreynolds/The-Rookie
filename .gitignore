@@ -22,4 +22,5 @@ temp/
 !docs/*/*
 !app/*/*
 
+app2/*.parquet
 docs2/

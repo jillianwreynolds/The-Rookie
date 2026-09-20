@@ -1,6 +1,6 @@
 #' Split transcripts into lines
 #'
-#' Splits transcripts line by line. First replaces smart quotes, removes line separators, and strips title block info. Then splits at transcripts into lines at `\n`.
+#' Splits transcripts into lines at `\n`.
 #' @param tbl 
 #'
 #' @returns

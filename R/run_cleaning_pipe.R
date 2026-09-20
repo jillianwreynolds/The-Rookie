@@ -31,7 +31,7 @@ run_cleaning_pipe <- function(tbl, clean = FALSE, char_lookup) {
     fill_speaker_info() |>
     clean_multispeaker_names() |> 
     separate_speaker_names() |> 
-    clean_speaker_names2(lookup_data = char_lookup) |> 
+    clean_speaker_name_parts(lookup_data = char_lookup) |> 
     unitalicize_descriptions2() |> 
     replace_italics2()
 }

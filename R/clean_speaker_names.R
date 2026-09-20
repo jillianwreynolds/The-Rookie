@@ -14,7 +14,7 @@ clean_speaker_names <- function(tbl) {
       html = html |> 
         # replace [] with () for easier speaker_note extraction
         str_replace_all("\\[V\\.O\\.\\]", "(V.O.)") |>
-        #
+        # replace colon and space with \n
         str_replace_all(coll("(on TV) Bobby: "), "BOBBY (on TV)\n") |>    # 3x6
         str_replace(coll("Man: Don't move."), "MAN\nDon't move.") |>      # 4x13
         str_replace(coll("Man #2: Clear!"), "MAN #2\nClear!") |>          # 4x13
@@ -38,6 +38,11 @@ clean_speaker_names <- function(tbl) {
         ) |> 
         # 3x4
         str_replace_all(coll("GREY'S VOICE"), "GREY (voicemail)") |> 
+        # 4x16
+        str_replace_all(coll("ACTOR!NOLAN"), "NOLAN ACTOR") |> 
+        str_replace_all(coll("ACTOR!LOPEZ"), "LOPEZ ACTOR") |> 
+        # 5x2
+        str_replace_all("GENNIFER", "GENNY BRADFORD") |> 
         # 5x9
         str_replace(
           coll("SANFORD WESLEY\nBut until we know for sure"),

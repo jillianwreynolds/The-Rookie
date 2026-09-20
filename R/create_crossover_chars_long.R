@@ -20,7 +20,7 @@ create_crossover_chars_long <- function(file_path) {
         TRUE ~ str_extract(text, "(?<=\\sas\\s).+(?=\\s\\()")
       ),
       alias = character |> str_extract("(?<=\").+(?=\")"),
-      character = character |> str_remove("\".+\"\\s"),
+      character = character |> str_remove("\".+\"\\s") |> str_to_upper(),
       season = text |> 
         str_extract("(?<=seasons?\\s).+?(?=\\))") |> 
         str_replace_all("present", "8") |> 
@@ -37,9 +37,9 @@ create_crossover_chars_long <- function(file_path) {
     separate_longer_delim(season, ",") |>
     mutate(
       season = season |> as.integer(),
-      across(ends_with("name"), str_to_upper)
+      status = "appears"
     ) |>
-    select(-text) |> 
-    relocate(c(alias, actor), .after = season)
+    select(-c(alias, text)) |> 
+    relocate(c(status, actor), .after = season)
   
 }

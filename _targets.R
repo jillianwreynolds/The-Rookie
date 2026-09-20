@@ -74,10 +74,10 @@ list(
   tar_target(main_chars_wide, create_main_chars_wide(main_chars_parquet)),
   tar_target(main_chars_long, create_main_chars_long(main_chars_wide)),
   tar_target(
-    recurring_chars_wide, create_recurring_chars_wide(recurring_chars_parquet)
+    recurring_chars_long, create_recurring_chars_long(recurring_chars_parquet)
   ),
   tar_target(
-    recurring_chars_long, create_recurring_chars_long(recurring_chars_wide)
+    recurring_chars_wide, create_recurring_chars_wide(recurring_chars_long)
   ),
   tar_target(
     crossover_chars_long,
@@ -91,11 +91,16 @@ list(
     notable_guest_chars, create_notable_guest_chars(notable_guests_txt)
   ),
   tar_target(
-    char_status_long,
-    create_char_status_long(main_chars_long, recurring_chars_long)
+    characters_long,
+    create_characters_long(
+      main_chars_long,
+      recurring_chars_long,
+      crossover_chars_long,
+      notable_guest_chars
+    )
   ),
-  tar_target(char_status_wide, create_char_status_wide(char_status_long)),
-  tar_target(characters, create_characters_tbl(char_status_long)),
+  tar_target(characters_wide, create_characters_wide(characters_long)),
+  tar_target(characters, create_characters(characters_long)),
   tar_target(
     characters_parquet,
     {
@@ -162,7 +167,7 @@ list(
     df_raw,
     {
       transcripts |>
-        read_parquet() |> 
+        read_parquet() |>
         run_cleaning_pipe(char_lookup = lookup_chars) |>
         write_parquet("data/df_raw.parquet")
       "data/df_raw.parquet"

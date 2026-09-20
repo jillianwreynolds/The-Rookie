@@ -10,7 +10,7 @@ move_first_add_last_tbl <- tibble(name = c(
   "LILA", "LUNA",
   "NELL",
   "OSCAR",
-  "PERCY",
+  "PERCY", "PETE",
   "RANDY", "RODGE", "ROSALIND", "RUBEN",
   "TAMARA", "TIM",
   "VIVIAN",
@@ -26,13 +26,13 @@ add_first_tbl <- tibble(name = c(
   "ECKERT",
   "FREEMAN",
   "GLASSER", "GREY",
-  "HALL", "HARPER", "HUTCHINSON",
+  "HARPER", "HUTCHINSON",
   "JUAREZ",
   "LANG", "LONDON", "LOPEZ",
   "NOLAN",
   "PENN",
-  "RIDLEY", "RUSSO", "RYAN",
-  "SAWYER", "SMITTY", "STANTON", "STONE",
+  "RIDLEY", "RUSSO",
+  "SANFORD", "SAWYER", "SMITTY", "STANTON", "STONE",
   "THORSEN",
   "VESTRI",
   "WALSH", "WEST", "WOLFE", "WYLER"
@@ -40,11 +40,22 @@ add_first_tbl <- tibble(name = c(
 
 additional_chars <- tribble(
   ~name,       ~replacement,
-  "BLANCA",    "JUAREZ",
-  "DIEGO",     "DE_LA_CRUZ",
-  "DOMINIQUE", "GREY",
+  # move first and add last
   "GENNIFER",  "BRADFORD",
   "JOY",       "BRADFORD",
+  "SIMONE",    "CLARK",
+  "DIEGO",     "DE_LA_CRUZ",
+  "JACK",      "EVERS",
+  "PATRICE",   "EVERS",
+  "DOMINIQUE", "GREY",
+  "BLANCA",    "JUAREZ",
   "KARLA",     "JUAREZ",
-  "YVONNE",    "THORSEN"
+  "BENNY",     "LOPEZ",
+  "DAMIEN",    "LOPEZ",
+  "PETE",      "NOLAN",
+  "YVONNE",    "THORSEN",
+  # add first name
+  "ACRES",     "BRENDAN",
+  "HOPE",      "CARTER",
+  "STENSEN",   "LAURA"
 )

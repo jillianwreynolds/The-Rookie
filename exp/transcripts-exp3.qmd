@@ -1,6 +1,8 @@
 ---
 title: "transcripts-exp3"
 format: html
+execute:
+  eval: false
 ---
 
 Test unnesting of tokens
@@ -336,11 +338,54 @@ df_raw |>
 
 ```{r}
 df_raw |> 
-  select(season, episode, speaker, sp1:sp4) |> 
+  select(season, episode, speaker, sp1:sp4, transcript) |> 
   filter(str_detect(speaker, "^DET|^SERGE|^SGT|^DR\\.|^AGEN")) |> 
   distinct(speaker, .keep_all = TRUE) |> 
-  arrange(sp3, season, episode) |> 
+  arrange(sp4, sp3, season, episode) |> 
   collect()
+```
+
+```{r}
+df_raw |> 
+  select(season:transcript) |> 
+  filter(dialogue_type == "lyrics") |> 
+  collect()
+```
+
+```{r}
+
+df_raw |> 
+  select(season, episode, line, type) |> 
+  filter(type == "previously") |> 
+  collect()
+
+```
+
+```{r}
+
+df_raw |> 
+  select(season, episode, type) |> 
+  group_by(season, episode) |> 
+  count(type) |> 
+  filter(type == "scene_heading") |> 
+  collect()
+
+```
+
+```{r}
+df_raw |> 
+  select(season, episode, type) |> 
+  filter(type == "previously") |> 
+  collect() |> 
+  anti_join(
+    df_raw |> 
+      select(season, episode, type) |> 
+      group_by(season, episode) |> 
+      count(type) |> 
+      filter(type == "scene_heading") |> 
+      collect(),
+    join_by(season, episode)
+  )
 ```
 
 

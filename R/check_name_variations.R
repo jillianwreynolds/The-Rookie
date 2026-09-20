@@ -5,10 +5,10 @@ check_name_variations <- function(tbl = df_raw, pattern) {
   }
   
   tbl |> 
-    select(speaker) |> 
+    select(season, episode, speaker) |> 
     filter(str_detect(speaker, pattern)) |> 
     collect() |> 
-    distinct(speaker) |> 
-    arrange(speaker)
+    distinct(season, episode, speaker) |> 
+    arrange(season, episode)
   
 }

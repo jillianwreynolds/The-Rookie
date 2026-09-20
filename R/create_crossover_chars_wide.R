@@ -1,12 +1,23 @@
 create_crossover_chars_wide <- function(tbl) {
   
+  rows_order <- tbl |> 
+    mutate(row = row_number()) |> 
+    select(ends_with("name"), row)
+  
   tbl |> 
     mutate(
-      col_names = str_c("season_", season),
-      season = season |> str_replace("\\d+", "appears")
+      season = str_c("season_", season)
     ) |>
-    pivot_wider(names_from = col_names, values_from = season) |>
-    relocate(season_2, .before = season_4) |> 
-    relocate(c(alias, actor), .after = season_8)
+    arrange(season) |> 
+    pivot_wider(
+      id_cols = c(first_name, last_name, actor),
+      names_from = season,
+      values_from = status
+    ) |>
+    left_join(rows_order) |> 
+    arrange(row) |> 
+    select(-row) |> 
+    distinct(first_name, last_name, .keep_all = TRUE) |> 
+    relocate(actor, .after = last_col())
   
 }

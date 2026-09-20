@@ -1,0 +1,145 @@
+---
+title: "Transcription Variation"
+format: 
+  html:
+    lightbox: true
+execute: 
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r}
+tar_config_set(store = "../_targets")
+tar_load(transcripts)
+tar_load(starts_with("df"))
+transcripts <- open_dataset(str_c("../", transcripts))
+df_raw      <- open_dataset(str_c("../", df_raw))
+```
+
+```{r}
+dark_teal   <- "#0a333f"
+dark_teal2  <- "#0a333f30"
+teal        <- "#2f8b9d"
+teal2       <- "#2f8b9d30"
+yellow      <- "#facf21"
+yellow2     <- "#facf2125"
+light_green <- "#b9d4bd"
+code_color  <- "#7c13ba"
+```
+
+```{r}
+gg_theme <- theme_light() +
+  theme(
+    axis.title = element_text(size = 15),
+    axis.text = element_text(size = 14),
+    legend.title = element_text(size = 14),
+    legend.text = element_text(size = 13)
+  )
+```
+
+```{r}
+
+df_raw |> 
+  group_by(season) |> 
+  count(type) |> 
+  filter(type == "previously") |> 
+  select(-type) |> 
+  collect() |> 
+  ungroup() %>%
+  left_join(
+    df_raw |> distinct(season, episode) |> count(season) |> collect(),
+    join_by(season)
+  ) |> 
+  rename(
+    n_previously = n.x,
+    n_episodes = n.y
+  ) |> 
+  mutate(
+    prop = n_previously / n_episodes,
+    season = season |> as_factor()
+  ) |> 
+  pivot_longer(starts_with("n_"), names_to = "count", values_to = "n") |> 
+  mutate(count = count |> replace_when(
+    count == "n_episodes" ~ "Total",
+    count == "n_previously" ~ "Use \"Previously\""
+  ) |> fct_rev()) |> 
+  ggplot(aes(season, n)) +
+  geom_col(aes(fill = count), position = "dodge") +
+  scale_fill_manual(
+    values = c(teal, light_green),
+    guide = guide_legend(position = "top")
+  ) +
+  scale_y_continuous(expand = expansion(c(0, 0.05))) +
+  labs(x = "Season", y = "Number of Episodes", fill = "Number of Episodes:") +
+  gg_theme
+
+```
+
+```{r}
+#| fig-width: 10
+df_raw |> 
+  select(ep_ID, season, episode, type) |> 
+  filter(type == "scene_heading") |> 
+  collect() |> 
+  group_by(season, episode) |> 
+  summarise(n = n(), .groups = "drop_last") |> 
+  ungroup() %>%
+  left_join(
+    tibble(
+      ep_ID = transcripts |> pull(ep_ID),
+      season = transcripts |> pull(season),
+      episode = transcripts |> pull(episode)
+    ),
+    .,
+    join_by(season, episode)
+  ) |> 
+  collect() |> 
+  mutate(
+    n = if_else(is.na(n), 0, n),
+    ep_ID = ep_ID |> str_replace_all("(?<=x)(\\d)$", str_c("0", "\\1"))
+  ) |> 
+  rename(number = n) |> 
+  ggplot(aes(ep_ID, number)) +
+  geom_col(fill = teal) +
+  # geom_text(aes(label = number), nudge_y = 1) +
+  scale_y_continuous(expand = expansion(c(0, 0.05))) +
+  labs(x = "Episode", y = "Number of Scene Headings") +
+  theme_light() +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
+```
+
+```{r}
+#| fig-height: 12
+df_raw |> 
+  select(ep_ID, season, episode, type) |> 
+  filter(type == "scene_heading") |> 
+  collect() |> 
+  group_by(season, episode) |> 
+  summarise(n = n(), .groups = "drop_last") |> 
+  ungroup() %>%
+  left_join(
+    tibble(
+      ep_ID = transcripts |> pull(ep_ID),
+      season = transcripts |> pull(season),
+      episode = transcripts |> pull(episode)
+    ),
+    .,
+    join_by(season, episode)
+  ) |> 
+  collect() |> 
+  mutate(
+    n = if_else(is.na(n), 0, n),
+    ep_ID = ep_ID |> str_replace_all("(?<=x)(\\d)$", str_c("0", "\\1"))
+  ) |> 
+  rename(number = n) |> 
+  ggplot(aes(ep_ID |> fct_rev(), number)) +
+  geom_col(fill = teal) +
+  # geom_text(aes(label = number), nudge_y = 1) +
+  scale_y_continuous(expand = expansion(c(0, 0.05))) +
+  labs(x = "Episode", y = "Number of Scene Headings") +
+  theme_light() +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) + 
+  coord_flip()
+```
+

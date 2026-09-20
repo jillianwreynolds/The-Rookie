@@ -8,60 +8,48 @@ library(bslib)
 source("themes.R")
 source("functions.R")
 
-# read data ---------------------------------------------------------------
-
-tbl_transcripts <- nanoparquet::read_parquet("transcripts_parquet.parquet")
-tbl_episode_ratings <- nanoparquet::read_parquet("episode_ratings.parquet")
-tbl_characters <- nanoparquet::read_parquet("characters_parquet.parquet")
-
 # Number of seasons
 n_seasons <- 8
 
-# tibbles -----------------------------------------------------------------
-
-ratings <- tbl_episode_ratings |> 
-  left_join(tbl_transcripts, join_by(season, episode)) |> 
-  select(-ep_number) |> 
-  relocate(title, .after = episode) |> 
-  arrange(season, episode)
-
 # plots -------------------------------------------------------------------
 
-plot_ratings_stats_code <- tbl_episode_ratings |> 
-  group_by(season) |> 
-  summarise(
-    min = min(rating),
-    q1 = quantile(rating, 0.25),
-    median = median(rating),
-    q3 = quantile(rating, 0.75),
-    mean = mean(rating),
-    max = max(rating)
-  ) |> 
-  pivot_longer(2:last_col(), names_to = "stat", values_to = "value") |> 
-  ggplot() +
-  geom_line(
-    aes(
-      season, value,
-      color = fct_reorder2(stat, season, value),
-      linetype = fct_reorder2(stat, season, value)
-    ),
-    linewidth = 0.75
-  ) +
-  scale_x_continuous(breaks = 1:8, minor_breaks = NULL) +
-  scale_y_continuous(expand = expansion(c(0, 0))) +
-  scale_color_viridis_d(end = 0.85, labels = \(x) x |> str_to_title()) +
-  scale_linetype_manual(
-    values = c(
-      "max" = "solid", "q3" = "dotdash", "median" = "dashed",
-      "mean" = "dotted", "q1" = "twodash", "min" = "longdash"
-    ),
-    labels = \(x) x |> str_to_title()
-  ) +
-  labs(
-    x = "Season", y = "Rating", color = "Statistic", linetype = "Statistic"
-  ) +
-  coord_cartesian(ylim = c(0, 10)) +
-  gg_theme
+plot_ratings_stats_code <- function(data) { 
+  data |> 
+    group_by(season) |> 
+    summarise(
+      min = min(rating),
+      q1 = quantile(rating, 0.25),
+      median = median(rating),
+      q3 = quantile(rating, 0.75),
+      mean = mean(rating),
+      max = max(rating)
+    ) |> 
+    pivot_longer(2:last_col(), names_to = "stat", values_to = "value") |> 
+    ggplot() +
+    geom_line(
+      aes(
+        season, value,
+        color = fct_reorder2(stat, season, value),
+        linetype = fct_reorder2(stat, season, value)
+      ),
+      linewidth = 0.75
+    ) +
+    scale_x_continuous(breaks = 1:8, minor_breaks = NULL) +
+    scale_y_continuous(expand = expansion(c(0, 0))) +
+    scale_color_viridis_d(end = 0.85, labels = \(x) x |> str_to_title()) +
+    scale_linetype_manual(
+      values = c(
+        "max" = "solid", "q3" = "dotdash", "median" = "dashed",
+        "mean" = "dotted", "q1" = "twodash", "min" = "longdash"
+      ),
+      labels = \(x) x |> str_to_title()
+    ) +
+    labs(
+      x = "Season", y = "Rating", color = "Statistic", linetype = "Statistic"
+    ) +
+    coord_cartesian(ylim = c(0, 10)) +
+    gg_theme
+}
 
 # UI setup ----------------------------------------------------------------
 
@@ -161,7 +149,7 @@ characters_panel <- nav_panel(
   layout_columns(
     cards_characters$note,
     cards_characters$table,
-    col_widths = c(3, 5),
+    col_widths = c(3, 6),
     fillable = FALSE
   )
 )
@@ -228,31 +216,22 @@ cards_ratings <- list(
 vbs <- list(
   highest = value_box(
     "Highest Rating",
-    value = ratings$rating |> max(),
-    p(
-      ratings |> slice_max(rating) |> titles_to_string(),
-      style = "font-size:15px"
-    ),
+    value = textOutput("highest_rating"),
+    textOutput("highest_rating_eps"),
     showcase = bsicons::bs_icon("arrow-up"),
     theme = "success-subtle"
   ),
   lowest = value_box(
     "Lowest Rating",
-    value = ratings$rating |> min(),
-    p(
-      ratings |> slice_min(rating) |> titles_to_string(),
-      style = "font-size:15px"
-    ),
+    value = textOutput("lowest_rating"),
+    textOutput("lowest_rating_eps"),
     showcase = bsicons::bs_icon("arrow-down"),
     theme = "danger-subtle"
   ),
   average = value_box(
     "Average Rating",
-    value = ratings$rating |> mean() |> round(1),
-    p(
-      ratings |> filter(rating == round(mean(rating), 1)) |> titles_to_string(),
-      style = "font-size:15px"
-    ),
+    value = textOutput("average_rating"),
+    textOutput("average_rating_eps"),
     theme = NULL,
     class = "vb-yellow"
   )
@@ -301,13 +280,42 @@ ui <- page_navbar(
 
 server <- function(input, output, session) {
   
+  data <- reactive({
+    withProgress(
+      {
+        tbl_episodes = nanoparquet::read_parquet("transcripts_parquet.parquet")
+        incProgress(1 / 3)
+        tbl_chars = nanoparquet::read_parquet("characters_parquet.parquet")
+        incProgress(1 / 3)
+        tbl_ratings = nanoparquet::read_parquet("episode_ratings.parquet")
+        incProgress(1 / 3)
+        list(
+          episodes = tbl_episodes,
+          characters = tbl_chars,
+          ratings = tbl_ratings
+        )
+      },
+      message = "Loading data...",
+      detail = "This may take several seconds...",
+      value = 0
+    )
+  })
+  
+  ratings <- reactive(
+    data()$ratings |> 
+      left_join(data()$episodes, join_by(season, episode)) |> 
+      select(-ep_number) |> 
+      relocate(title, .after = episode) |> 
+      arrange(season, episode)
+  )
+  
 ## home -------------------------------------------------------------------
   
   observeEvent(input$reset_season_filter, reset("filter_season"))
   
   output$episodes <- renderDT(
     {
-      tbl <- tbl_transcripts |> 
+      tbl <- data()$episodes |> 
         select(ep_number, season, episode, title)
       if (length(input$filter_season) > 0) {
         tbl <- tbl |> filter(season %in% input$filter_season)
@@ -325,7 +333,7 @@ server <- function(input, output, session) {
   )
   
   output$n_episodes <- renderTable(
-    tbl_transcripts |>
+    data()$episodes |>
       select(season, episode) |>
       count(season) |>
       rename(Season = season, Episodes = n)
@@ -334,8 +342,10 @@ server <- function(input, output, session) {
 # characters -------------------------------------------------------------
   
   output$characters_tbl <- renderDT(
-    tbl_characters |> 
-      select(1:2) |> 
+    data()$characters |> 
+      select(ends_with("name"), type) |> 
+      filter(type %in% c("main", "recurring")) |> 
+      select(-type) |> 
       mutate(across(
         everything(),
         \(x) x |> str_replace_all("_", " ") |>  str_to_title()
@@ -346,7 +356,7 @@ server <- function(input, output, session) {
 ## ratings ----------------------------------------------------------------
   
   output$ratings <- renderDT(
-    ratings |> 
+    ratings() |> 
       rename(number_of_votes = n_votes) |> 
       clean_col_names(),
     options = list(
@@ -355,8 +365,32 @@ server <- function(input, output, session) {
     )
   )
   
+  output$highest_rating <- renderText(
+    ratings()$rating |> max()
+  )
+  
+  output$highest_rating_eps <- renderText(
+    ratings() |> slice_max(rating) |> titles_to_string()
+  )
+  
+  output$lowest_rating <- renderText(
+    ratings()$rating |> min()
+  )
+  
+  output$lowest_rating_eps <- renderText(
+    ratings() |> slice_min(rating) |> titles_to_string()
+  )
+  
+  output$average_rating <- renderText(
+    ratings()$rating |> mean() |> round(1)
+  )
+  
+  output$average_rating_eps <- renderText(
+    ratings() |> filter(rating == round(mean(rating), 1)) |> titles_to_string()
+  )
+  
   output$plot_ratings_stats <- renderPlot(
-    plot_ratings_stats_code
+    plot_ratings_stats_code(data()$ratings)
   )
   
   output$compare_options <- renderUI(
@@ -378,7 +412,7 @@ server <- function(input, output, session) {
   
   output$plot_ratings_dist <- renderPlot({
     
-    ratings_dist <- tbl_episode_ratings |> 
+    ratings_dist <- data()$ratings |> 
       group_by(season) |> 
       count(rating) |> 
       mutate(season = season |> as_factor())

@@ -1,6 +1,9 @@
 ---
 title: "transcripts-exp4"
 format: html
+execute:
+  echo: false
+  eval: false
 ---
 
 Test tokenization
@@ -169,6 +172,15 @@ tokens_raw |>
   collect()
 ```
 
+```{r}
+tokens_raw |> 
+  select(season:sp4) |> 
+  filter(type == "dialogue") |> 
+  count(word, sort = TRUE) |> 
+  collect()
+```
+
+
 ## Season appearances by type
 
 ```{r}
@@ -210,6 +222,118 @@ tokens_raw |>
   )) |> 
   count(sp4) |> 
   arrange(desc(n))
+```
+
+```{r}
+total_words <- tokens_raw |> 
+  filter(type == "dialogue") |> 
+  group_by(season, episode) |> 
+  summarise(total_words = n()) |> 
+  collect()
+
+tokens_raw |> 
+  select(season:sp4) |> 
+  filter(type == "dialogue") |> 
+  count(season, episode, word, sort = TRUE) |> 
+  collect() |> 
+  # anti_join(stop_words |> filter(lexicon == "SMART"), join_by(word)) |> 
+  left_join(total_words, join_by(season, episode)) |> 
+  mutate(frequency = n/total_words) |> 
+  filter(word == "yeah")
+```
+
+```{r}
+tokens_raw |> 
+  select(ep_number, season:sp4) |> 
+  filter(type == "dialogue") |> 
+  count(ep_number, word, sort = TRUE) |> 
+  collect() |> 
+  bind_tf_idf(word, ep_number, n) |> 
+  anti_join(stop_words |> filter(lexicon == "SMART"), join_by(word))
+```
+
+```{r}
+tokens_raw |> 
+  select(ep_number, season:sp4) |> 
+  filter(type == "dialogue") |> 
+  count(ep_number, word, sort = TRUE) |> 
+  collect() |> 
+  bind_tf_idf(word, ep_number, n) |> 
+  anti_join(stop_words |> filter(lexicon == "SMART"), join_by(word)) |> 
+  arrange(desc(idf))
+```
+
+```{r}
+tokens_raw |> 
+  select(ep_number, season:sp4) |> 
+  filter(type == "dialogue") |> 
+  count(ep_number, word, sort = TRUE) |> 
+  collect() |> 
+  bind_tf_idf(word, ep_number, n) |> 
+  anti_join(stop_words |> filter(lexicon == "SMART"), join_by(word)) |> 
+  arrange(desc(tf_idf))
+```
+
+histograms for tf, idf, tf-idf
+
+```{r}
+tokens_raw |> 
+  select(ep_number, season:sp4) |> 
+  filter(type == "dialogue") |> 
+  count(ep_number, word, sort = TRUE) |> 
+  collect() |> 
+  bind_tf_idf(word, ep_number, n) |> 
+  anti_join(stop_words |> filter(lexicon == "SMART"), join_by(word)) |> 
+  arrange(desc(tf_idf)) |> 
+  ggplot() +
+  geom_histogram(aes(tf), fill = teal, bins = 60) +
+  theme_light()
+
+tokens_raw |> 
+  select(ep_number, season:sp4) |> 
+  filter(type == "dialogue") |> 
+  count(ep_number, word, sort = TRUE) |> 
+  collect() |> 
+  bind_tf_idf(word, ep_number, n) |> 
+  anti_join(stop_words |> filter(lexicon == "SMART"), join_by(word)) |> 
+  arrange(desc(tf_idf)) |> 
+  ggplot() +
+  geom_histogram(aes(idf), fill = teal, bins = 60) +
+  theme_light()
+
+tokens_raw |> 
+  select(ep_number, season:sp4) |> 
+  filter(type == "dialogue") |> 
+  count(ep_number, word, sort = TRUE) |> 
+  collect() |> 
+  bind_tf_idf(word, ep_number, n) |> 
+  anti_join(stop_words |> filter(lexicon == "SMART"), join_by(word)) |> 
+  arrange(desc(tf_idf)) |> 
+  ggplot() +
+  geom_histogram(aes(tf_idf), fill = teal, bins = 60) +
+  theme_light()
+```
+
+```{r}
+tokens_raw |> 
+  select(ep_number, season:sp4) |> 
+  filter(type == "dialogue") |> 
+  count(ep_number, word, sort = TRUE) |> 
+  collect() |> 
+  bind_tf_idf(word, ep_number, n) |> 
+  anti_join(stop_words |> filter(lexicon == "SMART"), join_by(word)) |> 
+  left_join(
+    transcripts |> select(ep_number, season:title) |> collect(),
+    join_by(ep_number)
+  ) |> 
+  select(-ep_number) |> 
+  relocate(season:title) |> 
+  filter(season == 1, episode <= 4) |> 
+  slice_max(tf_idf, n = 15, by = c(season, episode)) |> 
+  ggplot(aes(word |> fct_reorder(tf_idf), tf_idf)) + 
+  geom_col() +
+  facet_wrap(~interaction(season, episode), scales = "free") + 
+  coord_flip()
 ```
 
 

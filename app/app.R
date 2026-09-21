@@ -373,23 +373,18 @@ server <- function(input, output, session) {
   mean_rating <- reactive(ratings()$rating |> mean() |> round(1))
   
   output$lowest_rating <- renderText(min_rating())
+  output$highest_rating <- renderText(max_rating())
+  output$average_rating <- renderText(mean_rating())
   
   output$lowest_rating_eps <- renderText(
     ratings() |> slice_min(rating) |> titles_to_string()
   )
-  
-  output$highest_rating <- renderText(max_rating())
-  
   output$highest_rating_eps <- renderText(
     ratings() |> slice_max(rating) |> titles_to_string()
   )
-  
-  output$average_rating <- renderText(mean_rating())
-  
   output$average_rating_eps <- renderText(
     ratings() |> filter(rating == round(mean(rating), 1)) |> titles_to_string()
   )
-  
   output$plot_ratings_stats <- renderPlot(
     plot_ratings_stats_code(data()$ratings)
   )
@@ -399,7 +394,11 @@ server <- function(input, output, session) {
       radioButtons(
         "compare_view",
         "Compare seasons with",
-        c("Colors" = 1, "Multiple plots" = 2)
+        c(
+          "Colored bar chart(s)" = 1,
+          "Multiple bar charts"  = 2,
+          "Violin plot"          = 3
+        )
       )
     }
   )
@@ -512,6 +511,14 @@ server <- function(input, output, session) {
           ) +
           theme(strip.text = element_text(size = 14))
       }
+      if (isTruthy(input$compare_view == 3)) {
+        plot <- ratings_dist |> 
+          ggplot(aes(season, rating, fill = season)) + 
+          geom_violin() +
+          scale_fill_viridis_d(guide = NULL) +
+          labs(x = "Season", y = "Rating") +
+          gg_theme
+      }
     }
     if (when_all(
       input$view_full_scale,
@@ -528,7 +535,7 @@ server <- function(input, output, session) {
           expand = expansion(c(0, 0.05)),
           minor_breaks = NULL
         )
-    } else {
+    } else if (!isTruthy(input$compare_view == 3)) {
       plot <- plot + scale_y_continuous(expand = expansion(c(0, 0.05)))
     }
     plot

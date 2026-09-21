@@ -3,6 +3,7 @@ rookie_slider_css <- glue(
   .irs-grid-pol.small { height: 0px; }
   .slider-animate-button {
     color: {{dark_teal}};
+    font-size: 13pt; 
     top: 10px;
   }
   .irs--shiny .irs-handle {

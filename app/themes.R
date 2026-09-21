@@ -8,7 +8,8 @@ yellow      <- "#facf21"
 yellow2     <- "#facf2125"
 light_green <- "#b9d4bd"
 code_color  <- "#7c13ba"
-
+viridis <- c("#440154FF", "#46337EFF", "#365C8DFF", "#277F8EFF",
+             "#1FA187FF", "#4AC16DFF", "#9FDA3AFF", "#FDE725FF")
 
 # bs ----------------------------------------------------------------------
 

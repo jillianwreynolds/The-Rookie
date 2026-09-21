@@ -18,7 +18,7 @@ gg_theme <- theme_light() +
     legend.text = element_text(size = 13)
   )
 
-ratings_csv <- read_csv("season,episode,rating,n_votes
+ratings_csv <- read_csv(I("season,episode,rating,n_votes
 1,16,9,3799
 5,22,9,2796
 2,11,8.8,3038
@@ -163,7 +163,7 @@ ratings_csv <- read_csv("season,episode,rating,n_votes
 3,7,4.5,4323
 7,15,3.6,2847
 8,15,3.1,2656
-", col_types = "iidi")
+"), col_types = "iidi")
 
 custom_slider_css <- glue::glue("
       /* Remove minor ticks */

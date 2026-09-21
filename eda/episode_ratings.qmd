@@ -95,15 +95,51 @@ episode_ratings |>
   count(rating) |> 
   mutate(season = season |> as_factor() %>% str_c("Season ", .)) |> 
   ggplot(aes(rating, n)) + 
-  geom_col(aes(fill = season)) +
+  geom_col(aes(fill = season), position = "dodge") +
   scale_x_continuous(breaks = seq(0, 10, 1)) +
   scale_y_continuous(expand = expansion(c(0, 0.05))) +
-  ggiraph
   scale_fill_viridis_d(guide = guide_legend(position = "top")) +
   labs(x = "Rating", y = "Number of Episodes", fill = "Season") +
   gg_theme
 ```
 
+```{r}
+episode_ratings |> 
+  group_by(season) |> 
+  count(rating) |> 
+  mutate(
+    season = season |> as_factor(),
+    n = n |> as_factor()
+  ) |>
+  # mutate(season = season |> as_factor() %>% str_c("Season ", .)) |>
+  ggplot(aes(season, rating, color = n, size = n)) + 
+  geom_point() +
+  # scale_y_continuous(expand = expansion(c(0, 0.05))) +
+  # scale_fill_viridis_d(guide = guide_legend(position = "top")) +
+  # labs(x = "Rating", y = "Number of Episodes", fill = "Season") +
+  scale_color_viridis_d(direction = -1) +
+  labs(x = "Season", y = "Rating", color = "Number of Episodes", size = "Number of Episodes") +
+  gg_theme
+```
+
+```{r}
+episode_ratings |> 
+  group_by(season) |> 
+  count(rating) |> 
+  mutate(
+    season = season |> as_factor(),
+    # n = n |> as_factor()
+  ) |>
+  # mutate(season = season |> as_factor() %>% str_c("Season ", .)) |>
+  ggplot(aes(season, rating, fill = season)) + 
+  geom_violin() +
+  # scale_y_continuous(expand = expansion(c(0, 0.05))) +
+  # scale_fill_viridis_d(guide = guide_legend(position = "top")) +
+  # labs(x = "Rating", y = "Number of Episodes", fill = "Season") +
+  scale_fill_viridis_d(guide = NULL) +
+  labs(x = "Season", y = "Rating") +
+  gg_theme
+```
 
 ```{r}
 strip_labels <- setNames(

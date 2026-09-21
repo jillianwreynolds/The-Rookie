@@ -6,62 +6,51 @@ library(DT)
 library(bslib)
 
 source("themes.R")
+source("styles.R")
 source("functions.R")
-
-# read data ---------------------------------------------------------------
-
-tbl_transcripts <- nanoparquet::read_parquet("transcripts_parquet.parquet")
-tbl_episode_ratings <- nanoparquet::read_parquet("episode_ratings.parquet")
-tbl_characters <- nanoparquet::read_parquet("characters_parquet.parquet")
 
 # Number of seasons
 n_seasons <- 8
 
-# tibbles -----------------------------------------------------------------
-
-ratings <- tbl_episode_ratings |> 
-  left_join(tbl_transcripts, join_by(season, episode)) |> 
-  select(-ep_number) |> 
-  relocate(title, .after = episode) |> 
-  arrange(season, episode)
-
 # plots -------------------------------------------------------------------
 
-plot_ratings_stats_code <- tbl_episode_ratings |> 
-  group_by(season) |> 
-  summarise(
-    min = min(rating),
-    q1 = quantile(rating, 0.25),
-    median = median(rating),
-    q3 = quantile(rating, 0.75),
-    mean = mean(rating),
-    max = max(rating)
-  ) |> 
-  pivot_longer(2:last_col(), names_to = "stat", values_to = "value") |> 
-  ggplot() +
-  geom_line(
-    aes(
-      season, value,
-      color = fct_reorder2(stat, season, value),
-      linetype = fct_reorder2(stat, season, value)
-    ),
-    linewidth = 0.75
-  ) +
-  scale_x_continuous(breaks = 1:8, minor_breaks = NULL) +
-  scale_y_continuous(expand = expansion(c(0, 0))) +
-  scale_color_viridis_d(end = 0.85, labels = \(x) x |> str_to_title()) +
-  scale_linetype_manual(
-    values = c(
-      "max" = "solid", "q3" = "dotdash", "median" = "dashed",
-      "mean" = "dotted", "q1" = "twodash", "min" = "longdash"
-    ),
-    labels = \(x) x |> str_to_title()
-  ) +
-  labs(
-    x = "Season", y = "Rating", color = "Statistic", linetype = "Statistic"
-  ) +
-  coord_cartesian(ylim = c(0, 10)) +
-  gg_theme
+plot_ratings_stats_code <- function(data) { 
+  data |> 
+    group_by(season) |> 
+    summarise(
+      min = min(rating),
+      q1 = quantile(rating, 0.25),
+      median = median(rating),
+      q3 = quantile(rating, 0.75),
+      mean = mean(rating),
+      max = max(rating)
+    ) |> 
+    pivot_longer(2:last_col(), names_to = "stat", values_to = "value") |> 
+    ggplot() +
+    geom_line(
+      aes(
+        season, value,
+        color = fct_reorder2(stat, season, value),
+        linetype = fct_reorder2(stat, season, value)
+      ),
+      linewidth = 0.75
+    ) +
+    scale_x_continuous(breaks = 1:8, minor_breaks = NULL) +
+    scale_y_continuous(expand = expansion(c(0, 0))) +
+    scale_color_viridis_d(end = 0.85, labels = \(x) x |> str_to_title()) +
+    scale_linetype_manual(
+      values = c(
+        "max" = "solid", "q3" = "dotdash", "median" = "dashed",
+        "mean" = "dotted", "q1" = "twodash", "min" = "longdash"
+      ),
+      labels = \(x) x |> str_to_title()
+    ) +
+    labs(
+      x = "Season", y = "Rating", color = "Statistic", linetype = "Statistic"
+    ) +
+    coord_cartesian(ylim = c(0, 10)) +
+    gg_theme
+}
 
 # UI setup ----------------------------------------------------------------
 
@@ -91,7 +80,7 @@ cards_home <- list(
       class = "bg-secondary",
       tooltip(
         bsicons::bs_icon("question-circle"),
-        "To filter episodes by season, click the gear to the right.",
+        "To filter episodes by season, click the gear icon to the right.",
         placement = "right"
       ),
       popover(
@@ -109,7 +98,7 @@ cards_home <- list(
       )
     ),
     DTOutput("episodes"),
-    min_height = "670px"
+    min_height = "600px"
   ),
   n_episodes = card(
     card_header("Number of Episodes by Season", class = "bg-secondary"),
@@ -161,7 +150,7 @@ characters_panel <- nav_panel(
   layout_columns(
     cards_characters$note,
     cards_characters$table,
-    col_widths = c(3, 5),
+    col_widths = c(3, 6),
     fillable = FALSE
   )
 )
@@ -186,7 +175,7 @@ cards_ratings <- list(
   ratings = card(
     card_header("Episode Ratings", class = "bg-secondary"),
     DTOutput("ratings"),
-    min_height = "640px"
+    min_height = "600px"
   ),
   plot_stats = card(
     full_screen = TRUE,
@@ -200,7 +189,7 @@ cards_ratings <- list(
       class = "bg-secondary d-flex align-items-center gap-1",
       tooltip(
         bsicons::bs_icon("question-circle"),
-        "To filter by season or change other plot options, click the gear to the right.",
+        "To filter by season, compare seasons, or change plot settings, click the gear icon to the right.",
         placement = "right"
       ),
       popover(
@@ -218,6 +207,7 @@ cards_ratings <- list(
         actionButton("reset_plot_ratings_dist", "Reset", class = "btn-reset")
       )
     ),
+    uiOutput("ratings_slider_ui"),
     plotOutput("plot_ratings_dist"),
     min_height = "640px"
   )
@@ -228,31 +218,22 @@ cards_ratings <- list(
 vbs <- list(
   highest = value_box(
     "Highest Rating",
-    value = ratings$rating |> max(),
-    p(
-      ratings |> slice_max(rating) |> titles_to_string(),
-      style = "font-size:15px"
-    ),
+    value = textOutput("highest_rating"),
+    textOutput("highest_rating_eps"),
     showcase = bsicons::bs_icon("arrow-up"),
     theme = "success-subtle"
   ),
   lowest = value_box(
     "Lowest Rating",
-    value = ratings$rating |> min(),
-    p(
-      ratings |> slice_min(rating) |> titles_to_string(),
-      style = "font-size:15px"
-    ),
+    value = textOutput("lowest_rating"),
+    textOutput("lowest_rating_eps"),
     showcase = bsicons::bs_icon("arrow-down"),
     theme = "danger-subtle"
   ),
   average = value_box(
     "Average Rating",
-    value = ratings$rating |> mean() |> round(1),
-    p(
-      ratings |> filter(rating == round(mean(rating), 1)) |> titles_to_string(),
-      style = "font-size:15px"
-    ),
+    value = textOutput("average_rating"),
+    textOutput("average_rating_eps"),
     theme = NULL,
     class = "vb-yellow"
   )
@@ -285,6 +266,7 @@ ratings_panel <- nav_panel(
 
 ui <- page_navbar(
   theme = rookie_theme,
+  tags$style(type = "text/css", rookie_slider_css),
   fillable = FALSE,
   navbar_options = navbar_options(bg = dark_teal),
   title = h1(
@@ -301,13 +283,42 @@ ui <- page_navbar(
 
 server <- function(input, output, session) {
   
+  data <- reactive({
+    withProgress(
+      {
+        tbl_episodes = nanoparquet::read_parquet("transcripts_parquet.parquet")
+        incProgress(1 / 3)
+        tbl_chars = nanoparquet::read_parquet("characters_parquet.parquet")
+        incProgress(1 / 3)
+        tbl_ratings = nanoparquet::read_parquet("episode_ratings.parquet")
+        incProgress(1 / 3)
+        list(
+          episodes = tbl_episodes,
+          characters = tbl_chars,
+          ratings = tbl_ratings
+        )
+      },
+      message = "Loading data...",
+      detail = "This may take several seconds...",
+      value = 0
+    )
+  })
+  
+  ratings <- reactive(
+    data()$ratings |> 
+      left_join(data()$episodes, join_by(season, episode)) |> 
+      select(-ep_number) |> 
+      relocate(title, .after = episode) |> 
+      arrange(season, episode)
+  )
+  
 ## home -------------------------------------------------------------------
   
   observeEvent(input$reset_season_filter, reset("filter_season"))
   
   output$episodes <- renderDT(
     {
-      tbl <- tbl_transcripts |> 
+      tbl <- data()$episodes |> 
         select(ep_number, season, episode, title)
       if (length(input$filter_season) > 0) {
         tbl <- tbl |> filter(season %in% input$filter_season)
@@ -325,7 +336,7 @@ server <- function(input, output, session) {
   )
   
   output$n_episodes <- renderTable(
-    tbl_transcripts |>
+    data()$episodes |>
       select(season, episode) |>
       count(season) |>
       rename(Season = season, Episodes = n)
@@ -334,8 +345,10 @@ server <- function(input, output, session) {
 # characters -------------------------------------------------------------
   
   output$characters_tbl <- renderDT(
-    tbl_characters |> 
-      select(1:2) |> 
+    data()$characters |> 
+      select(ends_with("name"), type) |> 
+      filter(type %in% c("main", "recurring")) |> 
+      select(-type) |> 
       mutate(across(
         everything(),
         \(x) x |> str_replace_all("_", " ") |>  str_to_title()
@@ -346,7 +359,7 @@ server <- function(input, output, session) {
 ## ratings ----------------------------------------------------------------
   
   output$ratings <- renderDT(
-    ratings |> 
+    ratings() |> 
       rename(number_of_votes = n_votes) |> 
       clean_col_names(),
     options = list(
@@ -355,8 +368,25 @@ server <- function(input, output, session) {
     )
   )
   
+  min_rating <- reactive(ratings()$rating |> min())
+  max_rating <- reactive(ratings()$rating |> max())
+  mean_rating <- reactive(ratings()$rating |> mean() |> round(1))
+  
+  output$lowest_rating <- renderText(min_rating())
+  output$highest_rating <- renderText(max_rating())
+  output$average_rating <- renderText(mean_rating())
+  
+  output$lowest_rating_eps <- renderText(
+    ratings() |> slice_min(rating) |> titles_to_string()
+  )
+  output$highest_rating_eps <- renderText(
+    ratings() |> slice_max(rating) |> titles_to_string()
+  )
+  output$average_rating_eps <- renderText(
+    ratings() |> filter(rating == round(mean(rating), 1)) |> titles_to_string()
+  )
   output$plot_ratings_stats <- renderPlot(
-    plot_ratings_stats_code
+    plot_ratings_stats_code(data()$ratings)
   )
   
   output$compare_options <- renderUI(
@@ -364,67 +394,112 @@ server <- function(input, output, session) {
       radioButtons(
         "compare_view",
         "Compare seasons with",
-        c("Colors" = 1, "Multiple plots" = 2)
+        c(
+          "Colored bar chart(s)" = 1,
+          "Multiple bar charts"  = 2,
+          "Violin plot"          = 3
+        )
       )
     }
   )
   
-  observeEvent(input$reset_plot_ratings_dist, {
-    reset("view_full_scale")
-    reset("filter_season2")
-    reset("compare_seasons")
-    reset("reset_plot_ratings_dist")
+  output$ratings_slider_ui <- renderUI({
+    req(input$compare_seasons)
+    req(input$compare_view)
+    if (input$compare_view == 1) {
+      tags$div(class = "rookie-slider", sliderInput(
+        "ratings_slider",
+        "Season",
+        value = 0,
+        min = 0,
+        max = 8,
+        step = 1,
+        animate = animationOptions(interval = 1500, loop = TRUE)
+      )) 
+    }
   })
   
   output$plot_ratings_dist <- renderPlot({
     
-    ratings_dist <- tbl_episode_ratings |> 
+    ratings_dist <- data()$ratings |> 
       group_by(season) |> 
       count(rating) |> 
       mutate(season = season |> as_factor())
     
-    if (length(input$filter_season2) > 0) {
+    if (when_any(
+      when_all(
+        when_any(
+          isTruthy(input$compare_seasons == FALSE),
+          isTruthy(input$compare_view == 2)
+        ),
+        length(input$filter_season2) > 0
+      ),
+      when_all(
+        isTruthy(input$compare_view == 1),
+        length(input$filter_season2) > 0,
+        isTruthy(input$ratings_slider == 0)
+      )
+    )) {
       ratings_dist <- ratings_dist |> filter(season %in% input$filter_season2)
+    }
+    if (when_all(
+      isTruthy(input$compare_view == 1), isTruthy(input$ratings_slider != 0)
+    )) {
+      ratings_dist <- ratings_dist |> filter(season == input$ratings_slider)
+    }
+    
+    break_skip <- if (when_any(
+      input$view_full_scale,
+      isTruthy(input$compare_view == 2)
+    )) {
+      1
+    } else {
+      0.5
     }
     
     plot <- ratings_dist |> 
       ggplot(aes(rating, n)) +
       labs(x = "Rating", y = "Number of Episodes") +
+      scale_x_continuous(breaks = seq(0, 10, break_skip)) +
       gg_theme
     
-    if (input$compare_seasons == FALSE) {
-      plot <- plot + 
-        geom_col(fill = teal) +
-        scale_y_continuous(expand = expansion(c(0, 0.05)))
-      if (input$view_full_scale) {
-        plot <- plot + 
-          scale_x_continuous(breaks = seq(0, 10, 1)) +
-          coord_cartesian(xlim = c(0, 10))
-      } else {
-        plot <- plot + scale_x_continuous(breaks = seq(0, 10, 0.5))
-      }
+    if (isTruthy(input$compare_seasons == FALSE)) {
+      plot <- plot + geom_col(fill = teal)
     }
     
-    if (input$compare_seasons) {
-      req(input$compare_view)
-      if (input$compare_view == 1) {
-        plot <- plot + 
+    if (isTruthy(input$compare_seasons)) {
+      if (when_all(
+        isTruthy(input$compare_view == 1),
+        isTruthy(input$ratings_slider == 0)
+      )) {
+        plot <- plot +
           geom_col(aes(fill = season)) +
-          scale_y_continuous(expand = expansion(c(0, 0.05))) +
+          scale_fill_viridis_d() +
           labs(fill = "Season") +
-          scale_fill_viridis_d(guide = guide_legend(position = "top"))
+          theme(
+            legend.position = c(0.005, 0.995),
+            legend.justification = c(0, 1)
+          )
         if (input$view_full_scale) {
-          plot <- plot + 
-            scale_x_continuous(breaks = seq(0, 10, 1)) +
-            coord_cartesian(xlim = c(0, 10))
+          plot <- plot + coord_cartesian(xlim = c(0, 10))
         } else {
-          plot <- plot + scale_x_continuous(breaks = seq(0, 10, 0.5))
+          plot <- plot + coord_cartesian(xlim = c(min_rating(), max_rating()))
         }
-      } else if (input$compare_view == 2) {
-        strip_labels <- setNames(
-          str_c("Season ", 1:8),
-          as.character(1:8)
-        )
+      }
+      if (when_all(
+        isTruthy(input$compare_view == 1),
+        isTruthy(input$ratings_slider != 0)
+      )) {
+        plot <- plot + geom_col(fill = viridis[input$ratings_slider])
+        if (input$view_full_scale) {
+          plot <- plot + coord_cartesian(xlim = c(0, 10), ylim = c(0, 20))
+        } else if (input$view_full_scale == FALSE) {
+          plot <- plot + 
+            coord_cartesian(xlim = c(min_rating(), max_rating()), ylim = c(0, 20))
+        }
+      }
+      if (isTruthy(input$compare_view == 2)) {
+        strip_labels <- setNames(str_c("Season ", 1:8), as.character(1:8))
         facet_cols <- if (length(input$filter_season2) %in% 2:3) 1 else NULL
         plot <- plot +
           geom_col(fill = teal) +
@@ -434,18 +509,44 @@ server <- function(input, output, session) {
             labeller = as_labeller(strip_labels),
             axes = "all_x"
           ) +
-          scale_x_continuous(breaks = seq(0, 10, 1)) +
-          scale_y_continuous(
-            expand = expansion(c(0, 0.05)), minor_breaks = NULL
-          ) +
           theme(strip.text = element_text(size = 14))
-        if (input$view_full_scale) {
-          plot <- plot + 
-            coord_cartesian(xlim = c(0, 10))
-        }
+      }
+      if (isTruthy(input$compare_view == 3)) {
+        plot <- ratings_dist |> 
+          ggplot(aes(season, rating, fill = season)) + 
+          geom_violin() +
+          scale_fill_viridis_d(guide = NULL) +
+          labs(x = "Season", y = "Rating") +
+          gg_theme
       }
     }
+    if (when_all(
+      input$view_full_scale,
+      when_any(
+        isTruthy(input$compare_seasons == FALSE),
+        isTruthy(input$compare_view == 2)
+      )
+    )) {
+      plot <- plot + coord_cartesian(xlim = c(0, 10))
+    }
+    if (isTruthy(input$compare_view == 2)) {
+      plot <- plot + 
+        scale_y_continuous(
+          expand = expansion(c(0, 0.05)),
+          minor_breaks = NULL
+        )
+    } else if (!isTruthy(input$compare_view == 3)) {
+      plot <- plot + scale_y_continuous(expand = expansion(c(0, 0.05)))
+    }
     plot
+  })
+  
+  observeEvent(input$reset_plot_ratings_dist, {
+    reset("view_full_scale")
+    reset("filter_season2")
+    reset("compare_seasons")
+    updateRadioButtons(session, "compare_view", selected = character(0))
+    updateSliderInput(session, "ratings_slider", value = 0)
   })
   
 }

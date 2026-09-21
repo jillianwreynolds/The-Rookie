@@ -12,8 +12,8 @@ data/Season*/
 data/IMDb*.html
 data/*.parquet
 
+**/_targets.yaml
 eda/*.html
-
 exp/check_lines.R
 helpers/test-app.R
 helpers/write_rds.R

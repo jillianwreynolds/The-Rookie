@@ -141,6 +141,10 @@ cards_characters <- list(
     card_header("Main and Recurring Characters", class = "bg-secondary"),
     DTOutput("characters_tbl"),
     min_height = "600px"
+  ),
+  words_by_character = card(
+    card_header("Number of Words by Character", class = "bg-secondary"),
+    tableOutput("words_by_chars")
   )
 )
 
@@ -151,6 +155,7 @@ characters_panel <- nav_panel(
   layout_columns(
     cards_characters$note,
     cards_characters$table,
+    cards_characters$words_by_character,
     col_widths = c(3, 6),
     fillable = FALSE
   )
@@ -288,15 +293,18 @@ server <- function(input, output, session) {
     withProgress(
       {
         tbl_episodes = nanoparquet::read_parquet("transcripts_parquet.parquet")
-        incProgress(1 / 3)
+        incProgress(1 / 10)
         tbl_chars = nanoparquet::read_parquet("characters_parquet.parquet")
-        incProgress(1 / 3)
+        incProgress(1 / 10)
         tbl_ratings = nanoparquet::read_parquet("episode_ratings.parquet")
-        incProgress(1 / 3)
+        incProgress(1 / 10)
+        tbl_tokens1_raw = nanoparquet::read_parquet("tokens1_raw.parquet")
+        incProgress(7 / 10)
         list(
           episodes = tbl_episodes,
           characters = tbl_chars,
-          ratings = tbl_ratings
+          ratings = tbl_ratings,
+          tokens1_raw = tbl_tokens1_raw
         )
       },
       message = "Loading data...",
@@ -345,16 +353,54 @@ server <- function(input, output, session) {
 
 # characters -------------------------------------------------------------
   
+  characters <- reactive(data()$characters |> 
+    select(ends_with("name"), type) |> 
+    filter(type %in% c("main", "recurring")))
+  
   output$characters_tbl <- renderDT(
-    data()$characters |> 
-      select(ends_with("name"), type) |> 
-      filter(type %in% c("main", "recurring")) |> 
+    characters() |> 
       select(-type) |> 
       mutate(across(
         everything(),
         \(x) x |> str_replace_all("_", " ") |>  str_to_title()
       )) |> 
       clean_col_names()
+  )
+  
+  top6 <- reactive(data()$tokens1_raw |> 
+    group_by(sp3, sp4) |> 
+    filter(type == "dialogue") |> 
+    count(sort = TRUE) |> 
+    head(n = 6))
+  
+  filter_characters <- function(data, filter = c("top6", "main", "recurring")) {
+    
+    filter <- match.arg(filter)
+    
+    chars <- switch(filter,
+                    top6      = top6(),
+                    main      = characters()[characters()$type == "main", ],
+                    recurring = characters()[characters()$type == "recurring", ]
+    )
+    
+    data |> filter(when_all(
+      when_any(
+        sp3 %in% chars$first_name,
+        is.na(sp3)
+      ),
+      sp4 %in% chars$last_name
+    ))
+    
+  }
+  
+  
+  output$words_by_chars <- renderTable(
+    data()$tokens1_raw |> 
+      filter_characters("main") |> 
+      group_by(sp3, sp4) |> 
+      filter(type == "dialogue") |> 
+      count(sort = TRUE) |> 
+      head(n = 8)
   )
 
 ## ratings ----------------------------------------------------------------

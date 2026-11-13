@@ -237,13 +237,15 @@ episode_ratings |>
   pivot_longer(2:last_col(), names_to = "stat", values_to = "value") |> 
   ggplot() +
   # geom_line(aes(season, value, color = stat)) +
+  geom_point(aes(season, value, color = fct_reorder2(stat, season, value))) +
   geom_line(
     aes(
       season, value,
       color = fct_reorder2(stat, season, value),
       linetype = fct_reorder2(stat, season, value)
     ),
-    linewidth = 0.75
+    linewidth = 0.75,
+    alpha = 0.5
   ) +
   scale_x_continuous(breaks = 1:8, minor_breaks = NULL) +
   scale_y_continuous(expand = expansion(c(0, 0))) +

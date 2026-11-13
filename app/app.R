@@ -133,6 +133,8 @@ home_panel <- nav_panel(
 
 ### cards ------------------------------------------------------------------
 
+char_types <- c("Main" = "main", "Recurring" = "recurring")
+
 cards_characters <- list(
   note = card(markdown(
     "This table lists characters from *The Rookie's* Wikipedia page, specifically those in the lists of main or recurring characters. Analysis will focus on a subset of these characters."
@@ -144,6 +146,13 @@ cards_characters <- list(
   ),
   words_by_character = card(
     card_header("Number of Words by Character", class = "bg-secondary"),
+    checkboxGroupInput(
+      "char_type_filter",
+      "Filter by Character Type",
+      choices = char_types,
+      selected = "main"
+    ),
+    uiOutput("char_selection"),
     tableOutput("words_by_chars")
   )
 )
@@ -156,13 +165,13 @@ characters_panel <- nav_panel(
     cards_characters$note,
     cards_characters$table,
     cards_characters$words_by_character,
-    col_widths = c(3, 6),
+    col_widths = c(3, 5, 4),
     fillable = FALSE
-  )
+  )#,
+  # textOutput("chars_vec")
 )
 
 ## ratings panel -----------------------------------------------------------
-
 
 ### cards ------------------------------------------------------------------
 
@@ -353,9 +362,59 @@ server <- function(input, output, session) {
 
 # characters -------------------------------------------------------------
   
-  characters <- reactive(data()$characters |> 
-    select(ends_with("name"), type) |> 
-    filter(type %in% c("main", "recurring")))
+  characters <- reactive(
+    data()$characters |> 
+      select(ends_with("name"), type) |> 
+      filter(type %in% c("main", "recurring"))
+  )
+  
+  chars_tbl <- reactive(
+    characters() |> 
+      unite("character", c(first_name, last_name)) |> 
+      mutate(character = character |> 
+               str_replace_all("_", " ") |> 
+               str_to_title()
+      )
+    )
+  
+  chars_vec <- reactive(chars_tbl() |> pull(character))
+  main_chars_vec <- reactive(
+    chars_tbl() |> filter(type == "main") |> pull(character)
+  )
+  recurring_chars_vec <- reactive(
+    chars_tbl() |> filter(type == "recurring") |> pull(character)
+  )
+  
+  top6 <- reactive(
+    data()$tokens1_raw |> 
+      group_by(sp3, sp4) |> 
+      filter(type == "dialogue") |> 
+      count(sort = TRUE) |> 
+      head(n = 6)
+  )
+  
+  filter_characters <- function(
+    data,
+    filter = c("top6", "main", "recurring", "all")
+  ) {
+    
+    filter <- match.arg(filter)
+    
+    chars <- switch(
+      filter,
+      top6      = top6(),
+      main      = characters()[characters()$type == "main", ],
+      recurring = characters()[characters()$type == "recurring", ],
+      all       = characters()
+    )
+    
+    data |> filter(when_all(
+      sp3 %in% chars$first_name,
+      sp4 %in% chars$last_name
+    )) |> 
+      filter_out(when_all(sp3 == "AARON", sp4 == "MURRAY"))
+    
+  }
   
   output$characters_tbl <- renderDT(
     characters() |> 
@@ -367,41 +426,58 @@ server <- function(input, output, session) {
       clean_col_names()
   )
   
-  top6 <- reactive(data()$tokens1_raw |> 
-    group_by(sp3, sp4) |> 
-    filter(type == "dialogue") |> 
-    count(sort = TRUE) |> 
-    head(n = 6))
-  
-  filter_characters <- function(data, filter = c("top6", "main", "recurring")) {
+  output$char_selection <- renderUI({
     
-    filter <- match.arg(filter)
-    
-    chars <- switch(filter,
-                    top6      = top6(),
-                    main      = characters()[characters()$type == "main", ],
-                    recurring = characters()[characters()$type == "recurring", ]
+    if (when_any(
+      length(input$char_type_filter) == 2,
+      length(input$char_type_filter) == 0
+    )) {
+      choices_vec <- chars_vec()
+    }
+    if (length(input$char_type_filter) == 1) {
+      if ("main" %in% input$char_type_filter) {
+        choices_vec <- main_chars_vec()
+      }
+      if ("recurring" %in% input$char_type_filter) {
+        choices_vec <- recurring_chars_vec()
+      }
+    }
+    selectInput(
+      "char_select",
+      "Filter by Character",
+      choices = choices_vec,
+      multiple = TRUE
     )
-    
-    data |> filter(when_all(
-      when_any(
-        sp3 %in% chars$first_name,
-        is.na(sp3)
-      ),
-      sp4 %in% chars$last_name
-    ))
-    
-  }
+  })
   
-  
-  output$words_by_chars <- renderTable(
-    data()$tokens1_raw |> 
-      filter_characters("main") |> 
-      group_by(sp3, sp4) |> 
+  output$words_by_chars <- renderTable({
+    
+    tbl <- data()$tokens1_raw |> 
       filter(type == "dialogue") |> 
+      filter_characters("all") |> 
+      unite("character", c(sp3, sp4), remove = FALSE)
+    
+    if (length(input$char_type_filter) == 1) {
+      if ("main" %in% input$char_type_filter) {
+        tbl <- tbl |> filter_characters("main")
+      }
+      if ("recurring" %in% input$char_type_filter) {
+        tbl <- tbl |> filter_characters("recurring")
+      }
+    }
+    
+    tbl |> 
+      group_by(sp3, sp4) |> 
       count(sort = TRUE) |> 
-      head(n = 8)
-  )
+      ungroup() |> 
+      mutate(across(
+        where(is.character),
+        \(x) x |> str_replace_all("_", " ") |> str_to_title()
+      )) |> 
+      rename("First Name" = sp3, "Last Name" = sp4)
+  })
+  
+  # output$chars_vec <- renderText(chars_vec())
 
 ## ratings ----------------------------------------------------------------
   

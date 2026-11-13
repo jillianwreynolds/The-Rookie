@@ -26,14 +26,15 @@ plot_ratings_stats_code <- function(data) {
       max = max(rating)
     ) |> 
     pivot_longer(2:last_col(), names_to = "stat", values_to = "value") |> 
-    ggplot() +
+    ggplot(aes(season, value)) +
+    geom_point(aes(color = fct_reorder2(stat, season, value))) +
     geom_line(
       aes(
-        season, value,
         color = fct_reorder2(stat, season, value),
         linetype = fct_reorder2(stat, season, value)
       ),
-      linewidth = 0.75
+      linewidth = 0.75,
+      alpha     = 0.5
     ) +
     scale_x_continuous(breaks = 1:8, minor_breaks = NULL) +
     scale_y_continuous(expand = expansion(c(0, 0))) +
@@ -110,7 +111,7 @@ cards_home <- list(
 ### nav_panel -------------------------------------------------------------
 
 home_panel <- nav_panel(
-  useShinyjs(),
+  useShinyjs(), # triggers warning about expected contents of nav containers
   title = "Home",
   p("By Jillian W. Reynolds", style = "font-size:22px"),
   fluidRow(

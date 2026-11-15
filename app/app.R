@@ -136,24 +136,40 @@ home_panel <- nav_panel(
 char_types <- c("Main" = "main", "Recurring" = "recurring")
 
 cards_characters <- list(
-  note = card(markdown(
-    "This table lists characters from *The Rookie's* Wikipedia page, specifically those in the lists of main or recurring characters. Analysis will focus on a subset of these characters."
-  )),
-  table = card(
-    card_header("Main and Recurring Characters", class = "bg-secondary"),
-    DTOutput("characters_tbl"),
-    min_height = "600px"
-  ),
+  # table = card(
+  #   card_header(
+  #     "Main and Recurring Characters",
+  #     class = "bg-secondary",
+      # tooltip(
+      #   bsicons::bs_icon("info-circle"),
+      #   "This table lists characters from *The Rookie*'s Wikipedia page, specifically those in the lists of main or recurring characters. Analysis will focus on a subset of these characters.",
+      #   placement = "right"
+      # )
+  #   ),
+  #   DTOutput("characters_tbl"),
+  #   min_height = "600px"
+  # ),
   words_by_character = card(
-    card_header("Number of Words by Character", class = "bg-secondary"),
-    checkboxGroupInput(
-      "char_type_filter",
-      "Filter by Character Type",
-      choices = char_types,
-      selected = "main"
+    card_header(
+      "Number of Words by Character",
+      class = "bg-secondary",
+      tooltip(
+        bsicons::bs_icon("info-circle"),
+        "This table lists characters from *The Rookie*'s Wikipedia page, specifically those in the lists of main or recurring characters. Future analysis will focus on a subset of these characters.",
+        placement = "right"
+      )
     ),
-    uiOutput("char_selection"),
-    tableOutput("words_by_chars")
+    layout_column_wrap(
+      checkboxGroupInput(
+        "char_type_filter",
+        "Filter by Character Type",
+        choices = char_types,
+        selected = char_types
+      ),
+      uiOutput("char_selection")
+    ),
+    DTOutput("words_by_chars"),
+    min_height = "600px"
   )
 )
 
@@ -162,10 +178,9 @@ cards_characters <- list(
 characters_panel <- nav_panel(
   title = "Characters",
   layout_columns(
-    cards_characters$note,
-    cards_characters$table,
+    # cards_characters$table,
     cards_characters$words_by_character,
-    col_widths = c(3, 5, 4),
+    col_widths = c(5, 5),
     fillable = FALSE
   )#,
   # textOutput("chars_vec")
@@ -365,6 +380,7 @@ server <- function(input, output, session) {
   characters <- reactive(
     data()$characters |> 
       select(ends_with("name"), type) |> 
+      mutate(first_name = first_name |> str_replace("NICHOLAS", "NICK")) |> 
       filter(type %in% c("main", "recurring"))
   )
   
@@ -447,7 +463,7 @@ server <- function(input, output, session) {
     )
   })
   
-  output$words_by_chars <- renderTable({
+  output$words_by_chars <- renderDT({
     
     tbl <- data()$tokens1_raw |> 
       filter(type == "dialogue") |> 

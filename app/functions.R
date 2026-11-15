@@ -12,3 +12,10 @@ clean_col_names <- function(tbl, ...) {
       ...
     )
 }
+
+clean_chars_col <- function(data) {
+  
+  data |> 
+    mutate(character = character |> str_replace_all("_", " ") |> str_to_title())
+  
+}

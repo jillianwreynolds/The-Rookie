@@ -43,6 +43,7 @@ clean_col_names <- function(tbl, ...) {
 #' @export
 #'
 #' @examples
+#' tibble(character = c("LUCY CHEN", "SEAN_DEL_MONTE")) |> clean_chars_col()
 clean_chars_col <- function(data) {
   
   data |> 

@@ -371,10 +371,7 @@ server <- function(input, output, session) {
   chars_tbl <- reactive(
     characters() |> 
       unite("character", c(first_name, last_name)) |> 
-      mutate(character = character |> 
-               str_replace_all("_", " ") |> 
-               str_to_title()
-      )
+      clean_chars_col()
     )
   
   chars_vec <- reactive(chars_tbl() |> pull(character))
@@ -455,14 +452,21 @@ server <- function(input, output, session) {
     tbl <- data()$tokens1_raw |> 
       filter(type == "dialogue") |> 
       filter_characters("all") |> 
-      unite("character", c(sp3, sp4), remove = FALSE)
+      unite("character", c(sp3, sp4), remove = FALSE) |> 
+      clean_chars_col()
     
-    if (length(input$char_type_filter) == 1) {
-      if ("main" %in% input$char_type_filter) {
-        tbl <- tbl |> filter_characters("main")
-      }
-      if ("recurring" %in% input$char_type_filter) {
-        tbl <- tbl |> filter_characters("recurring")
+    if (length(input$char_select) > 0) {
+      tbl <- tbl |> filter(character %in% input$char_select)
+    }
+    
+    if (length(input$char_select) == 0) {
+      if (length(input$char_type_filter) == 1) {
+        if ("main" %in% input$char_type_filter) {
+          tbl <- tbl |> filter_characters("main")
+        }
+        if ("recurring" %in% input$char_type_filter) {
+          tbl <- tbl |> filter_characters("recurring")
+        }
       }
     }
     

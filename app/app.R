@@ -104,6 +104,14 @@ cards_home <- list(
   n_episodes = card(
     card_header("Number of Episodes by Season", class = "bg-secondary"),
     tableOutput("n_episodes")
+  ),
+  n_words = card(
+    card_header("Number of Words by Season", class = "bg-secondary"),
+    tableOutput("n_words")
+  ),
+  stats = card(
+    card_header("Series Statistics", class = "bg-secondary"),
+    tableOutput("series_stats")
   )
 )
 
@@ -122,8 +130,11 @@ home_panel <- nav_panel(
   titlePanel(""),
   layout_columns(
     cards_home$directory,
-    cards_home$n_episodes,
-    col_widths = c(6, 2),
+    # cards_home$n_episodes,
+    # cards_home$n_words,
+    cards_home$stats,
+    # col_widths = c(6, 2, 2),
+    col_widths = c(6, 4),
     fillable = FALSE
   )
 )
@@ -136,19 +147,6 @@ home_panel <- nav_panel(
 char_types <- c("Main" = "main", "Recurring" = "recurring")
 
 cards_characters <- list(
-  # table = card(
-  #   card_header(
-  #     "Main and Recurring Characters",
-  #     class = "bg-secondary",
-      # tooltip(
-      #   bsicons::bs_icon("info-circle"),
-      #   "This table lists characters from *The Rookie*'s Wikipedia page, specifically those in the lists of main or recurring characters. Analysis will focus on a subset of these characters.",
-      #   placement = "right"
-      # )
-  #   ),
-  #   DTOutput("characters_tbl"),
-  #   min_height = "600px"
-  # ),
   words_by_character = card(
     card_header(
       "Number of Words by Character",
@@ -170,6 +168,11 @@ cards_characters <- list(
     ),
     DTOutput("words_by_chars"),
     min_height = "600px"
+  ),
+  top6 = card(
+    full_screen = TRUE,
+    card_header("Top 6 Speakers", class = "bg-secondary"),
+    plotOutput("T6_plot")
   )
 )
 
@@ -180,6 +183,7 @@ characters_panel <- nav_panel(
   layout_columns(
     # cards_characters$table,
     cards_characters$words_by_character,
+    cards_characters$top6,
     col_widths = c(5, 5),
     fillable = FALSE
   )#,
@@ -374,6 +378,34 @@ server <- function(input, output, session) {
       count(season) |>
       rename(Season = season, Episodes = n)
   )
+  
+  output$n_words <- renderTable(
+    data()$tokens1_raw |> 
+      filter(type == "dialogue") |> 
+      group_by(season) |> 
+      count() |> 
+      rename(Season = season, Words = n)
+  )
+  
+  output$series_stats <- renderTable({
+    
+    n_episodes <- data()$episodes |>
+      select(season, episode) |>
+      count(season) |> 
+      rename(episodes = n)
+    
+    n_words <- data()$tokens1_raw |> 
+      filter(type == "dialogue") |> 
+      group_by(season) |> 
+      count() |> 
+      rename(words = n)
+    
+    left_join(n_episodes, n_words, join_by(season)) |> 
+      mutate(average = (words / episodes) |> round(2)) |> 
+      rename(`Average Words per Episode` = average) |> 
+      clean_col_names()
+    
+  })
 
 # characters -------------------------------------------------------------
   
@@ -403,7 +435,10 @@ server <- function(input, output, session) {
       group_by(sp3, sp4) |> 
       filter(type == "dialogue") |> 
       count(sort = TRUE) |> 
-      head(n = 6)
+      ungroup() |> 
+      head(6) |> 
+      select(-n) |> 
+      rename(first_name = sp3, last_name = sp4)
   )
   
   filter_characters <- function(
@@ -496,6 +531,27 @@ server <- function(input, output, session) {
       )) |> 
       rename("First Name" = sp3, "Last Name" = sp4)
   })
+  
+  output$T6_plot <- renderPlot(
+    data()$tokens1_raw |>
+      filter(type == "dialogue") |>
+      filter_characters("top6") |> 
+      group_by(sp4, season) |>
+      count() |> 
+      mutate(season = season |> as_factor()) |> 
+      ggplot(aes(season, n, group = sp4)) +
+      geom_point(aes(color = fct_reorder2(sp4, season, n))) +
+      geom_line(aes(color = fct_reorder2(sp4, season, n)),
+                linewidth = 0.75,
+                alpha     = 0.5) + 
+      scale_color_viridis_d(end = 0.85, labels = \(x) x |> str_to_title()) +
+      labs(
+        x = "Season",
+        y = "Number of Words",
+        color = "Character"
+      ) +
+      gg_theme
+  )
   
   # output$chars_vec <- renderText(chars_vec())
 

@@ -16,13 +16,12 @@ token_values <- expand_grid(
 ) |> 
   mutate(
     token = if_else(is.na(n), "words", "ngrams"),
-    abbr = case_when(n == 2 ~ "bi", n == 3 ~ "tri"),
-    suffix = if_else(is.na(n), str_c(version), str_c(abbr, "_", version)),
-    path = if_else(
-      is.na(n),
-      paste0("data/tokens_", version, ".parquet"),
-      paste0("data/tokens_", abbr, "_", version, ".parquet"),
+    ngram = case_when(is.na(n) ~ 1, n == 2 ~ 2, n == 3 ~ 3),
+    suffix = if_else(
+      is.na(n), str_c("1_", version), str_c(ngram, "_", version)
     ),
+    base_path = str_c("tokens", ngram, "_", version, ".parquet"),
+    path = str_c("data/", base_path),
     df = map(version, \(v) sym(paste0("df_", v)))
   )
 
@@ -173,31 +172,33 @@ list(
       "data/df_raw.parquet"
     },
     format = "file"
-  )#,
-  # tar_target(
-  #   df_clean,
-  #   {
-  #     transcripts |>
-  #       read_parquet() |> 
-  #       run_cleaning_pipe(clean = TRUE) |>
-  #       write_parquet("data/df_clean.parquet")
-  #     "data/df_clean.parquet"
-  #   },
-  #   format = "file"
-  # ),
-  # tar_map(
-  #   values = token_values,
-  #   names = suffix,
-  #   unlist = TRUE,
-  #   tar_target(
-  #     tokens,
-  #     {
-  #       read_parquet(df) |>
-  #         unnest_transcripts(token = token, n = n) |>
-  #         write_parquet(path)
-  #       path
-  #     },
-  #     format = "file"
-  #   )
-  # )
+  ),
+  tar_target(
+    df_clean,
+    {
+      transcripts |>
+        read_parquet() |>
+        run_cleaning_pipe(clean = TRUE, char_lookup = lookup_chars) |>
+        write_parquet("data/df_clean.parquet")
+      "data/df_clean.parquet"
+    },
+    format = "file"
+  ),
+  tar_map(
+    values = token_values,
+    names = suffix,
+    unlist = TRUE,
+    tar_target(
+      tokens,
+      {
+        read_parquet(df) |>
+          unnest_transcripts(token = token, n = n) |>
+          write_parquet(path)
+        file.copy(path, str_c("app/", base_path), overwrite = TRUE)
+        file.copy(path, base_path, overwrite = TRUE)
+        path
+      },
+      format = "file"
+    )
+  )
 )

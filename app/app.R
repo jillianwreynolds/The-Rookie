@@ -26,14 +26,15 @@ plot_ratings_stats_code <- function(data) {
       max = max(rating)
     ) |> 
     pivot_longer(2:last_col(), names_to = "stat", values_to = "value") |> 
-    ggplot() +
+    ggplot(aes(season, value)) +
+    geom_point(aes(color = fct_reorder2(stat, season, value))) +
     geom_line(
       aes(
-        season, value,
         color = fct_reorder2(stat, season, value),
         linetype = fct_reorder2(stat, season, value)
       ),
-      linewidth = 0.75
+      linewidth = 0.75,
+      alpha     = 0.5
     ) +
     scale_x_continuous(breaks = 1:8, minor_breaks = NULL) +
     scale_y_continuous(expand = expansion(c(0, 0))) +
@@ -68,6 +69,125 @@ about_section <- tagList(
   )
 )
 
+## About menu
+
+about_project_cards <- list(
+  project = card(
+    card_header("About This Project", class = "bg-secondary"),
+    p(
+      "This project uses HTML downloads of episode transcripts from ", tags$a(href="https://the-rookie.fandom.com/", "the-rookie.fandom.com", .noWS = "after", target = "_blank"), ". It uses various ", code("R"), " packages and functions to parse the HTML, extract information, and clean and analyze the data. The tables on this site were not a product of manual typing and counting or copying and pasting information from existing lists."
+    )
+  ),
+  status = card(
+    card_header("Project Status", class = "bg-secondary"),
+    "This project is still in progress."
+  )
+)
+
+about_project <- nav_panel(
+  title = "Project",
+  layout_column_wrap(
+    about_project_cards$project,
+    about_project_cards$status
+  )
+)
+
+about_data_cards <- list(
+  transcripts = card(
+    card_header("Transcripts", class = "bg-secondary"),
+    p(
+      "Episode transcripts were downloaded as page source (HTML) from ", tags$a(href="https://the-rookie.fandom.com/", "the-rookie.fandom.com", .noWS = "after", target = "_blank"), "."
+    )
+  ),
+  characters = card(
+    card_header("Characters", class = "bg-secondary"),
+    p("Lists of characters (main, recurring, guest) were scraped from", em("The Rookie", .noWS = "after"), "'s", tags$a(href="https://en.wikipedia.org/wiki/The_Rookie", "Wikipedia", target = "_blank"), "page.", .noWS = "after")
+  ),
+  ratings = card(
+    card_header("Episode Ratings", class = "bg-secondary"),
+    p("Episode rating data comes from IMDb data downloaded on July 31, 2026 from", tags$a(href="https://datasets.imdbws.com", "https://datasets.imdbws.com", .noWS = "after", target = "_blank"), ".")
+  )
+)
+
+about_data <- nav_panel(
+  title = "Data",
+  layout_column_wrap(
+    about_data_cards$transcripts,
+    about_data_cards$characters,
+    about_data_cards$ratings
+  )
+)
+
+packages_tooltip <- tooltip(
+  bsicons::bs_icon("info-circle"),
+  "This list is not exhaustive; see GitHub repository for a full list of packages used in this project.",
+  placement = "right"
+)
+
+about_methodology_cards <- list(
+  R = card(
+    card_header("R", class = "bg-secondary"),
+    markdown("I use `R`, `RStudio`, and `Quarto` to plan the project and explore and analyze the data. I use the former two for analyzing the data and publishing the results. I use `renv` for package version control.")
+  ),
+  github = card(
+    card_header("GitHub", class = "bg-secondary"),
+    "I use GitHub for version tracking and GitHub Pages to publish this website.",
+    tags$a(href="https://github.com/jillianwreynolds/The-Rookie/", "GitHub repository", .noWS = "after", target = "_blank")
+  ),
+  website = card(
+    card_header(
+      "R packages used for website",
+      class = "bg-secondary",
+      packages_tooltip
+    ),
+    markdown("
+      - Shiny
+      - Shinylive
+      - bslib
+      - shinyjs
+      - DT
+    ")
+  ),
+  analysis = card(
+    card_header(
+      "R packages used for analysis",
+      class = "bg-secondary",
+      packages_tooltip
+    ),
+    markdown("
+      - tidyverse
+      - glue
+      - targets
+      - arrow
+      - nanoparquet
+    ")
+  ),
+  notes = card(
+    card_header("Notes", class = "bg-secondary"),
+    markdown('
+      - Dialogue that was recorded and replayed in an episode may be counted more than once. This includes lines from clips shown after "Previously on *The Rookie*..."
+      - Most descriptions within a transcript were transcribed such that I was able to use punctuation or HTML code to mark descriptsions as description. Some description was indistinguishable from dialogue, however. I manually coded many descriptions as description, but it is possible I have not found all instances.
+     ')
+  )
+)
+
+about_methodology <- nav_panel(
+  title = "Methodology",
+  layout_column_wrap(
+    about_methodology_cards$R,
+    about_methodology_cards$github,
+    about_methodology_cards$website,
+    about_methodology_cards$analysis
+  ),
+  about_methodology_cards$notes
+)
+
+about_menu <- nav_menu(
+  "About",
+  about_project,
+  about_data,
+  about_methodology
+)
 
 ## home panel --------------------------------------------------------------
 
@@ -100,9 +220,9 @@ cards_home <- list(
     DTOutput("episodes"),
     min_height = "600px"
   ),
-  n_episodes = card(
-    card_header("Number of Episodes by Season", class = "bg-secondary"),
-    tableOutput("n_episodes")
+  series_stats = card(
+    card_header("Series Statistics", class = "bg-secondary"),
+    tableOutput("series_stats")
   )
 )
 
@@ -110,19 +230,13 @@ cards_home <- list(
 ### nav_panel -------------------------------------------------------------
 
 home_panel <- nav_panel(
-  useShinyjs(),
+  useShinyjs(), # triggers warning about expected contents of nav containers
   title = "Home",
   p("By Jillian W. Reynolds", style = "font-size:22px"),
-  fluidRow(
-    column(3, about_section),
-    column(9)
-  ),
-  p(),
-  titlePanel(""),
   layout_columns(
     cards_home$directory,
-    cards_home$n_episodes,
-    col_widths = c(6, 2),
+    cards_home$series_stats,
+    col_widths = c(6, 4),
     fillable = FALSE
   )
 )
@@ -132,14 +246,41 @@ home_panel <- nav_panel(
 
 ### cards ------------------------------------------------------------------
 
+char_types <- c("Main" = "main", "Recurring" = "recurring")
+
 cards_characters <- list(
-  note = card(markdown(
-    "This table lists characters from *The Rookie's* Wikipedia page, specifically those in the lists of main or recurring characters. Analysis will focus on a subset of these characters."
-  )),
-  table = card(
-    card_header("Main and Recurring Characters", class = "bg-secondary"),
-    DTOutput("characters_tbl"),
+  words_by_character = card(
+    card_header(
+      "Number of Words by Character",
+      class = "bg-secondary",
+      tooltip(
+        bsicons::bs_icon("info-circle"),
+        "This table lists characters from *The Rookie*'s Wikipedia page, specifically those in the lists of main or recurring characters. Future analysis will focus on a subset of these characters.",
+        placement = "right"
+      )
+    ),
+    layout_column_wrap(
+      checkboxGroupInput(
+        "char_type_filter",
+        "Filter by Character Type",
+        choices = char_types,
+        selected = char_types
+      ),
+      uiOutput("char_selection")
+    ),
+    DTOutput("words_by_chars"),
     min_height = "600px"
+  ),
+  top6_plot = card(
+    full_screen = TRUE,
+    card_header("Top 6 Speakers", class = "bg-secondary"),
+    radioButtons(
+      "word_stat",
+      label = "Statistic",
+      choices = c("Count" = "n", "Proportion" = "prop"),
+      selected = "n"
+    ),
+    plotOutput("T6_plot")
   )
 )
 
@@ -148,15 +289,16 @@ cards_characters <- list(
 characters_panel <- nav_panel(
   title = "Characters",
   layout_columns(
-    cards_characters$note,
-    cards_characters$table,
-    col_widths = c(3, 6),
+    # cards_characters$table,
+    cards_characters$words_by_character,
+    cards_characters$top6_plot,
+    col_widths = c(5, 5),
     fillable = FALSE
-  )
+  )#,
+  # textOutput("chars_vec")
 )
 
 ## ratings panel -----------------------------------------------------------
-
 
 ### cards ------------------------------------------------------------------
 
@@ -275,6 +417,7 @@ ui <- page_navbar(
   ),
   nav_spacer(),
   home_panel,
+  about_menu,
   characters_panel,
   ratings_panel
 )
@@ -287,15 +430,18 @@ server <- function(input, output, session) {
     withProgress(
       {
         tbl_episodes = nanoparquet::read_parquet("transcripts_parquet.parquet")
-        incProgress(1 / 3)
+        incProgress(1 / 10)
         tbl_chars = nanoparquet::read_parquet("characters_parquet.parquet")
-        incProgress(1 / 3)
+        incProgress(1 / 10)
         tbl_ratings = nanoparquet::read_parquet("episode_ratings.parquet")
-        incProgress(1 / 3)
+        incProgress(1 / 10)
+        tbl_tokens1_raw = nanoparquet::read_parquet("tokens1_raw.parquet")
+        incProgress(7 / 10)
         list(
           episodes = tbl_episodes,
           characters = tbl_chars,
-          ratings = tbl_ratings
+          ratings = tbl_ratings,
+          tokens1_raw = tbl_tokens1_raw
         )
       },
       message = "Loading data...",
@@ -335,19 +481,90 @@ server <- function(input, output, session) {
     )
   )
   
-  output$n_episodes <- renderTable(
+  n_episodes <- reactive(
     data()$episodes |>
       select(season, episode) |>
-      count(season) |>
-      rename(Season = season, Episodes = n)
+      count(season)
   )
+  
+  n_words <- reactive(
+    data()$tokens1_raw |> 
+      filter(type == "dialogue") |> 
+      group_by(season) |> 
+      count()
+  )
+  
+  output$series_stats <- renderTable({
+    
+    n_episodes <- n_episodes() |> rename(episodes = n)
+    n_words <- n_words() |> rename(words = n)
+    
+    left_join(n_episodes, n_words, join_by(season)) |> 
+      mutate(average = (words / episodes) |> round(2)) |> 
+      rename(`Average Words per Episode` = average) |> 
+      clean_col_names()
+    
+  })
 
 # characters -------------------------------------------------------------
   
-  output$characters_tbl <- renderDT(
+  characters <- reactive(
     data()$characters |> 
       select(ends_with("name"), type) |> 
-      filter(type %in% c("main", "recurring")) |> 
+      mutate(first_name = first_name |> str_replace("NICHOLAS", "NICK")) |> 
+      filter(type %in% c("main", "recurring"))
+  )
+  
+  chars_tbl <- reactive(
+    characters() |> 
+      unite("character", c(first_name, last_name)) |> 
+      clean_chars_col()
+    )
+  
+  chars_vec <- reactive(chars_tbl() |> pull(character))
+  main_chars_vec <- reactive(
+    chars_tbl() |> filter(type == "main") |> pull(character)
+  )
+  recurring_chars_vec <- reactive(
+    chars_tbl() |> filter(type == "recurring") |> pull(character)
+  )
+  
+  top6 <- reactive(
+    data()$tokens1_raw |> 
+      group_by(sp3, sp4) |> 
+      filter(type == "dialogue") |> 
+      count(sort = TRUE) |> 
+      ungroup() |> 
+      head(6) |> 
+      select(-n) |> 
+      rename(first_name = sp3, last_name = sp4)
+  )
+  
+  filter_characters <- function(
+    data,
+    filter = c("top6", "main", "recurring", "all")
+  ) {
+    
+    filter <- match.arg(filter)
+    
+    chars <- switch(
+      filter,
+      top6      = top6(),
+      main      = characters()[characters()$type == "main", ],
+      recurring = characters()[characters()$type == "recurring", ],
+      all       = characters()
+    )
+    
+    data |> filter(when_all(
+      sp3 %in% chars$first_name,
+      sp4 %in% chars$last_name
+    )) |> 
+      filter_out(when_all(sp3 == "AARON", sp4 == "MURRAY"))
+    
+  }
+  
+  output$characters_tbl <- renderDT(
+    characters() |> 
       select(-type) |> 
       mutate(across(
         everything(),
@@ -355,6 +572,116 @@ server <- function(input, output, session) {
       )) |> 
       clean_col_names()
   )
+  
+  output$char_selection <- renderUI({
+    
+    if (when_any(
+      length(input$char_type_filter) == 2,
+      length(input$char_type_filter) == 0
+    )) {
+      choices_vec <- chars_vec()
+    }
+    if (length(input$char_type_filter) == 1) {
+      if ("main" %in% input$char_type_filter) {
+        choices_vec <- main_chars_vec()
+      }
+      if ("recurring" %in% input$char_type_filter) {
+        choices_vec <- recurring_chars_vec()
+      }
+    }
+    selectInput(
+      "char_select",
+      "Filter by Character",
+      choices = choices_vec,
+      multiple = TRUE
+    )
+  })
+  
+  output$words_by_chars <- renderDT({
+    
+    tbl <- data()$tokens1_raw |> 
+      filter(type == "dialogue") |> 
+      filter_characters("all") |> 
+      unite("character", c(sp3, sp4), remove = FALSE) |> 
+      clean_chars_col()
+    
+    if (length(input$char_select) > 0) {
+      tbl <- tbl |> filter(character %in% input$char_select)
+    }
+    
+    if (length(input$char_select) == 0) {
+      if (length(input$char_type_filter) == 1) {
+        if ("main" %in% input$char_type_filter) {
+          tbl <- tbl |> filter_characters("main")
+        }
+        if ("recurring" %in% input$char_type_filter) {
+          tbl <- tbl |> filter_characters("recurring")
+        }
+      }
+    }
+    
+    tbl |> 
+      group_by(sp3, sp4) |> 
+      count(sort = TRUE) |> 
+      ungroup() |> 
+      mutate(across(
+        where(is.character),
+        \(x) x |> str_replace_all("_", " ") |> str_to_title()
+      )) |> 
+      rename("First Name" = sp3, "Last Name" = sp4)
+  })
+  
+  top6_count <- reactive(
+    data()$tokens1_raw |>
+      filter(type == "dialogue") |>
+      filter_characters("top6") |> 
+      group_by(sp4, season) |>
+      count()
+  )
+  
+  top6_prop <- reactive(
+    top6_count() |> 
+      left_join(n_words() |> rename(season_total = n), join_by(season)) |> 
+      mutate(prop = n / season_total)
+  )
+  
+  output$T6_plot <- renderPlot({
+    
+    data <- top6_prop() |> mutate(season = season |> as_factor()) 
+    
+    if (input$word_stat == "n") {
+      plot <- data |> 
+        ggplot(aes(season, n, group = sp4)) +
+        geom_line(
+          aes(y = n, color = fct_reorder2(sp4, season, n)),
+          linewidth = 0.625
+        ) +
+        labs(y = "Number of Words")
+    }
+    
+    if (input$word_stat == "prop") {
+      plot <- data |> 
+        ggplot(aes(season, prop, group = sp4)) +
+        geom_line(
+          aes(color = fct_reorder2(sp4, season, prop)),
+          linewidth = 0.625
+        ) +
+        labs(y = "Proportion of Words") +
+        coord_cartesian(ylim = c(0, NA)) +
+        scale_y_continuous(expand = expansion(c(0, 0.05)))
+    }
+    
+    plot +
+      scale_color_viridis_d(end = 0.85, labels = \(x) x |> str_to_title()) +
+      labs(
+        x = "Season",
+        color = "Character"
+      ) +
+      gg_theme
+    
+  })
+  
+  # output$chars_vec <- renderText(chars_vec())
 
 ## ratings ----------------------------------------------------------------
   

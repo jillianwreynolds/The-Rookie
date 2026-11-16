@@ -101,15 +101,7 @@ cards_home <- list(
     DTOutput("episodes"),
     min_height = "600px"
   ),
-  n_episodes = card(
-    card_header("Number of Episodes by Season", class = "bg-secondary"),
-    tableOutput("n_episodes")
-  ),
-  n_words = card(
-    card_header("Number of Words by Season", class = "bg-secondary"),
-    tableOutput("n_words")
-  ),
-  stats = card(
+  series_stats = card(
     card_header("Series Statistics", class = "bg-secondary"),
     tableOutput("series_stats")
   )
@@ -130,10 +122,7 @@ home_panel <- nav_panel(
   titlePanel(""),
   layout_columns(
     cards_home$directory,
-    # cards_home$n_episodes,
-    # cards_home$n_words,
-    cards_home$stats,
-    # col_widths = c(6, 2, 2),
+    cards_home$series_stats,
     col_widths = c(6, 4),
     fillable = FALSE
   )
@@ -169,9 +158,15 @@ cards_characters <- list(
     DTOutput("words_by_chars"),
     min_height = "600px"
   ),
-  top6 = card(
+  top6_plot = card(
     full_screen = TRUE,
     card_header("Top 6 Speakers", class = "bg-secondary"),
+    radioButtons(
+      "word_stat",
+      label = "Statistic",
+      choices = c("Count" = "n", "Proportion" = "prop"),
+      selected = "n"
+    ),
     plotOutput("T6_plot")
   )
 )
@@ -183,7 +178,7 @@ characters_panel <- nav_panel(
   layout_columns(
     # cards_characters$table,
     cards_characters$words_by_character,
-    cards_characters$top6,
+    cards_characters$top6_plot,
     col_widths = c(5, 5),
     fillable = FALSE
   )#,
@@ -372,33 +367,23 @@ server <- function(input, output, session) {
     )
   )
   
-  output$n_episodes <- renderTable(
+  n_episodes <- reactive(
     data()$episodes |>
       select(season, episode) |>
-      count(season) |>
-      rename(Season = season, Episodes = n)
+      count(season)
   )
   
-  output$n_words <- renderTable(
+  n_words <- reactive(
     data()$tokens1_raw |> 
       filter(type == "dialogue") |> 
       group_by(season) |> 
-      count() |> 
-      rename(Season = season, Words = n)
+      count()
   )
   
   output$series_stats <- renderTable({
     
-    n_episodes <- data()$episodes |>
-      select(season, episode) |>
-      count(season) |> 
-      rename(episodes = n)
-    
-    n_words <- data()$tokens1_raw |> 
-      filter(type == "dialogue") |> 
-      group_by(season) |> 
-      count() |> 
-      rename(words = n)
+    n_episodes <- n_episodes() |> rename(episodes = n)
+    n_words <- n_words() |> rename(words = n)
     
     left_join(n_episodes, n_words, join_by(season)) |> 
       mutate(average = (words / episodes) |> round(2)) |> 
@@ -532,26 +517,55 @@ server <- function(input, output, session) {
       rename("First Name" = sp3, "Last Name" = sp4)
   })
   
-  output$T6_plot <- renderPlot(
+  top6_count <- reactive(
     data()$tokens1_raw |>
       filter(type == "dialogue") |>
       filter_characters("top6") |> 
       group_by(sp4, season) |>
-      count() |> 
-      mutate(season = season |> as_factor()) |> 
-      ggplot(aes(season, n, group = sp4)) +
-      geom_point(aes(color = fct_reorder2(sp4, season, n))) +
-      geom_line(aes(color = fct_reorder2(sp4, season, n)),
-                linewidth = 0.75,
-                alpha     = 0.5) + 
+      count()
+  )
+  
+  top6_prop <- reactive(
+    top6_count() |> 
+      left_join(n_words() |> rename(season_total = n), join_by(season)) |> 
+      mutate(prop = n / season_total)
+  )
+  
+  output$T6_plot <- renderPlot({
+    
+    data <- top6_prop() |> mutate(season = season |> as_factor()) 
+    
+    if (input$word_stat == "n") {
+      plot <- data |> 
+        ggplot(aes(season, n, group = sp4)) +
+        geom_line(
+          aes(y = n, color = fct_reorder2(sp4, season, n)),
+          linewidth = 0.625
+        ) +
+        labs(y = "Number of Words")
+    }
+    
+    if (input$word_stat == "prop") {
+      plot <- data |> 
+        ggplot(aes(season, prop, group = sp4)) +
+        geom_line(
+          aes(color = fct_reorder2(sp4, season, prop)),
+          linewidth = 0.625
+        ) +
+        labs(y = "Proportion of Words") +
+        coord_cartesian(ylim = c(0, NA)) +
+        scale_y_continuous(expand = expansion(c(0, 0.05)))
+    }
+    
+    plot +
       scale_color_viridis_d(end = 0.85, labels = \(x) x |> str_to_title()) +
       labs(
         x = "Season",
-        y = "Number of Words",
         color = "Character"
       ) +
       gg_theme
-  )
+    
+  })
   
   # output$chars_vec <- renderText(chars_vec())
 

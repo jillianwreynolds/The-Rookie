@@ -697,10 +697,10 @@ server <- function(input, output, session) {
   })
   
   # output$characters <- renderTable(data()$characters)
-  # 
+  
   # output$chars_long <- renderTable(
-  #   data()$characters_long |> 
-  #     group_by(season, gender) |> 
+  #   data()$characters_long |>
+  #     group_by(season, gender) |>
   #     count(type)
   # )
   
@@ -734,7 +734,7 @@ server <- function(input, output, session) {
                fct_rev()
       ) |> 
       ggplot(aes(gender, n, fill = gender)) +
-      geom_col(width = 0.15) +
+      geom_col(width = 0.125) +
       scale_y_continuous(expand = expansion(c(0, 0.05))) +
       scale_fill_manual(
         values = c("Women" = "#440154FF", "Men" = "#1FA187FF"),
@@ -753,14 +753,15 @@ server <- function(input, output, session) {
           breaks = seq(0, 12, 2),
           expand = expansion(c(0, 0.05))
         ) +
+        scale_x_discrete(drop = FALSE) +
         scale_fill_viridis_d(end = 0.6) +
+        coord_cartesian(ylim = c(0, 12)) +
         labs(
           title = x,
           x = "Season",
           y = "Number of Characters",
           fill = "Gender"
         ) +
-        coord_cartesian(ylim = c(0, 12)) +
         gg_theme
     ) |> 
       reduce(`+`) +

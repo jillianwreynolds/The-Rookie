@@ -4,6 +4,7 @@ library(tidyverse)
 library(glue)
 library(DT)
 library(bslib)
+library(patchwork)
 
 source("themes.R")
 source("styles.R")
@@ -294,6 +295,14 @@ characters_panel <- nav_panel(
     cards_characters$top6_plot,
     col_widths = c(5, 5),
     fillable = FALSE
+  ),
+  layout_columns(
+    fillable = FALSE,
+    # card(tableOutput("characters")),
+    # card(tableOutput("chars_long")),
+    card(plotOutput("chars_plot")),
+    card(plotOutput("chars_plot2")),
+    card(plotOutput("chars_plot3"))
   )#,
   # textOutput("chars_vec")
 )
@@ -430,18 +439,21 @@ server <- function(input, output, session) {
     withProgress(
       {
         tbl_episodes = nanoparquet::read_parquet("transcripts_parquet.parquet")
-        incProgress(1 / 10)
+        incProgress(1 / 11)
         tbl_chars = nanoparquet::read_parquet("characters_parquet.parquet")
-        incProgress(1 / 10)
+        incProgress(1 / 11)
+        tbl_chars_long = nanoparquet::read_parquet("characters_long.parquet")
+        incProgress(1 / 11)
         tbl_ratings = nanoparquet::read_parquet("episode_ratings.parquet")
-        incProgress(1 / 10)
+        incProgress(1 / 11)
         tbl_tokens1_raw = nanoparquet::read_parquet("tokens1_raw.parquet")
-        incProgress(7 / 10)
+        incProgress(7 / 11)
         list(
-          episodes = tbl_episodes,
-          characters = tbl_chars,
-          ratings = tbl_ratings,
-          tokens1_raw = tbl_tokens1_raw
+          episodes        = tbl_episodes,
+          characters      = tbl_chars,
+          characters_long = tbl_chars_long,
+          ratings         = tbl_ratings,
+          tokens1_raw     = tbl_tokens1_raw
         )
       },
       message = "Loading data...",
@@ -678,6 +690,101 @@ server <- function(input, output, session) {
         color = "Character"
       ) +
       gg_theme
+    
+  })
+  
+  # output$characters <- renderTable(data()$characters)
+  # 
+  # output$chars_long <- renderTable(
+  #   data()$characters_long |> 
+  #     group_by(season, gender) |> 
+  #     count(type)
+  # )
+  
+  output$chars_plot <- renderPlot(
+    data()$characters_long |> 
+      filter_out(is.na(season)) |> 
+      group_by(season, gender) |> 
+      count(type) |> 
+      mutate(
+        season = season |> as_factor(),
+        type = type |> str_to_title() |> fct_relevel(c("Main", "Recurring")),
+        gender = gender |> 
+          replace_when(
+            gender == "F" ~ "Women",
+            gender == "M" ~ "Men"
+          ) |> 
+          fct_rev()
+      ) |>
+      ggplot(aes(season, n, fill = gender)) + 
+      geom_col(position = "dodge") +
+      facet_wrap(~ type) +
+      scale_y_continuous(
+        breaks = seq(0, 12, 2),
+        expand = expansion(c(0, 0.05))
+      ) +
+      scale_fill_viridis_d(end = 0.6) +
+      labs(
+        x = "Season",
+        y = "Number of Characters",
+        fill = "Gender"
+      ) +
+      gg_theme
+  )
+  
+  output$chars_plot2 <- renderPlot(
+    data()$characters_long |> 
+      group_by(gender) |> 
+      count(type) |> 
+      ggplot(aes(gender, n)) +
+      geom_col()
+  )
+  
+  output$chars_plot3 <- renderPlot({
+    
+    tbl <- data()$characters_long |> 
+      filter_out(is.na(season)) |> 
+      group_by(season, gender) |> 
+      count(type) |> 
+      mutate(
+        season = season |> as_factor(),
+        type = type |> str_to_title() |> fct_relevel(c("Main", "Recurring")),
+        gender = gender |> 
+          replace_when(
+            gender == "F" ~ "Women",
+            gender == "M" ~ "Men"
+          ) |> 
+          fct_rev()
+      )
+    
+    p4 <- data()$characters_long |> 
+      group_by(gender) |> 
+      count(type) |> 
+      ggplot(aes(gender, n)) +
+      geom_col() +
+      scale_fill_manual(values = c("Women" = "#440154FF", "Men" = "#1FA187FF"))
+    
+    map(
+      list("Main", "Recurring", "Crossover"),
+      \(x) tbl |> 
+        filter(type == x) |> 
+        ggplot(aes(season, n, fill = gender)) + 
+        geom_col(position = "dodge") +
+        scale_y_continuous(
+          breaks = seq(0, 12, 2),
+          expand = expansion(c(0, 0.05))
+        ) +
+        scale_fill_viridis_d(end = 0.6) +
+        labs(
+          x = "Season",
+          y = "Number of Characters",
+          fill = "Gender"
+        ) +
+        gg_theme
+    ) |> 
+      reduce(`+`) +
+      p4 +
+      plot_layout(guides = "collect")
     
   })
   

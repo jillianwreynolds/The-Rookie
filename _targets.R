@@ -96,7 +96,26 @@ list(
       recurring_chars_long,
       crossover_chars_long,
       notable_guest_chars
-    )
+    ) |> 
+      add_gender_column()
+  ),
+  tar_target(
+    characters_long_parquet,
+    {
+      characters_long |> write_parquet("data/characters_long.parquet")
+      file.copy(
+        "data/characters_long.parquet",
+        "app/characters_long.parquet",
+        overwrite = TRUE
+      )
+      file.copy(
+        "data/characters_long.parquet",
+        "characters_long.parquet",
+        overwrite = TRUE
+      )
+      "data/characters_long.parquet"
+    },
+    format = "file"
   ),
   tar_target(characters_wide, create_characters_wide(characters_long)),
   tar_target(characters, create_characters(characters_long)),

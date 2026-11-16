@@ -64,6 +64,17 @@ clean_speaker_name_parts <- function(tbl, lookup_data) {
         sp4 |> replace_when(sp4 == "RACHEL" ~ "HALL"),
         sp4
       ),
+      # HENRY NOLAN
+      sp3 = if_else(
+        when_all(sp4 == "HENRY", !when_all(season == 2, episode == 13)),
+        sp3 |> replace_when(sp4 == "HENRY" ~ "HENRY"),
+        sp3
+      ),
+      sp4 = if_else(
+        when_all(sp4 == "HENRY", !when_all(season == 2, episode == 13)),
+        sp4 |> replace_when(sp3 == "HENRY" ~ "NOLAN"),
+        sp4
+      ),
       # Season 2: COLIN HALL and SIMON SAWYER
       sp3 = if_else(
         when_all(is.na(sp3), season == 2),

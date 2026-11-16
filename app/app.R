@@ -282,6 +282,10 @@ cards_characters <- list(
       selected = "n"
     ),
     plotOutput("T6_plot")
+  ),
+  gender_plot = card(
+    card_header("Character Genders by Character Type", class = "bg-secondary"),
+    plotOutput("chars_plot")
   )
 )
 
@@ -300,9 +304,8 @@ characters_panel <- nav_panel(
     fillable = FALSE,
     # card(tableOutput("characters")),
     # card(tableOutput("chars_long")),
-    card(plotOutput("chars_plot")),
-    card(plotOutput("chars_plot2")),
-    card(plotOutput("chars_plot3"))
+    cards_characters$gender_plot,
+    col_widths = c(6)
   )#,
   # textOutput("chars_vec")
 )
@@ -701,46 +704,7 @@ server <- function(input, output, session) {
   #     count(type)
   # )
   
-  output$chars_plot <- renderPlot(
-    data()$characters_long |> 
-      filter_out(is.na(season)) |> 
-      group_by(season, gender) |> 
-      count(type) |> 
-      mutate(
-        season = season |> as_factor(),
-        type = type |> str_to_title() |> fct_relevel(c("Main", "Recurring")),
-        gender = gender |> 
-          replace_when(
-            gender == "F" ~ "Women",
-            gender == "M" ~ "Men"
-          ) |> 
-          fct_rev()
-      ) |>
-      ggplot(aes(season, n, fill = gender)) + 
-      geom_col(position = "dodge") +
-      facet_wrap(~ type) +
-      scale_y_continuous(
-        breaks = seq(0, 12, 2),
-        expand = expansion(c(0, 0.05))
-      ) +
-      scale_fill_viridis_d(end = 0.6) +
-      labs(
-        x = "Season",
-        y = "Number of Characters",
-        fill = "Gender"
-      ) +
-      gg_theme
-  )
-  
-  output$chars_plot2 <- renderPlot(
-    data()$characters_long |> 
-      group_by(gender) |> 
-      count(type) |> 
-      ggplot(aes(gender, n)) +
-      geom_col()
-  )
-  
-  output$chars_plot3 <- renderPlot({
+  output$chars_plot <- renderPlot({
     
     tbl <- data()$characters_long |> 
       filter_out(is.na(season)) |> 
@@ -758,11 +722,26 @@ server <- function(input, output, session) {
       )
     
     p4 <- data()$characters_long |> 
+      filter(type == "notable") |> 
+      distinct() |> 
       group_by(gender) |> 
       count(type) |> 
-      ggplot(aes(gender, n)) +
-      geom_col() +
-      scale_fill_manual(values = c("Women" = "#440154FF", "Men" = "#1FA187FF"))
+      mutate(gender = gender |> 
+               replace_when(
+                 gender == "F" ~ "Women",
+                 gender == "M" ~ "Men"
+               ) |> 
+               fct_rev()
+      ) |> 
+      ggplot(aes(gender, n, fill = gender)) +
+      geom_col(width = 0.15) +
+      scale_y_continuous(expand = expansion(c(0, 0.05))) +
+      scale_fill_manual(
+        values = c("Women" = "#440154FF", "Men" = "#1FA187FF"),
+        guide = NULL
+      ) +
+      labs(title = "Notable", x = "Gender", y = "Number of Characters", fill = "Gender") +
+      gg_theme
     
     map(
       list("Main", "Recurring", "Crossover"),
@@ -776,15 +755,24 @@ server <- function(input, output, session) {
         ) +
         scale_fill_viridis_d(end = 0.6) +
         labs(
+          title = x,
           x = "Season",
           y = "Number of Characters",
           fill = "Gender"
         ) +
+        coord_cartesian(ylim = c(0, 12)) +
         gg_theme
     ) |> 
       reduce(`+`) +
       p4 +
-      plot_layout(guides = "collect")
+      plot_layout(
+        guides = "collect",
+        axes = "keep",
+        axis_titles = "collect_y"
+      ) &
+      theme(
+        plot.title = element_text(size = 17)
+      )
     
   })
   

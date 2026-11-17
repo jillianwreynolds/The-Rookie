@@ -55,6 +55,10 @@ cards_home <- list(
   series_stats = card(
     card_header("Series Statistics", class = "bg-secondary"),
     tableOutput("series_stats")
+  ),
+  top6 = card(
+    card_header("Top 6 Speakers of the Series", class = "bg-secondary"),
+    htmlOutput("series_T6")
   )
 )
 
@@ -65,10 +69,11 @@ home_panel <- nav_panel(
   useShinyjs(), # triggers warning about expected contents of nav containers
   title = "Home",
   p("By Jillian W. Reynolds", style = "font-size:22px"),
-  layout_columns(
-    cards_home$directory,
+  layout_column_wrap(
     cards_home$series_stats,
-    col_widths = c(6, 4),
+    cards_home$top6,
+    cards_home$directory,
+    style = css(grid_template_columns = "2fr 1fr 3fr"),
     fillable = FALSE
   )
 )
@@ -258,7 +263,6 @@ ratings_panel <- nav_panel(
   ),
   layout_column_wrap(
     width = 1/2,
-    card(tableOutput("test")),
     cards_ratings$speakers_prop
   )
 )
@@ -311,6 +315,62 @@ server <- function(input, output, session) {
       value = 0
     )
   })
+  
+  characters <- reactive(
+    data()$characters |> 
+      select(ends_with("name"), type) |> 
+      mutate(first_name = first_name |> str_replace("NICHOLAS", "NICK")) |> 
+      filter(type %in% c("main", "recurring"))
+  )
+  
+  chars_tbl <- reactive(
+    characters() |> 
+      unite("character", c(first_name, last_name)) |> 
+      clean_chars_col()
+  )
+  
+  chars_vec <- reactive(chars_tbl() |> pull(character))
+  
+  main_chars_vec <- reactive(
+    chars_tbl() |> filter(type == "main") |> pull(character)
+  )
+  recurring_chars_vec <- reactive(
+    chars_tbl() |> filter(type == "recurring") |> pull(character)
+  )
+  
+  top6 <- reactive(
+    data()$tokens1_raw |> 
+      group_by(sp3, sp4) |> 
+      filter(type == "dialogue") |> 
+      count(sort = TRUE) |> 
+      ungroup() |> 
+      head(6) |> 
+      select(-n) |> 
+      rename(first_name = sp3, last_name = sp4)
+  )
+  
+  filter_characters <- function(
+    data,
+    filter = c("top6", "main", "recurring", "all")
+  ) {
+    
+    filter <- match.arg(filter)
+    
+    chars <- switch(
+      filter,
+      top6      = top6(),
+      main      = characters()[characters()$type == "main", ],
+      recurring = characters()[characters()$type == "recurring", ],
+      all       = characters()
+    )
+    
+    data |> filter(when_all(
+      sp3 %in% chars$first_name,
+      sp4 %in% chars$last_name
+    )) |> 
+      filter_out(when_all(sp3 == "AARON", sp4 == "MURRAY"))
+    
+  }
   
   ratings <- reactive(
     data()$ratings |> 
@@ -367,64 +427,18 @@ server <- function(input, output, session) {
       clean_col_names()
     
   })
+  
+  output$series_T6 <- renderText(
+    top6() |> 
+      unite(character, first_name, last_name) |> 
+      clean_chars_col() |> 
+      pull(character) %>%
+      str_c(1:6, ". ", ., collapse = "\n") |> 
+      markdown()
+  )
 
 # characters -------------------------------------------------------------
   
-  characters <- reactive(
-    data()$characters |> 
-      select(ends_with("name"), type) |> 
-      mutate(first_name = first_name |> str_replace("NICHOLAS", "NICK")) |> 
-      filter(type %in% c("main", "recurring"))
-  )
-  
-  chars_tbl <- reactive(
-    characters() |> 
-      unite("character", c(first_name, last_name)) |> 
-      clean_chars_col()
-    )
-  
-  chars_vec <- reactive(chars_tbl() |> pull(character))
-  
-  main_chars_vec <- reactive(
-    chars_tbl() |> filter(type == "main") |> pull(character)
-  )
-  recurring_chars_vec <- reactive(
-    chars_tbl() |> filter(type == "recurring") |> pull(character)
-  )
-  
-  top6 <- reactive(
-    data()$tokens1_raw |> 
-      group_by(sp3, sp4) |> 
-      filter(type == "dialogue") |> 
-      count(sort = TRUE) |> 
-      ungroup() |> 
-      head(6) |> 
-      select(-n) |> 
-      rename(first_name = sp3, last_name = sp4)
-  )
-  
-  filter_characters <- function(
-    data,
-    filter = c("top6", "main", "recurring", "all")
-  ) {
-    
-    filter <- match.arg(filter)
-    
-    chars <- switch(
-      filter,
-      top6      = top6(),
-      main      = characters()[characters()$type == "main", ],
-      recurring = characters()[characters()$type == "recurring", ],
-      all       = characters()
-    )
-    
-    data |> filter(when_all(
-      sp3 %in% chars$first_name,
-      sp4 %in% chars$last_name
-    )) |> 
-      filter_out(when_all(sp3 == "AARON", sp4 == "MURRAY"))
-    
-  }
   
   output$characters_tbl <- renderDT(
     characters() |> 
@@ -864,34 +878,6 @@ server <- function(input, output, session) {
       plot_layout(guides = "collect", axis_titles = "collect_y", axes = "collect_y") & 
       coord_cartesian(ylim = c(0, 0.175)) &
     theme(plot.title = element_text(size = 17), legend.position = "bottom")
-    
-  })
-  
-  output$test <- renderTable({
-    word_count <- data()$tokens1_raw |> 
-      filter(type == "dialogue") |> 
-      group_by(season, episode) |> 
-      count() |> 
-      rename(total_words = n)
-    
-    data <- data()$tokens1_raw |> 
-      filter(type == "dialogue") |> 
-      filter_characters("top6") |> 
-      left_join(ratings(), join_by(season, episode))
-    
-    highest <- data |> 
-      slice_max(rating) |> 
-      group_by(sp4, season, episode) |> 
-      count() |> 
-      left_join(word_count, join_by(season, episode))
-    
-    lowest <- data |> 
-      slice_min(rating) |> 
-      group_by(sp4, season, episode) |> 
-      count() |> 
-      left_join(word_count, join_by(season, episode))
-    
-    bind_rows(highest, lowest)
     
   })
   

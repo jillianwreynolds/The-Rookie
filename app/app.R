@@ -123,6 +123,7 @@ cards_characters <- list(
     plotOutput("T6_plot")
   ),
   gender_plot = card(
+    full_screen = TRUE,
     card_header("Character Genders by Character Type", class = "bg-secondary"),
     plotOutput("chars_plot")
   )
@@ -201,6 +202,11 @@ cards_ratings <- list(
     uiOutput("ratings_slider_ui"),
     plotOutput("plot_ratings_dist"),
     min_height = "640px"
+  ),
+  speakers_prop = card(
+    full_screen = TRUE,
+    card_header("Proportions of Words in Highest and Lowest Rated Episodes for the Top 6 Speakers of the Series", class = "bg-secondary"),
+    plotOutput("best_eps_speakers")
   )
 )
 
@@ -246,9 +252,14 @@ ratings_panel <- nav_panel(
     ),
     cards_ratings$plot_stats
   ),
-  layout_columns(
+  layout_column_wrap(
     cards_ratings$ratings,
     cards_ratings$plot_counts
+  ),
+  layout_column_wrap(
+    width = 1/2,
+    card(tableOutput("test")),
+    cards_ratings$speakers_prop
   )
 )
 
@@ -807,6 +818,81 @@ server <- function(input, output, session) {
     reset("compare_seasons")
     updateRadioButtons(session, "compare_view", selected = character(0))
     updateSliderInput(session, "ratings_slider", value = 0)
+  })
+  
+  output$best_eps_speakers <- renderPlot({
+    
+    word_count <- data()$tokens1_raw |> 
+      filter(type == "dialogue") |> 
+      group_by(season, episode) |> 
+      count() |> 
+      rename(total_words = n)
+    
+    data <- data()$tokens1_raw |> 
+      filter(type == "dialogue") |> 
+      filter_characters("top6") |> 
+      left_join(ratings(), join_by(season, episode))
+    
+    highest <- data |> 
+      slice_max(rating)
+    
+    lowest <- data |> 
+      slice_min(rating)
+    
+    draw_plot <- function(data) {
+      data |> 
+        group_by(sp4, season, episode) |> 
+        count() |> 
+        left_join(word_count, join_by(season, episode)) |> 
+        mutate(
+          prop = n / total_words,
+          episode = str_c(season, "x", episode),
+          sp4 = sp4 |> str_to_title()
+        ) |> 
+        ggplot(aes(episode, prop)) +
+        geom_col(aes(fill = sp4), position = "dodge") +
+        scale_y_continuous(expand = expansion(c(0, 0.05))) +
+        scale_fill_viridis_d(end = 0.9, direction = -1) +
+        labs(
+          x = "Episode", y = "Proportion of Total Words", fill = "Character"
+        ) +
+        gg_theme
+    }
+    
+    (draw_plot(highest) + labs(title = "Highest Rated")) + 
+      (draw_plot(lowest) + labs(title = "Lowest Rated")) +
+      plot_layout(guides = "collect", axis_titles = "collect_y", axes = "collect_y") & 
+      coord_cartesian(ylim = c(0, 0.175)) &
+    theme(plot.title = element_text(size = 17), legend.position = "bottom")
+    
+  })
+  
+  output$test <- renderTable({
+    word_count <- data()$tokens1_raw |> 
+      filter(type == "dialogue") |> 
+      group_by(season, episode) |> 
+      count() |> 
+      rename(total_words = n)
+    
+    data <- data()$tokens1_raw |> 
+      filter(type == "dialogue") |> 
+      filter_characters("top6") |> 
+      left_join(ratings(), join_by(season, episode))
+    
+    highest <- data |> 
+      slice_max(rating) |> 
+      group_by(sp4, season, episode) |> 
+      count() |> 
+      left_join(word_count, join_by(season, episode))
+    
+    lowest <- data |> 
+      slice_min(rating) |> 
+      group_by(sp4, season, episode) |> 
+      count() |> 
+      left_join(word_count, join_by(season, episode))
+    
+    bind_rows(highest, lowest)
+    
   })
   
 }

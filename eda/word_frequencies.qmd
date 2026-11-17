@@ -1,0 +1,37 @@
+---
+title: "Untitled"
+format: html
+execute:
+  echo: false
+  eval: false
+---
+
+```{r}
+
+violence_terms <- c("murder", "death", "(?<!back)fire(?!fight)", "(?<!fire)fight", "assault", "weapon", "\\sgun", "rifle", "traffick") |>
+  str_flatten(collapse = "|")
+
+wo_men <- "(?<=wo|\\b)m(a|e)n(\'s|\\b)?$"
+
+emotions <- c("\\blove", "\\bhate") |> 
+  str_flatten(collapse = "|")
+
+word_matches <- tokens1_raw |> 
+  filter(type == "dialogue") |> 
+  collect() |> 
+  filter(str_detect(word, "\\brookie")) |>
+  group_by(season) |> 
+  count(word)
+
+word_matches
+
+word_matches |> 
+  ggplot(aes(word, n)) +
+  geom_col() +
+  geom_text(aes(label = n), nudge_y = 10) +
+  facet_wrap(~ season, nrow = 2) +
+  theme(axis.text.x = element_text(angle = 40, hjust = 1)) +
+  theme_light()
+
+```
+

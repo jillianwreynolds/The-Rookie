@@ -6,57 +6,20 @@ library(DT)
 library(bslib)
 library(patchwork)
 
-source("themes.R")
-source("styles.R")
-source("functions.R")
-source("about.R")
+list(
+  "themes.R",
+  "styles.R",
+  "functions.R",
+  "about.R",
+  "plot_ratings_stats_code.R"
+) |> 
+  walk(\(x) source(x))
 
 # Number of seasons
 n_seasons <- 8
 
-# plots -------------------------------------------------------------------
 
-plot_ratings_stats_code <- function(data) { 
-  data |> 
-    group_by(season) |> 
-    summarise(
-      min = min(rating),
-      q1 = quantile(rating, 0.25),
-      median = median(rating),
-      q3 = quantile(rating, 0.75),
-      mean = mean(rating),
-      max = max(rating)
-    ) |> 
-    pivot_longer(2:last_col(), names_to = "stat", values_to = "value") |> 
-    ggplot(aes(season, value)) +
-    geom_point(aes(color = fct_reorder2(stat, season, value))) +
-    geom_line(
-      aes(
-        color = fct_reorder2(stat, season, value),
-        linetype = fct_reorder2(stat, season, value)
-      ),
-      linewidth = 0.75,
-      alpha     = 0.5
-    ) +
-    scale_x_continuous(breaks = 1:8, minor_breaks = NULL) +
-    scale_y_continuous(expand = expansion(c(0, 0))) +
-    scale_color_viridis_d(end = 0.85, labels = \(x) x |> str_to_title()) +
-    scale_linetype_manual(
-      values = c(
-        "max" = "solid", "q3" = "dotdash", "median" = "dashed",
-        "mean" = "dotted", "q1" = "twodash", "min" = "longdash"
-      ),
-      labels = \(x) x |> str_to_title()
-    ) +
-    labs(
-      x = "Season", y = "Rating", color = "Statistic", linetype = "Statistic"
-    ) +
-    coord_cartesian(ylim = c(0, 10)) +
-    gg_theme
-}
-
-# UI setup ----------------------------------------------------------------
-
+# UI nav_panels -----------------------------------------------------------
 
 ## home panel --------------------------------------------------------------
 
@@ -68,7 +31,7 @@ cards_home <- list(
       "Episode Directory",
       class = "bg-secondary",
       tooltip(
-        bsicons::bs_icon("question-circle"),
+        bsicons::bs_icon("info-circle"),
         "To filter episodes by season, click the gear icon to the right.",
         placement = "right"
       ),
@@ -142,7 +105,15 @@ cards_characters <- list(
   ),
   top6_plot = card(
     full_screen = TRUE,
-    card_header("Top 6 Speakers", class = "bg-secondary"),
+    card_header(
+      "Top 6 Speakers",
+      class = "bg-secondary",
+      tooltip(
+        bsicons::bs_icon("info-circle"),
+        '"Count" shows total number of words spoken by each character in each season. "Proportion" shows the proportion of words spoken by each character in each season (character\'s number of words in a season divided by total words in the season).',
+        placement = "right"
+      )
+    ),
     radioButtons(
       "word_stat",
       label = "Statistic",
@@ -161,12 +132,12 @@ cards_characters <- list(
 
 characters_panel <- nav_panel(
   title = "Characters",
-  layout_columns(
+  layout_column_wrap(
+    width = 1/2,
     # cards_characters$table,
     cards_characters$words_by_character,
     cards_characters$top6_plot,
-    col_widths = c(5, 5),
-    fillable = FALSE
+    heights_equal = "row"
   ),
   layout_columns(
     fillable = FALSE,
@@ -196,8 +167,7 @@ cards_ratings <- list(
   ),
   ratings = card(
     card_header("Episode Ratings", class = "bg-secondary"),
-    DTOutput("ratings"),
-    min_height = "600px"
+    DTOutput("ratings")
   ),
   plot_stats = card(
     full_screen = TRUE,
@@ -210,9 +180,8 @@ cards_ratings <- list(
       "Distribution of Ratings",
       class = "bg-secondary d-flex align-items-center gap-1",
       tooltip(
-        bsicons::bs_icon("question-circle"),
-        "To filter by season, compare seasons, or change plot settings, click the gear icon to the right.",
-        placement = "right"
+        bsicons::bs_icon("info-circle"),
+        "To filter by season, compare seasons, or change plot settings, click the gear icon to the right."
       ),
       popover(
         bsicons::bs_icon("gear", title = "Settings", class = "ms-auto"),
@@ -279,8 +248,7 @@ ratings_panel <- nav_panel(
   ),
   layout_columns(
     cards_ratings$ratings,
-    cards_ratings$plot_counts,
-    fillable = FALSE
+    cards_ratings$plot_counts
   )
 )
 
@@ -380,7 +348,7 @@ server <- function(input, output, session) {
   output$series_stats <- renderTable({
     
     n_episodes <- n_episodes() |> rename(episodes = n)
-    n_words <- n_words() |> rename(words = n)
+    n_words    <- n_words()    |> rename(words = n)
     
     left_join(n_episodes, n_words, join_by(season)) |> 
       mutate(average = (words / episodes) |> round(2)) |> 
@@ -405,6 +373,7 @@ server <- function(input, output, session) {
     )
   
   chars_vec <- reactive(chars_tbl() |> pull(character))
+  
   main_chars_vec <- reactive(
     chars_tbl() |> filter(type == "main") |> pull(character)
   )
@@ -530,10 +499,10 @@ server <- function(input, output, session) {
   
   output$T6_plot <- renderPlot({
     
-    data <- top6_prop() |> mutate(season = season |> as_factor()) 
-    
+    data <- top6_prop() |> mutate(season = season |> as_factor())
+
     if (input$word_stat == "n") {
-      plot <- data |> 
+      plot <- data |>
         ggplot(aes(season, n, group = sp4)) +
         geom_line(
           aes(y = n, color = fct_reorder2(sp4, season, n)),
@@ -541,9 +510,9 @@ server <- function(input, output, session) {
         ) +
         labs(y = "Number of Words")
     }
-    
+
     if (input$word_stat == "prop") {
-      plot <- data |> 
+      plot <- data |>
         ggplot(aes(season, prop, group = sp4)) +
         geom_line(
           aes(color = fct_reorder2(sp4, season, prop)),
@@ -553,7 +522,7 @@ server <- function(input, output, session) {
         coord_cartesian(ylim = c(0, NA)) +
         scale_y_continuous(expand = expansion(c(0, 0.05)))
     }
-    
+
     plot +
       scale_color_viridis_d(end = 0.85, labels = \(x) x |> str_to_title()) +
       labs(
@@ -659,11 +628,11 @@ server <- function(input, output, session) {
     )
   )
   
-  min_rating <- reactive(ratings()$rating |> min())
-  max_rating <- reactive(ratings()$rating |> max())
+  min_rating  <- reactive(ratings()$rating |> min())
+  max_rating  <- reactive(ratings()$rating |> max())
   mean_rating <- reactive(ratings()$rating |> mean() |> round(1))
   
-  output$lowest_rating <- renderText(min_rating())
+  output$lowest_rating  <- renderText(min_rating())
   output$highest_rating <- renderText(max_rating())
   output$average_rating <- renderText(mean_rating())
   

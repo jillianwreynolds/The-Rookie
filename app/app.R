@@ -212,7 +212,7 @@ cards_ratings <- list(
   speakers_prop = card(
     full_screen = TRUE,
     card_header("Proportions of Words in Highest and Lowest Rated Episodes for the Top 6 Speakers of the Series", class = "bg-secondary"),
-    plotOutput("best_eps_speakers")
+    plotOutput("best_worst_eps_speakers")
   )
 )
 
@@ -429,27 +429,16 @@ server <- function(input, output, session) {
     
   })
   
-  output$series_T6 <- renderText(
+  output$series_T6 <- renderText({
     top6() |> 
       unite(character, first_name, last_name) |> 
       clean_chars_col() |> 
       pull(character) %>%
       str_c(1:6, ". ", ., collapse = "\n") |> 
       markdown()
-  )
+  })
 
 # characters -------------------------------------------------------------
-  
-  
-  output$characters_tbl <- renderDT(
-    characters() |> 
-      select(-type) |> 
-      mutate(across(
-        everything(),
-        \(x) x |> str_replace_all("_", " ") |>  str_to_title()
-      )) |> 
-      clean_col_names()
-  )
   
   output$char_selection <- renderUI({
     
@@ -606,7 +595,7 @@ server <- function(input, output, session) {
     plot_ratings_stats_code(data()$ratings)
   )
   
-  output$compare_options <- renderUI(
+  output$compare_options <- renderUI({
     if (input$compare_seasons) {
       radioButtons(
         "compare_view",
@@ -618,7 +607,7 @@ server <- function(input, output, session) {
         )
       )
     }
-  )
+  })
   
   output$ratings_slider_ui <- renderUI({
     req(input$compare_seasons)
@@ -766,35 +755,34 @@ server <- function(input, output, session) {
     updateSliderInput(session, "ratings_slider", value = 0)
   })
   
-  output$best_eps_speakers <- renderPlot({
-    
-    word_count <- data()$tokens1_raw |> 
-      filter(type == "dialogue") |> 
-      group_by(season, episode) |> 
-      count() |> 
+  output$best_worst_eps_speakers <- renderPlot({
+    word_count <- data()$tokens1_raw |>
+      filter(type == "dialogue") |>
+      group_by(season, episode) |>
+      count() |>
       rename(total_words = n)
-    
-    data <- data()$tokens1_raw |> 
-      filter(type == "dialogue") |> 
-      filter_characters("top6") |> 
+
+    data <- data()$tokens1_raw |>
+      filter(type == "dialogue") |>
+      filter_characters("top6") |>
       left_join(ratings(), join_by(season, episode))
-    
-    highest <- data |> 
+
+    highest <- data |>
       slice_max(rating)
-    
-    lowest <- data |> 
+
+    lowest <- data |>
       slice_min(rating)
-    
+
     draw_plot <- function(data) {
-      data |> 
-        group_by(sp4, season, episode) |> 
-        count() |> 
-        left_join(word_count, join_by(season, episode)) |> 
+      data |>
+        group_by(sp4, season, episode) |>
+        count() |>
+        left_join(word_count, join_by(season, episode)) |>
         mutate(
           prop = n / total_words,
           episode = str_c(season, "x", episode),
           sp4 = sp4 |> str_to_title()
-        ) |> 
+        ) |>
         ggplot(aes(episode, prop)) +
         geom_col(aes(fill = sp4), position = "dodge") +
         scale_y_continuous(expand = expansion(c(0, 0.05))) +
@@ -804,12 +792,14 @@ server <- function(input, output, session) {
         ) +
         gg_theme
     }
-    
-    (draw_plot(highest) + labs(title = "Highest Rated")) + 
+
+    (draw_plot(highest) + labs(title = "Highest Rated")) +
       (draw_plot(lowest) + labs(title = "Lowest Rated")) +
-      plot_layout(guides = "collect", axis_titles = "collect_y", axes = "collect_y") & 
+      plot_layout(
+        guides = "collect", axis_titles = "collect_y", axes = "collect_y"
+      ) &
       coord_cartesian(ylim = c(0, 0.175)) &
-    theme(plot.title = element_text(size = 17), legend.position = "bottom")
+      theme(plot.title = element_text(size = 17), legend.position = "bottom")
     
   })
   

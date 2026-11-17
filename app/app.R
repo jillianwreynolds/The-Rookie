@@ -12,7 +12,7 @@ list(
   "functions.R",
   "about.R",
   "draw_chars_gender_plot.R",
-  "plot_ratings_stats_code.R"
+  "draw_ratings_stats_plot.R"
 ) |> 
   walk(\(x) source(x))
 
@@ -179,7 +179,7 @@ cards_ratings <- list(
   plot_stats = card(
     full_screen = TRUE,
     card_header("Summary Statistics by Season", class = "bg-secondary"),
-    plotOutput("plot_ratings_stats")
+    plotOutput("ratings_stats_plot")
   ),
   plot_counts = card(
     full_screen = TRUE,
@@ -591,8 +591,8 @@ server <- function(input, output, session) {
   output$average_rating_eps <- renderText(
     ratings() |> filter(rating == round(mean(rating), 1)) |> titles_to_string()
   )
-  output$plot_ratings_stats <- renderPlot(
-    plot_ratings_stats_code(data()$ratings)
+  output$ratings_stats_plot <- renderPlot(
+    draw_ratings_stats_plot(data()$ratings)
   )
   
   output$compare_options <- renderUI({
@@ -756,6 +756,7 @@ server <- function(input, output, session) {
   })
   
   output$best_worst_eps_speakers <- renderPlot({
+    
     word_count <- data()$tokens1_raw |>
       filter(type == "dialogue") |>
       group_by(season, episode) |>

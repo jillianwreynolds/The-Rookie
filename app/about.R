@@ -62,7 +62,7 @@ packages_tooltip <- tooltip(
 about_methodology_cards <- list(
   R = card(
     card_header("R", class = "bg-secondary"),
-    markdown("I use `R`, `RStudio`, and `Quarto` to plan the project and explore and analyze the data. I use the former two for analyzing the data and publishing the results. I use `renv` for package version control.")
+    markdown("I use `R`, `RStudio`, and `Quarto` to plan the project and explore and analyze the data. I use the former two for analyzing the data and publishing the results. I use `renv` for package version control. The project combines R, markdown, HTML and CSS.")
   ),
   github = card(
     card_header("GitHub", class = "bg-secondary"),
@@ -80,6 +80,8 @@ about_methodology_cards <- list(
       - Shinylive
       - bslib
       - shinyjs
+      - nanoparquet
+      - glue
       - DT
     ")
   ),
@@ -91,17 +93,15 @@ about_methodology_cards <- list(
     ),
     markdown("
       - tidyverse
-      - glue
       - targets
       - arrow
-      - nanoparquet
     ")
   ),
   notes = card(
     card_header("Notes", class = "bg-secondary"),
     markdown('
       - Dialogue that was recorded and replayed in an episode may be counted more than once. This includes lines from clips shown after "Previously on *The Rookie*..."
-      - Most descriptions within a transcript were transcribed such that I was able to use punctuation or HTML code to mark descriptsions as description. Some description was indistinguishable from dialogue, however. I manually coded many descriptions as description, but it is possible I have not found all instances.
+      - Most descriptions within a transcript were transcribed such that I was able to use punctuation or HTML code to mark descriptsions as description. Some descriptions were indistinguishable from dialogue, however. I manually coded many descriptions as description rather than dialogue, but it is possible I have not found all instances.
      ')
   )
 )

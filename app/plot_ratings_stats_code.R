@@ -1,6 +1,6 @@
 # plots -------------------------------------------------------------------
 
-plot_ratings_stats_code <- function(data) { 
+draw_ratings_stats_plot <- function(data) { 
   data |> 
     group_by(season) |> 
     summarise(

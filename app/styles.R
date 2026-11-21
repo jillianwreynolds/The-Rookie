@@ -1,5 +1,11 @@
 rookie_slider_css <- glue(
   "
+  .ReactTable {
+    font-family: var(--bs-body-font-family) !important;
+  }
+  
+  /* sliderInput */
+  
   .irs-grid-pol.small { height: 0px; }
   .slider-animate-button {
     color: {{dark_teal}};
@@ -41,9 +47,6 @@ rookie_slider_css <- glue(
     background: white;
     color: white;
     font-size: 1pt
-  }
-  .ReactTable {
-    font-family: var(--bs-body-font-family) !important;
   }
   ",
   .open = "{{",

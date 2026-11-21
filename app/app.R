@@ -3,6 +3,7 @@ library(shinyjs)
 library(tidyverse)
 library(glue)
 library(DT)
+library(gt)
 library(bslib)
 library(patchwork)
 
@@ -132,6 +133,18 @@ cards_characters <- list(
     full_screen = TRUE,
     card_header("Character Genders by Character Type", class = "bg-secondary"),
     plotOutput("chars_gender_plot")
+  ),
+  top6_stats = card(
+    card_header(
+      "Top 6 Speakers: Summary Statistics",
+      class = "bg-secondary",
+      tooltip(
+        bsicons::bs_icon("info-circle"),
+        "Click column headings to sort values in ascending or descending order.",
+        placement = "right"
+      )
+    ),
+    gt_output("top6_stats")
   )
 )
 
@@ -146,13 +159,15 @@ characters_panel <- nav_panel(
     cards_characters$top6_plot,
     heights_equal = "row"
   ),
-  layout_columns(
+  layout_column_wrap(
     fillable = FALSE,
+    width = 1/2,
     # card(tableOutput("characters")),
     # card(tableOutput("chars_long")),
     cards_characters$gender_plot,
-    col_widths = c(6)
-  )#,
+    cards_characters$top6_stats,
+    style = css(grid_template_columns = "3fr 4fr")
+  ),#,
   # textOutput("chars_vec")
 )
 
@@ -373,6 +388,12 @@ server <- function(input, output, session) {
     
   }
   
+  top6_data <- reactive(
+    data()$tokens1_raw |>
+      filter(type == "dialogue") |>
+      filter_characters("top6")
+  )
+  
   ratings <- reactive(
     data()$ratings |> 
       left_join(data()$episodes, join_by(season, episode)) |> 
@@ -558,6 +579,42 @@ server <- function(input, output, session) {
   
   output$chars_gender_plot <- renderPlot({
     draw_chars_gender_plot(data()$characters_long)
+  })
+  
+  output$top6_stats <- render_gt({
+    tbl <- top6_data() |> 
+      group_by(sp4, season, episode) |> 
+      count() |> 
+      ungroup()
+    
+    tbl <- tbl |> 
+      group_by(sp4, season) |> 
+      summarise(
+        min  = min(n),
+        max  = max(n),
+        mean = mean(n),
+        sd   = sd(n),
+        .groups = "drop"
+      ) |> 
+      mutate(sp4 = sp4 |> str_to_title()) |> 
+      rename(Character = sp4, minimum = min, maximum = max) |> 
+      clean_col_names() |> 
+      rename(SD = Sd)
+    
+    gt <- tbl |> 
+      gt() |> 
+      fmt_number(c("Mean", "SD"), drop_trailing_zeros = FALSE) |> 
+      cols_align_decimal()
+    
+    gt |>
+      opt_interactive(
+        use_sorting = TRUE,
+        use_highlight = TRUE,
+        page_size_default = 10,
+        use_page_size_select = TRUE,
+        page_size_values = c(10, 20)
+      )
+    
   })
   
   # output$chars_vec <- renderText(chars_vec())

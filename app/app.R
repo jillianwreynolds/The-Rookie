@@ -11,11 +11,12 @@ list(
   "themes.R",
   "styles.R",
   "functions.R",
-  "about.R",
   "top6_card.R",
+  "about.R",
   "draw_chars_gender_plot.R",
   "write_top6_summary_stats_tbl.R",
-  "draw_ratings_stats_plot.R"
+  "draw_ratings_stats_plot.R",
+  "write_ratings_stats_tbl.R"
 ) |> 
   walk(\(x) source(x))
 
@@ -59,11 +60,11 @@ cards_home <- list(
   series_stats = card(
     card_header("Series Statistics", class = "bg-secondary"),
     tableOutput("series_stats")
-  )#,
-  # top6 = card(
-  #   card_header("Top 6 Speakers of the Series", class = "bg-secondary"),
-  #   htmlOutput("series_T6")
-  # )
+  ),
+  ratings_note = card(
+    card_header("Episode Ratings", class = "bg-secondary"),
+    "Episode"
+  )
 )
 
 
@@ -75,8 +76,10 @@ home_panel <- nav_panel(
   p("By Jillian W. Reynolds", style = "font-size:22px"),
   layout_column_wrap(
     cards_home$series_stats,
-    top6_UI("top6_home"),
-    # cards_home$top6,
+    layout_column_wrap(
+      top6_UI("top6_home"),
+      cards_home$ratings_note
+    ),
     cards_home$directory,
     style = css(grid_template_columns = "2fr 1fr 3fr"),
     fillable = FALSE
@@ -183,6 +186,23 @@ characters_panel <- nav_panel(
 
 ## ratings panel -----------------------------------------------------------
 
+### popovers
+
+view_options_popover <- popover(
+  bsicons::bs_icon("gear", title = "Settings", class = "ms-auto"),
+  title = "View Options",
+  checkboxInput("view_full_scale", "View full rating scale (0 to 10)?"),
+  selectInput(
+    "filter_season2",
+    "Filter by Season",
+    choices = 1:n_seasons,
+    multiple = TRUE
+  ),
+  checkboxInput("compare_seasons", "Compare seasons?"),
+  uiOutput("compare_options"),
+  actionButton("reset_plot_ratings_dist", "Reset", class = "btn-reset")
+)
+
 ### cards ------------------------------------------------------------------
 
 cards_ratings <- list(
@@ -201,10 +221,13 @@ cards_ratings <- list(
     card_header("Episode Ratings", class = "bg-secondary"),
     DTOutput("ratings")
   ),
-  plot_stats = card(
+  ratings_stats = navset_card_pill(
+    id = "ratings_stats_card",
     full_screen = TRUE,
-    card_header("Summary Statistics by Season", class = "bg-secondary"),
-    plotOutput("ratings_stats_plot")
+    title = "Summary Statistics by Season",
+    nav_spacer(),
+    nav_panel("Plot", plotOutput("ratings_stats_plot")),
+    nav_panel("Table", gt_output("ratings_stats_tbl"))
   ),
   plot_counts = card(
     full_screen = TRUE,
@@ -215,20 +238,7 @@ cards_ratings <- list(
         bsicons::bs_icon("info-circle"),
         "To filter by season, compare seasons, or change plot settings, click the gear icon to the right."
       ),
-      popover(
-        bsicons::bs_icon("gear", title = "Settings", class = "ms-auto"),
-        title = "View Options",
-        checkboxInput("view_full_scale", "View full rating scale (0 to 10)?"),
-        selectInput(
-          "filter_season2",
-          "Filter by Season",
-          choices = 1:n_seasons,
-          multiple = TRUE
-        ),
-        checkboxInput("compare_seasons", "Compare seasons?"),
-        uiOutput("compare_options"),
-        actionButton("reset_plot_ratings_dist", "Reset", class = "btn-reset")
-      )
+      view_options_popover
     ),
     uiOutput("ratings_slider_ui"),
     plotOutput("plot_ratings_dist"),
@@ -281,7 +291,7 @@ ratings_panel <- nav_panel(
       vbs$lowest,
       width = 1/2
     ),
-    cards_ratings$plot_stats
+    cards_ratings$ratings_stats
   ),
   layout_column_wrap(
     cards_ratings$ratings,
@@ -297,6 +307,7 @@ ratings_panel <- nav_panel(
 
 ui <- page_navbar(
   theme = rookie_theme,
+  tags$style(type = "text/css", css),
   tags$style(type = "text/css", rookie_slider_css),
   fillable = FALSE,
   navbar_options = navbar_options(bg = dark_teal),
@@ -463,15 +474,6 @@ server <- function(input, output, session) {
     
   })
   
-  # output$series_T6 <- renderText({
-  #   top6() |> 
-  #     unite(character, first_name, last_name) |> 
-  #     clean_chars_col() |> 
-  #     pull(character) %>%
-  #     str_c(1:6, ". ", ., collapse = "\n") |> 
-  #     markdown()
-  # })
-
 # characters -------------------------------------------------------------
   
   output$char_selection <- renderUI({
@@ -629,8 +631,27 @@ server <- function(input, output, session) {
   output$average_rating_eps <- renderText(
     ratings() |> filter(rating == round(mean(rating), 1)) |> titles_to_string()
   )
+  
+  ratings_stats <- reactive(
+    data()$ratings |> 
+      group_by(season) |> 
+      summarise(
+        min = min(rating),
+        q1 = quantile(rating, 0.25),
+        median = median(rating),
+        q3 = quantile(rating, 0.75),
+        max = max(rating),
+        mean = mean(rating),
+        sd = sd(rating)
+      )
+  )
+  
   output$ratings_stats_plot <- renderPlot(
-    draw_ratings_stats_plot(data()$ratings)
+    draw_ratings_stats_plot(ratings_stats())
+  )
+  
+  output$ratings_stats_tbl <- render_gt(
+    write_ratings_stats_tbl(ratings_stats())
   )
   
   output$compare_options <- renderUI({

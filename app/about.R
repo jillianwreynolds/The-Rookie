@@ -24,9 +24,11 @@ about_project_cards <- list(
       - Strings and regular expressions
       - Working with large data sets
       - Web development
-        - Shiny and Shinylive
+        - `Shiny`
+        - `Shinylive`
         - HTML
         - CSS
+        - Bootstrap 5
     ")
   )
 )
@@ -46,7 +48,7 @@ about_data_cards <- list(
   transcripts = card(
     card_header("Transcripts", class = "bg-secondary"),
     p(
-      "Episode transcripts were downloaded as page source (HTML) from ", tags$a(href="https://the-rookie.fandom.com/", "the-rookie.fandom.com", .noWS = "after", target = "_blank"), "."
+      "Episode transcripts were downloaded as page source (HTML) from ", tags$a(href="https://the-rookie.fandom.com/", "the-rookie.fandom.com", .noWS = "after", target = "_blank"), " on August 6, 2026."
     )
   ),
   characters = card(

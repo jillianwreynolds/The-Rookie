@@ -1,5 +1,8 @@
 css <- glue(
   "
+  .empty-card {
+  --bs-border-color-translucent: white
+  }
   .ReactTable {
       font-family: var(--bs-body-font-family) !important;
     }
@@ -15,6 +18,23 @@ css <- glue(
     #ratings_stats_card .nav-link.active {
     background-color: {{dark_teal}};
     --bs-nav-pills-link-active-color: white;
+    }
+    .value-first .value-box-area {
+      display: flex;
+      flex-direction: column;
+    }
+    .value-first .value-box-value {
+      order: -1;
+      font-size: 3rem;
+    }
+    .value-first .value-box-title {
+      order: 0;
+    }
+    .median_season_ratings .value-box-grid {
+      background-color: {{teal2}};
+    }
+    #n_episodes_vb .value-box-grid {
+      background-color: {{yellow2}};
     }
   ",
   .open  = "{{",

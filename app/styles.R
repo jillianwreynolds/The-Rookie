@@ -5,7 +5,16 @@ css <- glue(
     }
     .bslib-navs-card-title {
       background: {{teal}};
-      color: white
+      color: white;
+    }
+    #ratings_stats_card .nav-link {
+    --bs-nav-link-color: {{dark_teal}};
+    --bs-nav-link-hover-color: {{teal}};
+    background-color: {{light_green}};
+    }
+    #ratings_stats_card .nav-link.active {
+    background-color: {{dark_teal}};
+    --bs-nav-pills-link-active-color: white;
     }
   ",
   .open  = "{{",

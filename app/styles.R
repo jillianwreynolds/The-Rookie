@@ -42,6 +42,9 @@ rookie_slider_css <- glue(
     color: white;
     font-size: 1pt
   }
+  .ReactTable {
+    font-family: var(--bs-body-font-family) !important;
+  }
   ",
   .open = "{{",
   .close = "}}"

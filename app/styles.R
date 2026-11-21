@@ -1,11 +1,19 @@
-rookie_slider_css <- glue(
+css <- glue(
   "
   .ReactTable {
-    font-family: var(--bs-body-font-family) !important;
-  }
-  
-  /* sliderInput */
-  
+      font-family: var(--bs-body-font-family) !important;
+    }
+    .bslib-navs-card-title {
+      background: {{teal}};
+      color: white
+    }
+  ",
+  .open  = "{{",
+  .close = "}}"
+)
+
+rookie_slider_css <- glue(
+  "
   .irs-grid-pol.small { height: 0px; }
   .slider-animate-button {
     color: {{dark_teal}};

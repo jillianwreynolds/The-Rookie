@@ -11,6 +11,23 @@ about_project_cards <- list(
   status = card(
     card_header("Project Status", class = "bg-secondary"),
     "This project is still in progress."
+  ),
+  objectives = card(
+    card_header("Objectives", class = "bg-secondary"),
+    markdown("
+    Explore *The Rookie* with data
+    - Exploratory data analysis
+    - Text analysis
+    - ...
+    
+    Practice/learn skills
+      - Strings and regular expressions
+      - Working with large data sets
+      - Web development
+        - Shiny and Shinylive
+        - HTML
+        - CSS
+    ")
   )
 )
 
@@ -18,7 +35,8 @@ about_project <- nav_panel(
   title = "Project",
   layout_column_wrap(
     about_project_cards$project,
-    about_project_cards$status
+    about_project_cards$status,
+    about_project_cards$objectives
   )
 )
 

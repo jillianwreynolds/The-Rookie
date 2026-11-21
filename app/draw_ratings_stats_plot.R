@@ -2,16 +2,8 @@
 
 draw_ratings_stats_plot <- function(data) { 
   data |> 
-    group_by(season) |> 
-    summarise(
-      min = min(rating),
-      q1 = quantile(rating, 0.25),
-      median = median(rating),
-      q3 = quantile(rating, 0.75),
-      mean = mean(rating),
-      max = max(rating)
-    ) |> 
     pivot_longer(2:last_col(), names_to = "stat", values_to = "value") |> 
+    filter_out(stat == "sd") |> 
     ggplot(aes(season, value)) +
     geom_point(aes(color = fct_reorder2(stat, season, value))) +
     geom_line(

@@ -12,6 +12,7 @@ list(
   "styles.R",
   "functions.R",
   "top6_card.R",
+  "median_season_ratings.R",
   "about.R",
   "draw_chars_gender_plot.R",
   "write_top6_summary_stats_tbl.R",
@@ -51,7 +52,8 @@ cards_home <- list(
         ),
         actionButton(
           "reset_season_filter", "Reset Filter", class = "btn-reset"
-        )
+        ),
+        placement = "right"
       )
     ),
     DTOutput("episodes"),
@@ -60,13 +62,23 @@ cards_home <- list(
   series_stats = card(
     card_header("Series Statistics", class = "bg-secondary"),
     tableOutput("series_stats")
-  ),
-  ratings_note = card(
-    card_header("Episode Ratings", class = "bg-secondary"),
-    "Episode"
   )
 )
 
+
+### value boxes -----------------------------------------------------------
+
+home_vbs <- list(
+  n_episodes = value_box(
+    id = "n_episodes_vb",
+    glue("episodes across {n_seasons} seasons"),
+    textOutput("n_episodes"),
+    showcase = bsicons::bs_icon("camera-reels"),
+    # showcase_layout = "top right",
+    class = "value-first"
+  ),
+  ratings = median_season_ratings_UI("msr_home")
+)
 
 ### nav_panel -------------------------------------------------------------
 
@@ -75,14 +87,18 @@ home_panel <- nav_panel(
   title = "Home",
   p("By Jillian W. Reynolds", style = "font-size:22px"),
   layout_column_wrap(
-    cards_home$series_stats,
     layout_column_wrap(
-      top6_UI("top6_home"),
-      cards_home$ratings_note
+      cards_home$series_stats,
+      layout_column_wrap(width = 1, home_vbs$n_episodes, home_vbs$ratings),
+      top6_UI("top6_home")
     ),
-    cards_home$directory,
-    style = css(grid_template_columns = "2fr 1fr 3fr"),
     fillable = FALSE
+  ),
+  layout_column_wrap(
+    width = 1/3,
+    card(class = "empty-card"),
+    cards_home$directory,
+    style = css(grid_template_columns = "1fr 2fr 1fr")
   )
 )
 
@@ -206,17 +222,6 @@ view_options_popover <- popover(
 ### cards ------------------------------------------------------------------
 
 cards_ratings <- list(
-  note = card(
-    p(
-      "Episodes rating data was downloaded from ",
-      a(
-        "IMDb",
-        href = "https://data.imdb.com/non-commercial-datasets/",
-        target = "_blank"
-      ),
-      "on July 31, 2026"
-    )
-  ),
   ratings = card(
     card_header("Episode Ratings", class = "bg-secondary"),
     DTOutput("ratings")
@@ -253,7 +258,8 @@ cards_ratings <- list(
 
 ### value boxes -----------------------------------------------------------
 
-vbs <- list(
+ratings_vbs <- list(
+  median_season_ratings = median_season_ratings_UI("msr_ratings"),
   highest = value_box(
     "Highest Rating",
     value = textOutput("highest_rating"),
@@ -285,10 +291,10 @@ ratings_panel <- nav_panel(
     width = 1/2,
     heights_equal = "row",
     layout_column_wrap(
-      cards_ratings$note,
-      vbs$highest,
-      vbs$average,
-      vbs$lowest,
+      ratings_vbs$median_season_ratings,
+      ratings_vbs$highest,
+      ratings_vbs$average,
+      ratings_vbs$lowest,
       width = 1/2
     ),
     cards_ratings$ratings_stats
@@ -353,6 +359,18 @@ server <- function(input, output, session) {
     )
   })
   
+  n_episodes <- reactive(
+    data()$episodes |>
+      select(season, episode) |>
+      count(season)
+  )
+  
+  n_words <- reactive(
+    data()$tokens1_raw |> 
+      filter(type == "dialogue") |> 
+      group_by(season) |> 
+      count()
+  )  
   characters <- reactive(
     data()$characters |> 
       select(ends_with("name"), type) |> 
@@ -426,6 +444,20 @@ server <- function(input, output, session) {
       arrange(season, episode)
   )
   
+  ratings_stats <- reactive(
+    data()$ratings |> 
+      group_by(season) |> 
+      summarise(
+        min = min(rating),
+        q1 = quantile(rating, 0.25),
+        median = median(rating),
+        q3 = quantile(rating, 0.75),
+        max = max(rating),
+        mean = mean(rating),
+        sd = sd(rating)
+      )
+  )
+  
 ## home -------------------------------------------------------------------
   
   observeEvent(input$reset_season_filter, reset("filter_season"))
@@ -449,19 +481,6 @@ server <- function(input, output, session) {
     )
   )
   
-  n_episodes <- reactive(
-    data()$episodes |>
-      select(season, episode) |>
-      count(season)
-  )
-  
-  n_words <- reactive(
-    data()$tokens1_raw |> 
-      filter(type == "dialogue") |> 
-      group_by(season) |> 
-      count()
-  )
-  
   output$series_stats <- renderTable({
     
     n_episodes <- n_episodes() |> rename(episodes = n)
@@ -473,6 +492,13 @@ server <- function(input, output, session) {
       clean_col_names()
     
   })
+  
+  median_season_ratings_server("msr_home", ratings_stats)
+  median_season_ratings_server("msr_ratings", ratings_stats)
+  
+  output$n_episodes <- renderText(
+    data()$episodes |> nrow()
+  )
   
 # characters -------------------------------------------------------------
   
@@ -630,20 +656,6 @@ server <- function(input, output, session) {
   )
   output$average_rating_eps <- renderText(
     ratings() |> filter(rating == round(mean(rating), 1)) |> titles_to_string()
-  )
-  
-  ratings_stats <- reactive(
-    data()$ratings |> 
-      group_by(season) |> 
-      summarise(
-        min = min(rating),
-        q1 = quantile(rating, 0.25),
-        median = median(rating),
-        q3 = quantile(rating, 0.75),
-        max = max(rating),
-        mean = mean(rating),
-        sd = sd(rating)
-      )
   )
   
   output$ratings_stats_plot <- renderPlot(

@@ -8,8 +8,8 @@ yellow      <- "#facf21"
 yellow2     <- "#facf2125"
 light_green <- "#b9d4bd"
 code_color  <- "#7c13ba"
-viridis <- c("#440154FF", "#46337EFF", "#365C8DFF", "#277F8EFF",
-             "#1FA187FF", "#4AC16DFF", "#9FDA3AFF", "#FDE725FF")
+viridis   <- c("#440154FF", "#46337EFF", "#365C8DFF", "#277F8EFF",
+               "#1FA187FF", "#4AC16DFF", "#9FDA3AFF", "#FDE725FF")
 
 # bs ----------------------------------------------------------------------
 
@@ -22,12 +22,11 @@ rookie_theme <- bs_theme(
   bs_add_variables(
     "headings-color"     = dark_teal,
     "link-color"         = teal,
-    "code-color"         = code_color,
-    "card-title-color"   = teal
+    "code-color"         = code_color
   ) |> 
   bs_add_rules(
     glue(
-      "
+    "
     .card {
       border-radius: var(--bs-border-radius-lg);
     }

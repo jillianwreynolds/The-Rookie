@@ -12,7 +12,9 @@ list(
   "styles.R",
   "functions.R",
   "about.R",
+  "top6_card.R",
   "draw_chars_gender_plot.R",
+  "write_top6_summary_stats_tbl.R",
   "draw_ratings_stats_plot.R"
 ) |> 
   walk(\(x) source(x))
@@ -57,11 +59,11 @@ cards_home <- list(
   series_stats = card(
     card_header("Series Statistics", class = "bg-secondary"),
     tableOutput("series_stats")
-  ),
-  top6 = card(
-    card_header("Top 6 Speakers of the Series", class = "bg-secondary"),
-    htmlOutput("series_T6")
-  )
+  )#,
+  # top6 = card(
+  #   card_header("Top 6 Speakers of the Series", class = "bg-secondary"),
+  #   htmlOutput("series_T6")
+  # )
 )
 
 
@@ -73,7 +75,8 @@ home_panel <- nav_panel(
   p("By Jillian W. Reynolds", style = "font-size:22px"),
   layout_column_wrap(
     cards_home$series_stats,
-    cards_home$top6,
+    top6_UI("top6_home"),
+    # cards_home$top6,
     cards_home$directory,
     style = css(grid_template_columns = "2fr 1fr 3fr"),
     fillable = FALSE
@@ -113,7 +116,7 @@ cards_characters <- list(
   top6_plot = card(
     full_screen = TRUE,
     card_header(
-      "Top 6 Speakers",
+      "Words per Season for the Top 6 Speakers",
       class = "bg-secondary",
       tooltip(
         bsicons::bs_icon("info-circle"),
@@ -153,19 +156,26 @@ cards_characters <- list(
 characters_panel <- nav_panel(
   title = "Characters",
   layout_column_wrap(
+    fillable = FALSE,
+    top6_UI("top6_chars_panel"),
+    cards_characters$top6_plot,
+    cards_characters$gender_plot,
+    style = css(grid_template_columns = "3fr 7fr 7fr")
+  ),
+  layout_column_wrap(
     width = 1/2,
     # cards_characters$table,
     cards_characters$words_by_character,
-    cards_characters$top6_plot,
-    heights_equal = "row"
+    cards_characters$top6_stats,
+    heights_equal = "row",
+    style = css(grid_template_columns = "5fr 7fr")
   ),
   layout_column_wrap(
     fillable = FALSE,
     width = 1/2,
     # card(tableOutput("characters")),
     # card(tableOutput("chars_long")),
-    cards_characters$gender_plot,
-    cards_characters$top6_stats,
+    # cards_characters$top6_stats,
     style = css(grid_template_columns = "3fr 4fr")
   ),#,
   # textOutput("chars_vec")
@@ -365,6 +375,9 @@ server <- function(input, output, session) {
       rename(first_name = sp3, last_name = sp4)
   )
   
+  top6_server("top6_home", top6)
+  top6_server("top6_chars_panel", top6)
+  
   filter_characters <- function(
     data,
     filter = c("top6", "main", "recurring", "all")
@@ -450,14 +463,14 @@ server <- function(input, output, session) {
     
   })
   
-  output$series_T6 <- renderText({
-    top6() |> 
-      unite(character, first_name, last_name) |> 
-      clean_chars_col() |> 
-      pull(character) %>%
-      str_c(1:6, ". ", ., collapse = "\n") |> 
-      markdown()
-  })
+  # output$series_T6 <- renderText({
+  #   top6() |> 
+  #     unite(character, first_name, last_name) |> 
+  #     clean_chars_col() |> 
+  #     pull(character) %>%
+  #     str_c(1:6, ". ", ., collapse = "\n") |> 
+  #     markdown()
+  # })
 
 # characters -------------------------------------------------------------
   
@@ -582,39 +595,7 @@ server <- function(input, output, session) {
   })
   
   output$top6_stats <- render_gt({
-    tbl <- top6_data() |> 
-      group_by(sp4, season, episode) |> 
-      count() |> 
-      ungroup()
-    
-    tbl <- tbl |> 
-      group_by(sp4, season) |> 
-      summarise(
-        min  = min(n),
-        max  = max(n),
-        mean = mean(n),
-        sd   = sd(n),
-        .groups = "drop"
-      ) |> 
-      mutate(sp4 = sp4 |> str_to_title()) |> 
-      rename(Character = sp4, minimum = min, maximum = max) |> 
-      clean_col_names() |> 
-      rename(SD = Sd)
-    
-    gt <- tbl |> 
-      gt() |> 
-      fmt_number(c("Mean", "SD"), drop_trailing_zeros = FALSE) |> 
-      cols_align_decimal()
-    
-    gt |>
-      opt_interactive(
-        use_sorting = TRUE,
-        use_highlight = TRUE,
-        page_size_default = 10,
-        use_page_size_select = TRUE,
-        page_size_values = c(10, 20)
-      )
-    
+    write_top6_summary_stats_tbl(top6_data())
   })
   
   # output$chars_vec <- renderText(chars_vec())

@@ -27,37 +27,7 @@ rookie_theme <- bs_theme(
     "headings-color"     = dark_teal,
     "link-color"         = teal,
     "code-color"         = code_color
-  ) #|> 
-  # bs_add_rules(
-  #   glue(
-  #   "
-  #   .card {
-  #     border-radius: var(--bs-border-radius-lg);
-  #   }
-  #   .accordion {
-  #     --bs-accordion-btn-bg: {{teal2}};
-  #     --bs-accordion-active-bg: {{light_green}};
-  #   }
-  #   .btn-reset {
-  #     background-color: {{teal2}};
-  #     border-color: var(--bs-border-color);
-  #     color: {{dark_teal}};
-  #   }
-  #   .btn-reset:hover {
-  #     background-color: {{yellow}};
-  #     border-color: {{dark_teal}};
-  #     color: {{dark_teal}};
-  #   }
-  #   .vb-yellow {
-  #     background-color: {{yellow2}} !important;
-  #     color: {{dark_teal}}!important;
-  #   }
-  #   ",
-  #     .open = "{{",
-  #     .close = "}}"
-  #   )
-  # )
-
+  )
 
 # ggplot ------------------------------------------------------------------
 

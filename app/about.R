@@ -33,7 +33,7 @@ about_project_cards <- list(
   )
 )
 
-about_project <- nav_panel(
+about_project <- accordion_panel(
   title = "Project",
   layout_column_wrap(
     about_project_cards$project,
@@ -61,7 +61,7 @@ about_data_cards <- list(
   )
 )
 
-about_data <- nav_panel(
+about_data <- accordion_panel(
   title = "Data",
   layout_column_wrap(
     about_data_cards$transcripts,
@@ -126,7 +126,7 @@ about_methodology_cards <- list(
   )
 )
 
-about_methodology <- nav_panel(
+about_methodology <- accordion_panel(
   title = "Methodology",
   layout_column_wrap(
     about_methodology_cards$R,
@@ -137,9 +137,11 @@ about_methodology <- nav_panel(
   about_methodology_cards$notes
 )
 
-about_menu <- nav_menu(
+about_menu <- nav_panel(
   "About",
-  about_project,
-  about_data,
-  about_methodology
+  accordion(
+    about_project,
+    about_data,
+    about_methodology
+  )
 )

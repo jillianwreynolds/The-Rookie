@@ -137,7 +137,7 @@ about_methodology <- accordion_panel(
   about_methodology_cards$notes
 )
 
-about_menu <- nav_panel(
+about_panel <- nav_panel(
   "About",
   accordion(
     about_project,

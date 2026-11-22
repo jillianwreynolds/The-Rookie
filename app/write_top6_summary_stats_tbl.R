@@ -21,8 +21,7 @@ write_top6_summary_stats_tbl <- function(data) {
   
   gt <- tbl |> 
     gt() |> 
-    fmt_number(c("Mean", "SD"), drop_trailing_zeros = FALSE) |> 
-    cols_align_decimal()
+    fmt_number(c("Mean", "SD"), drop_trailing_zeros = FALSE)
   
   gt |>
     opt_interactive(

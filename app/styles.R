@@ -1,41 +1,62 @@
 css <- glue(
   "
+  .card {
+      border-radius: var(--bs-border-radius-lg);
+  }
+  .accordion {
+    --bs-accordion-btn-bg: {{teal2}};
+    --bs-accordion-active-bg: {{light_green}};
+  }
+  .btn-reset {
+    background-color: {{teal2}};
+    border-color: var(--bs-border-color);
+    color: {{dark_teal}};
+  }
+  .btn-reset:hover {
+    background-color: {{yellow}};
+    border-color: {{dark_teal}};
+    color: {{dark_teal}};
+  }
+  .vb-yellow {
+    background-color: {{yellow2}} !important;
+    color: {{dark_teal}}!important;
+  }
   .empty-card {
-  --bs-border-color-translucent: white
+    --bs-border-color-translucent: white
   }
   .ReactTable {
-      font-family: var(--bs-body-font-family) !important;
-    }
-    .bslib-navs-card-title {
-      background: {{teal}};
-      color: white;
-    }
-    #ratings_stats_card .nav-link {
+    font-family: var(--bs-body-font-family) !important;
+  }
+  .bslib-navs-card-title {
+    background: {{teal}};
+    color: white;
+  }
+  #ratings_stats_card .nav-link {
     --bs-nav-link-color: {{dark_teal}};
     --bs-nav-link-hover-color: {{teal}};
     background-color: {{light_green}};
-    }
-    #ratings_stats_card .nav-link.active {
+  }
+  #ratings_stats_card .nav-link.active {
     background-color: {{dark_teal}};
     --bs-nav-pills-link-active-color: white;
-    }
-    .value-first .value-box-area {
-      display: flex;
-      flex-direction: column;
-    }
-    .value-first .value-box-value {
-      order: -1;
-      font-size: 3rem;
-    }
-    .value-first .value-box-title {
-      order: 0;
-    }
-    .median_season_ratings .value-box-grid {
-      background-color: {{teal2}};
-    }
-    #n_episodes_vb .value-box-grid {
-      background-color: {{yellow2}};
-    }
+  }
+  .value-first .value-box-area {
+    display: flex;
+    flex-direction: column;
+  }
+  .value-first .value-box-value {
+    order: -1;
+    font-size: 3rem;
+  }
+  .value-first .value-box-title {
+    order: 0;
+  }
+  .median_season_ratings .value-box-grid {
+    background-color: {{teal2}};
+  }
+  #n_episodes_vb .value-box-grid {
+    background-color: {{yellow2}};
+  }
   ",
   .open  = "{{",
   .close = "}}"

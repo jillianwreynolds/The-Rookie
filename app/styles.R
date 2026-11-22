@@ -143,6 +143,8 @@ other_css <- glue(
   .accordion {
     --bs-accordion-btn-bg: {{teal2}};
     --bs-accordion-active-bg: {{light_green}};
+    --bs-accordion-active-color: {{dark_teal}};
+    --bs-accordion-btn-color: {{dark_teal}};
   }
   .ReactTable {
     font-family: var(--bs-body-font-family) !important;

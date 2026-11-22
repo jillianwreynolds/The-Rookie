@@ -1,32 +1,23 @@
-css <- glue(
+# card --------------------------------------------------------------------
+
+card_css <- glue(
   "
   .card {
       border-radius: var(--bs-border-radius-lg);
   }
-  .accordion {
-    --bs-accordion-btn-bg: {{teal2}};
-    --bs-accordion-active-bg: {{light_green}};
-  }
-  .btn-reset {
-    background-color: {{teal2}};
-    border-color: var(--bs-border-color);
-    color: {{dark_teal}};
-  }
-  .btn-reset:hover {
-    background-color: {{yellow}};
-    border-color: {{dark_teal}};
-    color: {{dark_teal}};
-  }
-  .vb-yellow {
-    background-color: {{yellow2}} !important;
-    color: {{dark_teal}}!important;
-  }
   .empty-card {
     --bs-border-color-translucent: white
   }
-  .ReactTable {
-    font-family: var(--bs-body-font-family) !important;
-  }
+  ",
+  .open = "{{",
+  .close = "}}"
+)
+
+
+# nav card ----------------------------------------------------------------
+
+nav_card_css <- glue(
+  "
   .bslib-navs-card-title {
     background: {{teal}};
     color: white;
@@ -39,6 +30,19 @@ css <- glue(
   #ratings_stats_card .nav-link.active {
     background-color: {{dark_teal}};
     --bs-nav-pills-link-active-color: white;
+  }
+  ",
+  .open = "{{",
+  .close = "}}"
+)
+
+# value box ---------------------------------------------------------------
+
+value_box_css <- glue(
+  "
+  .vb-yellow {
+    background-color: {{yellow2}} !important;
+    color: {{dark_teal}}!important;
   }
   .value-first .value-box-area {
     display: flex;
@@ -58,11 +62,32 @@ css <- glue(
     background-color: {{yellow2}};
   }
   ",
-  .open  = "{{",
+  .open = "{{",
   .close = "}}"
 )
 
-rookie_slider_css <- glue(
+# button ------------------------------------------------------------------
+
+button_css <- glue(
+  "
+  .btn-reset {
+    background-color: {{teal2}};
+    border-color: var(--bs-border-color);
+    color: {{dark_teal}};
+  }
+  .btn-reset:hover {
+    background-color: {{yellow}};
+    border-color: {{dark_teal}};
+    color: {{dark_teal}};
+  }
+  ",
+  .open = "{{",
+  .close = "}}"
+)
+
+# slider ------------------------------------------------------------------
+
+slider_css <- glue(
   "
   .irs-grid-pol.small { height: 0px; }
   .slider-animate-button {
@@ -109,4 +134,33 @@ rookie_slider_css <- glue(
   ",
   .open = "{{",
   .close = "}}"
+)
+
+# other -------------------------------------------------------------------
+
+other_css <- glue(
+  "
+  .accordion {
+    --bs-accordion-btn-bg: {{teal2}};
+    --bs-accordion-active-bg: {{light_green}};
+  }
+  .ReactTable {
+    font-family: var(--bs-body-font-family) !important;
+  }
+  
+  ",
+  .open  = "{{",
+  .close = "}}"
+)
+
+# CSS ---------------------------------------------------------------------
+
+css <- str_c(
+  card_css,
+  nav_card_css,
+  value_box_css,
+  button_css,
+  slider_css,
+  other_css,
+  sep = "\n"
 )

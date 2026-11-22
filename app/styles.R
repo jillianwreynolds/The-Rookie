@@ -22,12 +22,12 @@ nav_card_css <- glue(
     background: {{teal}};
     color: white;
   }
-  #ratings_stats_card .nav-link {
+  .card-header-pills .nav-link {
     --bs-nav-link-color: {{dark_teal}};
     --bs-nav-link-hover-color: {{teal}};
     background-color: {{light_green}};
   }
-  #ratings_stats_card .nav-link.active {
+  .card-header-pills .nav-link.active {
     background-color: {{dark_teal}};
     --bs-nav-pills-link-active-color: white;
   }

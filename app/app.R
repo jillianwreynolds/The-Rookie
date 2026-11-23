@@ -21,7 +21,8 @@ list(
   "write_top6_summary_stats_tbl.R",
   "draw_ratings_stats_plot.R",
   "write_ratings_stats_tbl.R",
-  "draw_best_worst_eps_speakers_plot.R"
+  "draw_best_worst_eps_speakers_plot.R",
+  "words_rating.R"
 ) |> 
   walk(\(x) source(x))
 
@@ -247,6 +248,24 @@ cards_ratings <- list(
     full_screen = TRUE,
     card_header("Proportions of Words in Highest and Lowest Rated Episodes for the Top 6 Speakers of the Series", class = "bg-secondary"),
     plotOutput("best_worst_eps_speakers")
+  ),
+  words_rating = card(
+    card_header(
+      "Percent of Words vs. Episode Ratings",
+      class = "bg-secondary",
+      tooltip(
+        bsicons::bs_icon("info-circle"),
+        "lm(rating ~ percent)"
+      )
+    ),
+    markdown("The association between percent of words spoken in an episode and average episode rating was not significant for any of *The Rookie*'s top six speakers."),
+    layout_column_wrap(
+      navset_card_pill(
+          nav_spacer(),
+          nav_panel("Plots", plotOutput("words_rating_plot")),
+          nav_panel("Table", gt_output("words_rating_lm"))
+        )
+    )
   )
 )
 
@@ -285,11 +304,11 @@ ratings_panel <- nav_panel(
     width = 1/2,
     heights_equal = "row",
     layout_column_wrap(
+      width = 1/2,
       ratings_vbs$median_season_ratings,
       ratings_vbs$highest,
       ratings_vbs$average,
-      ratings_vbs$lowest,
-      width = 1/2
+      ratings_vbs$lowest
     ),
     cards_ratings$ratings
   ),
@@ -297,11 +316,9 @@ ratings_panel <- nav_panel(
     cards_ratings$speakers_prop,
     cards_ratings$ratings_stats
   ),
-  card(
-    card_header("Correlation", class = "bg-secondary"),
-    tableOutput("rating_words_lm"),
-    # tableOutput("prop_rating_tbl"),
-    plotOutput("prop_rating_plot")
+  layout_column_wrap(
+    width = 1/2,
+    cards_ratings$words_rating
   )
 )
 
@@ -733,71 +750,28 @@ server <- function(input, output, session) {
     )
   })
   
-  output$rating_words_lm <- renderTable({
-    
-    df <- top6_data() |> 
-      group_by(sp4, season, episode) |> 
-      count() |> 
-      ungroup() |> 
-      rename(words = n) |> 
-      left_join(ratings() |> select(-title), join_by(season, episode))
-    
-    df |> 
-      lm(rating ~ sp4 + words, data = _, weights = n_votes) |> broom::tidy()
-    
-  })
-  
-  output$prop_rating_tbl <- renderTable({
+  top6_word_ratings_data <- reactive({
     counts <- top6_data() |> 
       group_by(sp4, season, episode) |> 
       count() |> 
       ungroup()
-    
     totals <- top6_data() |> 
       group_by(season, episode) |> 
       count() |> 
       ungroup() |> 
       rename(episode_total = n)
-    
     counts |> 
       left_join(totals, join_by(season, episode)) |> 
       mutate(prop = n / episode_total) |> 
       left_join(ratings() |> select(-title), join_by(season, episode))
+    })
+  
+  output$words_rating_lm <- render_gt({
+    write_words_rating_lm_tbl(top6_word_ratings_data()) 
   })
   
-  output$prop_rating_plot <- renderPlot({
-    counts <- top6_data() |> 
-      group_by(sp4, season, episode) |> 
-      count() |> 
-      ungroup()
-    
-    totals <- top6_data() |> 
-      group_by(season, episode) |> 
-      count() |> 
-      ungroup() |> 
-      rename(episode_total = n)
-    
-    counts |> 
-      left_join(totals, join_by(season, episode)) |> 
-      mutate(prop = n / episode_total) |> 
-      left_join(ratings() |> select(-title), join_by(season, episode)) |> 
-      ggplot(aes(prop, rating, color = sp4)) +
-      geom_point() + 
-      scale_x_continuous(labels = \(x) format_percent(x, digits = 0)) +
-      scale_color_viridis_d(
-        end = 0.9, direction = -1, labels = \(x) x |> str_to_title()
-      ) +
-      facet_wrap(~sp4) +
-      geom_smooth(method = "lm") +
-      labs(
-        x = "Percent of Words in an Episode", y = "Rating", color = "Character"
-      ) +
-      gg_theme +
-      theme(
-        strip.text = element_text(size = 14, color = dark_teal),
-        strip.background = element_rect(fill = teal2)
-      )
-    
+  output$words_rating_plot <- renderPlot({
+    draw_words_rating_plot(top6_word_ratings_data())
   })
   
 }

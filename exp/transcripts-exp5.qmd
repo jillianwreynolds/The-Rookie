@@ -1,0 +1,28 @@
+---
+title: "transcripts-exp5"
+format: html
+execute:
+  echo: false
+  eval: false
+---
+
+```{r}
+
+df_raw |> 
+  select(speaker) |> 
+  distinct() |> 
+  collect()
+
+```
+
+
+```{r}
+df_raw |> collect() |> slice_sample(n = 40)
+```
+
+```{r}
+df_raw |> 
+  filter(sp4 == "ARMSTRONG") |> 
+  collect()
+```
+

@@ -136,6 +136,22 @@ slider_css <- glue(
   .close = "}}"
 )
 
+
+# table -------------------------------------------------------------------
+
+table_css <- glue(
+  "
+  .gt_table {
+    font-family: var(--bs-body-font-family) !important;
+  }
+  .ReactTable {
+    font-family: var(--bs-body-font-family) !important;
+  }
+  ",
+  .open  = "{{",
+  .close = "}}"
+)
+
 # other -------------------------------------------------------------------
 
 other_css <- glue(
@@ -146,10 +162,6 @@ other_css <- glue(
     --bs-accordion-active-color: {{dark_teal}};
     --bs-accordion-btn-color: {{dark_teal}};
   }
-  .ReactTable {
-    font-family: var(--bs-body-font-family) !important;
-  }
-  
   ",
   .open  = "{{",
   .close = "}}"
@@ -163,6 +175,7 @@ css <- str_c(
   value_box_css,
   button_css,
   slider_css,
+  table_css,
   other_css,
   sep = "\n"
 )

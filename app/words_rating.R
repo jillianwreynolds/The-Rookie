@@ -1,34 +1,46 @@
-write_words_rating_lm_tbl <- function(data) {
+write_words_rating_lm_tbl <- function(input, output, data) {
   
-  data |> 
-    nest(.by = sp4, .key = "data") |> 
-    mutate(
-      model = map(data, \(x) lm(rating ~ prop, data = x)),
-      tidy  = map(model, \(x) broom::tidy(x))
-    ) |> 
-    select(sp4, tidy) |>
-    unnest(tidy) |> 
-    mutate(
-      sp4 = sp4 |> str_to_title(),
-      term = term |> replace_when(
-        term == "(Intercept)" ~ "Intercept",
-        term == "prop" ~ "Slope"
-      ),
-      across(estimate:statistic, ~format_value(.)),
-      p.value = p.value |> format_p(name = NULL) |> str_remove("^0")
-    ) |>
-    group_by(sp4) |> 
-    select(-statistic) |> 
-    rename(Character = sp4, SE = std.error, p = p.value) |> 
-    rename_with(.cols = c(term, estimate), str_to_title) |>
-    gt() |> 
-    cols_align(columns = p, "right") |> 
-    tab_options(column_labels.padding = px(0)) |> 
-    opt_interactive(
-      use_sorting = TRUE,
-      use_pagination = FALSE,
-      use_compact_mode = TRUE
-    )
+  output$words_rating_lm <- render_gt({
+    
+    data <- data |> 
+      nest(.by = sp4, .key = "data") |> 
+      mutate(
+        model = map(data, \(x) lm(rating ~ prop, data = x)),
+        tidy  = map(model, \(x) broom::tidy(x))
+      ) |> 
+      select(sp4, tidy) |>
+      unnest(tidy) |> 
+      mutate(
+        sp4 = sp4 |> str_to_title(),
+        term = term |> replace_when(
+          term == "(Intercept)" ~ "Intercept",
+          term == "prop" ~ "Slope"
+        ),
+        across(estimate:statistic, ~format_value(.)),
+        p.value = p.value |> format_p(name = NULL) |> str_remove("^0")
+      ) |>
+      group_by(sp4) |> 
+      select(-statistic)
+    
+    if (input$filter_words_rating_lm_tbl != "All") {
+      data <- data |> 
+        ungroup() |> 
+        filter(term == input$filter_words_rating_lm_tbl)
+    }
+    
+    data |> 
+      rename(Character = sp4, SE = std.error, p = p.value) |> 
+      rename_with(.cols = c(term, estimate), str_to_title) |>
+      gt() |> 
+      cols_align(columns = p, "right") |> 
+      tab_options(column_labels.padding = px(0)) |> 
+      opt_interactive(
+        use_sorting = TRUE,
+        use_pagination = FALSE,
+        use_compact_mode = TRUE
+      )
+    
+  })
   
 }
 

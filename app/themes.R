@@ -21,3 +21,24 @@ gg_theme <- theme_light() +
     legend.title = element_text(size = 14),
     legend.text  = element_text(size = 13)
   )
+
+## plotly
+
+plotly_layout <- function(p, ...) {
+  
+  defaults <- list(
+    xaxis  = list(
+      title = list(font = list(size = 15)), tickfont = list(size = 14)
+    ),
+    yaxis  = list(
+      title = list(font = list(size = 15)), tickfont = list(size = 14)
+    ),
+    legend = list(
+      title = list(font = list(size = 14)), font = list(size = 13)
+    )
+  )
+  
+  args <- modifyList(defaults, list(...))
+  do.call(layout, c(list(p), args))
+  
+}

@@ -82,7 +82,7 @@ packages_tooltip <- tooltip(
 about_methodology_cards <- list(
   R = card(
     card_header("R", class = "bg-secondary"),
-    markdown("I use `R`, `RStudio`, and `Quarto` to plan the project and explore and analyze the data. I use the former two for analyzing the data and publishing the results. I use `renv` for package version control. The project combines R, markdown, HTML and CSS.")
+    markdown("I use `R`, `RStudio`, and `Quarto` to plan the project and explore and analyze the data. I use the former two for analyzing the data and publishing the results. I use `renv` for package version control. The project combines R, markdown, HTML, CSS, and Bootstrap 5.")
   ),
   github = card(
     card_header("GitHub", class = "bg-secondary"),
@@ -101,8 +101,9 @@ about_methodology_cards <- list(
       - bslib
       - shinyjs
       - nanoparquet
-      - glue
       - DT
+      - Plotly
+      - insight
     ")
   ),
   analysis = card(
@@ -112,9 +113,15 @@ about_methodology_cards <- list(
       packages_tooltip
     ),
     markdown("
-      - tidyverse
+      - tidyverse, primarily:
+        - tidyr
+        - dplyr
+        - purrr
+        - glue
+        - ggplot2
       - targets
       - arrow
+      - patchwork
     ")
   ),
   notes = card(

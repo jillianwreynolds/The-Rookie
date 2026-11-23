@@ -6,6 +6,7 @@ library(DT)
 library(gt)
 library(bslib)
 library(patchwork)
+library(plotly)
 
 list(
   "colors.R",
@@ -151,7 +152,7 @@ cards_characters <- list(
       choices = c("Count" = "n", "Proportion" = "prop"),
       selected = "n"
     ),
-    plotOutput("top6_plot")
+    plotlyOutput("top6_plot")
   ),
   gender_plot = card(
     full_screen = TRUE,
@@ -561,13 +562,20 @@ server <- function(input, output, session) {
       mutate(prop = n / season_total)
   )
   
-  output$top6_plot <- renderPlot({
+  output$top6_plot <- renderPlotly({
     
-    data <- top6_prop() |> mutate(season = season |> as_factor())
+    data <- top6_prop() |> 
+      mutate(
+        season = season |> as_factor(),
+        sp4 = sp4 |> str_to_title()
+      )
 
     if (input$word_stat == "n") {
       plot <- data |>
-        ggplot(aes(season, n, group = sp4)) +
+        ggplot(aes(
+          season, n, group = sp4,
+          text = str_c(sp4, "\nSeason: ", season, "\nWords: ", n))
+        ) +
         geom_line(
           aes(y = n, color = fct_reorder2(sp4, season, n)),
           linewidth = 0.625
@@ -587,13 +595,23 @@ server <- function(input, output, session) {
         scale_y_continuous(expand = expansion(c(0, 0.05)))
     }
 
-    plot +
-      scale_color_viridis_d(end = 0.85, labels = \(x) x |> str_to_title()) +
+    plot <- plot +
+      scale_color_viridis_d(end = 1) +
+      # scale_color_viridis_d(end = 0.85, labels = \(x) x |> str_to_title()) +
       labs(
         x = "Season",
         color = "Character"
       ) +
-      gg_theme
+      theme_light()
+      # gg_theme
+    
+    plot |> 
+      ggplotly(tooltip = "text") |> 
+      config(displaylogo = FALSE, displayModeBar = FALSE) |> 
+      plotly_layout(dragmode = FALSE) |> 
+      htmlwidgets::onRender(
+        "function(el) { Plotly.restyle(el, {'line.width': 1.5}); }"
+      )
     
   })
   

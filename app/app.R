@@ -7,6 +7,7 @@ library(gt)
 library(bslib)
 library(patchwork)
 library(plotly)
+library(insight)
 
 list(
   "colors.R",
@@ -585,19 +586,26 @@ server <- function(input, output, session) {
 
     if (input$word_stat == "prop") {
       plot <- data |>
-        ggplot(aes(season, prop, group = sp4)) +
+        ggplot(aes(
+          season, prop, group = sp4,
+          text = str_c(
+            sp4,
+            "\nSeason ", season, 
+            "\n", format_percent(prop)
+          ))) +
         geom_line(
           aes(color = fct_reorder2(sp4, season, prop)),
           linewidth = 0.625
         ) +
-        labs(y = "Proportion of Words") +
+        labs(y = "Percent of All Words") +
         coord_cartesian(ylim = c(0, NA)) +
-        scale_y_continuous(expand = expansion(c(0, 0.05)))
+        scale_y_continuous(
+          expand = expansion(c(0, 0.05)), labels = \(x) format_percent(x, 0)
+        )
     }
 
     plot <- plot +
-      scale_color_viridis_d(end = 1) +
-      # scale_color_viridis_d(end = 0.85, labels = \(x) x |> str_to_title()) +
+      scale_color_viridis_d(end = 0.9) +
       labs(
         x = "Season",
         color = "Character"

@@ -120,17 +120,17 @@ test7 |>
 # transcripts as arrow / df_raw -------------------------------------------
 
 transcripts |> 
-  select(season, episode, html) |> 
-  filter(str_detect(html, "six months.\n\nWESLEY\nWell")) |> 
+  select(ep_number, season, episode, html) |> 
+  filter(str_detect(html, "(?i)Gennifer")) |> 
   collect()
 
 transcripts |> pull(html) |> 
-  nth(134) |> 
-  peek_match("Package is secure", before = 70, after = 140)
+  nth(78) |> 
+  peek_match("GENNIFER", before = 70, after = 140)
 
 df_raw |> 
   select(season:sp4) |> 
-  filter(season == 6) |>
+  # filter(season == 6) |>
   # filter(season == 2, episode == 11) |>
   collect() |> 
-  peek_rows(transcript, "I'm waiting")
+  peek_rows(speaker_note, "video")

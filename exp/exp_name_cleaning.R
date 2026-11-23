@@ -83,11 +83,16 @@ df_raw |> select(season, episode, speaker, sp1:sp4, transcript) |>
   arrange(sp4, sp3, speaker, season, episode) |> 
   print_inf()
 
-df_raw |> check_names("sarah")
-df_raw |> check_names("hall", show_speaker_part_cols = TRUE)
-df_raw |> check_names("^MATT", peek = FALSE)
+df_raw |> check_names("henry")
+df_raw |> check_names("henry", show_speaker_part_cols = TRUE)
+df_raw |> check_names("elena", peek = FALSE)
+df_raw |> check_names("mrs\\.", peek = FALSE, show_speaker_part_cols = TRUE)
 
 
 source("R/check_name_variations.R")
 source("R/check_names.R")
 source("R/find_which_episodes.R")
+
+notable_guest_chars
+
+crossover_chars_long

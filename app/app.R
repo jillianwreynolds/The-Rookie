@@ -320,8 +320,8 @@ ratings_panel <- nav_panel(
       ratings_vbs$average,
       ratings_vbs$lowest,
       width = 1/2
-    ),
-    cards_ratings$ratings
+    )#,
+    # cards_ratings$ratings
   ),
   layout_column_wrap(
     cards_ratings$speakers_prop,
@@ -350,7 +350,7 @@ ui <- page_navbar(
   ),
   nav_spacer(),
   home_panel,
-  about_panel,
+  # about_panel,
   characters_panel,
   ratings_panel
 )

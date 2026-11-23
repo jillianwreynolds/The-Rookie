@@ -28,13 +28,13 @@ plotly_layout <- function(p, ...) {
   
   defaults <- list(
     xaxis  = list(
-      title = list(font = list(size = 15)), tickfont = list(size = 14)
+      title = list(font = list(size = 14)), tickfont = list(size = 12)
     ),
     yaxis  = list(
-      title = list(font = list(size = 15)), tickfont = list(size = 14)
+      title = list(font = list(size = 14)), tickfont = list(size = 12)
     ),
     legend = list(
-      title = list(font = list(size = 14)), font = list(size = 13)
+      title = list(font = list(size = 13)), font = list(size = 12.5)
     )
   )
   

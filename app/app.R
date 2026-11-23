@@ -61,12 +61,12 @@ cards_home <- list(
         placement = "right"
       )
     ),
-    DTOutput("episodes"),
+    gt_output("episodes"),
     min_height = "600px"
   ),
   series_stats = card(
     card_header("Series Statistics", class = "bg-secondary"),
-    tableOutput("series_stats")
+    gt_output("series_stats")
   )
 )
 
@@ -95,7 +95,8 @@ home_panel <- nav_panel(
     layout_column_wrap(
       cards_home$series_stats,
       layout_column_wrap(width = 1, home_vbs$n_episodes, home_vbs$ratings),
-      top6_UI("top6_home")
+      top6_UI("top6_home"),
+      # style = css(grid_template_columns = "4fr 1fr 1fr")
     ),
     fillable = FALSE
   ),
@@ -134,8 +135,7 @@ cards_characters <- list(
       ),
       uiOutput("char_selection")
     ),
-    DTOutput("words_by_chars"),
-    min_height = "600px"
+    gt_output("words_by_chars")
   ),
   top6_plot = card(
     full_screen = FALSE,
@@ -234,7 +234,7 @@ cards_ratings <- list(
       plotOutput("ratings_animation")
     ),
     nav_panel(
-      "Table", DTOutput("ratings")
+      "Table", gt_output("ratings")
     )
   ),
   ratings_stats = navset_card_pill(
@@ -251,14 +251,14 @@ cards_ratings <- list(
   ),
   words_rating = card(
     card_header(
-      "Percent of Words vs. Episode Ratings",
+      "Proportion of Words vs. Episode Ratings",
       class = "bg-secondary",
       tooltip(
         bsicons::bs_icon("info-circle"),
         "lm(rating ~ percent)"
       )
     ),
-    markdown("The association between percent of words spoken in an episode and average episode rating was not significant for any of *The Rookie*'s top six speakers."),
+    markdown("The association between proportion of words spoken in an episode (displayed as percentage in the figure) and average episode rating was not significant for any of *The Rookie*'s top six speakers."),
     layout_column_wrap(
       navset_card_pill(
           nav_spacer(),
@@ -488,34 +488,45 @@ server <- function(input, output, session) {
   
   observeEvent(input$reset_season_filter, reset("filter_season"))
   
-  output$episodes <- renderDT(
-    {
-      tbl <- data()$episodes |> 
-        select(ep_number, season, episode, title)
-      if (length(input$filter_season) > 0) {
-        tbl <- tbl |> filter(season %in% input$filter_season)
-      }
-      tbl |> 
-        rename(number = ep_number) |> 
-        rename_with(str_to_title)
-      
-    },
-    server = FALSE,
-    options = list(
-      pageLength = 10,
-      lengthMenu = c(5, 10, seq(20, 40, 10))
-    )
-  )
+  output$episodes <- render_gt({
+    
+    tbl <- data()$episodes |> 
+      select(season, episode, title)
+    
+    if (length(input$filter_season) > 0) {
+      tbl <- tbl |> filter(season %in% input$filter_season)
+    }
+    
+    tbl |> 
+      rename_with(str_to_title) |> 
+      gt() |> 
+      cols_width("Season" ~ px(100), "Episode" ~ px(100)) |> 
+      cols_align("center", 1:2) |> 
+      opt_interactive(
+        use_sorting = TRUE,
+        use_search = TRUE,
+        use_page_size_select = TRUE,
+        page_size_values = c(5, seq(10, 40, 10))
+      )
+    
+  })
   
-  output$series_stats <- renderTable({
+  output$series_stats <- render_gt({
     
     n_episodes <- n_episodes() |> rename(episodes = n)
     n_words    <- n_words()    |> rename(words = n)
     
     left_join(n_episodes, n_words, join_by(season)) |> 
-      mutate(average = (words / episodes) |> round(2)) |> 
+      mutate(average = (words / episodes)) |> 
       rename(`Average Words per Episode` = average) |> 
-      clean_col_names()
+      clean_col_names() |> 
+      gt() |> 
+      fmt_number(3, decimals = 0) |> 
+      fmt_number(4, decimals = 2) |> 
+      cols_width(
+        "Season" ~ px(100), "Episodes" ~ px(100), "Words" ~ px(100)
+      ) |> 
+      opt_interactive(use_sorting = TRUE, use_pagination = FALSE)
     
   })
   
@@ -552,7 +563,7 @@ server <- function(input, output, session) {
     )
   })
   
-  output$words_by_chars <- renderDT({
+  output$words_by_chars <- render_gt({
     
     tbl <- data()$tokens1_raw |> 
       filter(type == "dialogue") |> 
@@ -575,7 +586,7 @@ server <- function(input, output, session) {
       }
     }
     
-    tbl |> 
+    tbl <- tbl |> 
       group_by(sp3, sp4) |> 
       count(sort = TRUE) |> 
       ungroup() |> 
@@ -583,7 +594,18 @@ server <- function(input, output, session) {
         where(is.character),
         \(x) x |> str_replace_all("_", " ") |> str_to_title()
       )) |> 
-      rename("First Name" = sp3, "Last Name" = sp4)
+      rename("First Name" = sp3, "Last Name" = sp4, Words = n)
+    
+    tbl |> 
+      gt() |> 
+      fmt_number("Words", decimals = 0) |> 
+      opt_interactive(
+        use_sorting = TRUE,
+        use_search = TRUE,
+        use_page_size_select = TRUE,
+        page_size_values = c(seq(10, 40, 10), 54)
+      )
+    
   })
   
   output$top6_plot <- renderPlotly({
@@ -601,15 +623,15 @@ server <- function(input, output, session) {
           text = str_c(
             sp4,
             "\nSeason: ", season,
-            "\nWords: ", format_value(n, digits = 0, big_mark = ","
-          )))
-        ) +
+            "\nWords: ", fmt_value(n, 0)
+          )
+        )) +
         geom_line(
           aes(y = n, color = fct_reorder2(sp4, season, n)),
           linewidth = 0.625
         ) +
         scale_y_continuous(
-          labels = \(x) format_value(x, digits = 0, big_mark = ",")
+          labels = \(x) fmt_value(x, 0)
         ) +
         labs(y = "Number of Words")
     }
@@ -627,7 +649,7 @@ server <- function(input, output, session) {
           aes(color = fct_reorder2(sp4, season, prop)),
           linewidth = 0.625
         ) +
-        labs(y = "Percent of All Words") +
+        labs(y = "Proportion of Words") +
         coord_cartesian(ylim = c(0, NA)) +
         scale_y_continuous(
           expand = expansion(c(0, 0.05)), labels = \(x) format_percent(x, 0)
@@ -647,9 +669,6 @@ server <- function(input, output, session) {
       ggplotly(tooltip = "text") |>
       config(displaylogo = FALSE, displayModeBar = FALSE) |>
       plotly_layout(dragmode = FALSE) |>
-      # ggplotly(tooltip = "text", width = NULL, height = NULL) |>
-      # config(displaylogo = FALSE, displayModeBar = FALSE, responsive = TRUE) |>
-      # plotly_layout(dragmode = FALSE, autosize = TRUE) |>
       htmlwidgets::onRender(
         "function(el) { Plotly.restyle(el, {'line.width': 1.5}); }"
       )
@@ -676,14 +695,27 @@ server <- function(input, output, session) {
 
 ## ratings ----------------------------------------------------------------
   
-  output$ratings <- renderDT(
+  output$ratings <- render_gt(
     ratings() |> 
-      rename(number_of_votes = n_votes) |> 
-      clean_col_names(),
-    options = list(
-      pageLength = 10,
-      lengthMenu = c(5, 10, seq(20, 40, 10))
-    )
+      rename(average_rating = rating, number_of_votes = n_votes) |> 
+      clean_col_names() |> 
+      gt() |> 
+      fmt_number("Average Rating", decimals = 1) |> 
+      fmt_number("Number of Votes", decimals = 0) |>
+      cols_width(
+        "Season"  ~ px(95),
+        "Episode" ~ px(95),
+        "Average Rating"  ~ px(130),
+        "Number of Votes" ~ px(130)
+      ) |> 
+      cols_align("center", 1:2) |> 
+      opt_interactive(
+        use_sorting = TRUE,
+        use_search = TRUE,
+        use_pagination = TRUE,
+        use_page_size_select = TRUE,
+        page_size_values = c(5, seq(10, 40, 10))
+      )
   )
   
   min_rating  <- reactive(ratings()$rating |> min())

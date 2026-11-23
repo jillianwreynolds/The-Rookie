@@ -10,6 +10,8 @@ write_ratings_stats_tbl <- function(data) {
     rename(SD = Sd) |> 
     gt() |> 
     fmt_number(drop_trailing_zeros = FALSE) |> 
+    cols_align("center", "Season") |> 
+    cols_width("Season" ~ px(70), everything() ~ px(90)) |> 
     opt_interactive(
       use_pagination = FALSE,
       use_sorting = TRUE,

@@ -16,7 +16,7 @@ draw_ratings_stats_plot <- function(data) {
     ) +
     scale_x_continuous(breaks = 1:8, minor_breaks = NULL) +
     scale_y_continuous(expand = expansion(c(0, 0))) +
-    scale_color_viridis_d(end = 0.85, labels = \(x) x |> str_to_title()) +
+    scale_color_viridis_d(end = 0.9, labels = \(x) x |> str_to_title()) +
     scale_linetype_manual(
       values = c(
         "max" = "solid", "q3" = "dotdash", "median" = "dashed",

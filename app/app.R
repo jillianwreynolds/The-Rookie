@@ -18,7 +18,8 @@ list(
   "draw_chars_gender_plot.R",
   "write_top6_summary_stats_tbl.R",
   "draw_ratings_stats_plot.R",
-  "write_ratings_stats_tbl.R"
+  "write_ratings_stats_tbl.R",
+  "draw_best_worst_eps_speakers_plot.R"
 ) |> 
   walk(\(x) source(x))
 
@@ -150,7 +151,7 @@ cards_characters <- list(
       choices = c("Count" = "n", "Proportion" = "prop"),
       selected = "n"
     ),
-    plotOutput("T6_plot")
+    plotOutput("top6_plot")
   ),
   gender_plot = card(
     full_screen = TRUE,
@@ -203,23 +204,6 @@ characters_panel <- nav_panel(
 
 ## ratings panel -----------------------------------------------------------
 
-### popovers
-
-# view_options_popover <- popover(
-#   bsicons::bs_icon("gear", title = "Settings", class = "ms-auto"),
-#   title = "View Options",
-#   checkboxInput("view_full_scale", "View full rating scale (0 to 10)?"),
-#   selectInput(
-#     "filter_season2",
-#     "Filter by Season",
-#     choices = 1:n_seasons,
-#     multiple = TRUE
-#   ),
-#   checkboxInput("compare_seasons", "Compare seasons?"),
-#   uiOutput("compare_options"),
-#   actionButton("reset_plot_ratings_dist", "Reset", class = "btn-reset")
-# )
-
 ### cards ------------------------------------------------------------------
 
 cards_ratings <- list(
@@ -257,22 +241,6 @@ cards_ratings <- list(
     nav_panel("Plot", plotOutput("ratings_stats_plot")),
     nav_panel("Table", gt_output("ratings_stats_tbl"))
   ),
-  # plot_counts = card(
-  #   full_screen = TRUE,
-  #   card_header(
-  #     "Distribution of Ratings",
-  #     class = "bg-secondary d-flex align-items-center gap-1",
-  #     tooltip(
-  #       bsicons::bs_icon("info-circle"),
-  #       "To filter by season, compare seasons, or change plot settings, click the gear icon to the right.",
-  #       placement = "right"
-  #     ),
-  #     view_options_popover
-  #   ),
-  #   uiOutput("ratings_slider_ui"),
-  #   plotOutput("plot_ratings_dist"),
-  #   min_height = "640px"
-  # ),
   speakers_prop = card(
     full_screen = TRUE,
     card_header("Proportions of Words in Highest and Lowest Rated Episodes for the Top 6 Speakers of the Series", class = "bg-secondary"),
@@ -326,15 +294,7 @@ ratings_panel <- nav_panel(
   layout_column_wrap(
     cards_ratings$speakers_prop,
     cards_ratings$ratings_stats
-  ),
-  # layout_column_wrap(
-  #   cards_ratings$ratings,
-  #   cards_ratings$plot_counts
-  # ),
-  # layout_column_wrap(
-  #   width = 1/2,
-  #   cards_ratings$speakers_prop
-  # )
+  )
 )
 
 # UI ----------------------------------------------------------------------
@@ -601,7 +561,7 @@ server <- function(input, output, session) {
       mutate(prop = n / season_total)
   )
   
-  output$T6_plot <- renderPlot({
+  output$top6_plot <- renderPlot({
     
     data <- top6_prop() |> mutate(season = season |> as_factor())
 
@@ -723,258 +683,12 @@ server <- function(input, output, session) {
     
   })
   
-  output$ratings_animation <- renderPlot({
-    
-    data <- ratings_dist() |> mutate(season = season |> as_factor())
-    
-    if (input$ratings_slider != 0) {
-      data <- data |> filter(season == input$ratings_slider)
-    }
-    
-    plot <- data |> 
-      ggplot(aes(rating, n)) + 
-      labs(x = "Rating", y = "Number of Episodes") +
-      scale_y_continuous(expand = expansion(c(0, 0.05))) +
-      gg_theme
-    
-    if(input$ratings_slider == 0) {
-      plot <- plot + 
-        geom_col(aes(fill = season)) +
-        scale_fill_viridis_d() +
-        labs(fill = "Season") +
-        theme(
-          legend.position = c(0.005, 0.995),
-          legend.justification = c(0, 1)
-        )
-    }
-    
-    if (input$ratings_slider != 0) {
-      plot <- plot + geom_col(fill = viridis[input$ratings_slider])
-    }
-    
-    break_skip <- if (input$full_rating_scale2) 1 else 0.5
-    
-    if (input$full_rating_scale2) {
-      plot <- plot + 
-        scale_x_continuous(breaks = seq(0, 10, break_skip)) +
-        coord_cartesian(xlim = c(0, 10), ylim = c(0, 20))
-    } else if (input$full_rating_scale2 == FALSE) {
-      plot <- plot +
-        scale_x_continuous(breaks = seq(0, 10, break_skip)) +
-        coord_cartesian(xlim = c(min_rating(), max_rating()), ylim = c(0, 20))
-    }
-    
-    plot
-    
-  })
-  
-  # output$compare_options <- renderUI({
-  #   if (input$compare_seasons) {
-  #     radioButtons(
-  #       "compare_view",
-  #       "Compare seasons with",
-  #       c(
-  #         "Colored bar chart(s)" = 1,
-  #         "Multiple bar charts"  = 2,
-  #         "Violin plot"          = 3
-  #       )
-  #     )
-  #   }
-  # })
-  
-  # output$ratings_slider_ui <- renderUI({
-  #   req(input$compare_seasons)
-  #   req(input$compare_view)
-  #   if (input$compare_view == 1) {
-  #     tags$div(class = "rookie-slider", sliderInput(
-  #       "ratings_slider",
-  #       "Season",
-  #       value = 0,
-  #       min = 0,
-  #       max = 8,
-  #       step = 1,
-  #       animate = animationOptions(interval = 1500, loop = TRUE)
-  #     ))
-  #   }
-  # })
-  
-  # output$plot_ratings_dist <- renderPlot({
-  #   
-  #   ratings_dist <- data()$ratings |> 
-  #     group_by(season) |> 
-  #     count(rating) |> 
-  #     mutate(season = season |> as_factor())
-  #   
-  #   if (when_any(
-  #     when_all(
-  #       when_any(
-  #         isTruthy(input$compare_seasons == FALSE),
-  #         isTruthy(input$compare_view == 2)
-  #       ),
-  #       length(input$filter_season2) > 0
-  #     ),
-  #     when_all(
-  #       isTruthy(input$compare_view == 1),
-  #       length(input$filter_season2) > 0,
-  #       isTruthy(input$ratings_slider == 0)
-  #     )
-  #   )) {
-  #     ratings_dist <- ratings_dist |> filter(season %in% input$filter_season2)
-  #   }
-  #   if (when_all(
-  #     isTruthy(input$compare_view == 1), isTruthy(input$ratings_slider != 0)
-  #   )) {
-  #     ratings_dist <- ratings_dist |> filter(season == input$ratings_slider)
-  #   }
-  #   
-  #   break_skip <- if (when_any(
-  #     input$view_full_scale,
-  #     isTruthy(input$compare_view == 2)
-  #   )) {
-  #     1
-  #   } else {
-  #     0.5
-  #   }
-  #   
-  #   plot <- ratings_dist |> 
-  #     ggplot(aes(rating, n)) +
-  #     labs(x = "Rating", y = "Number of Episodes") +
-  #     scale_x_continuous(breaks = seq(0, 10, break_skip)) +
-  #     gg_theme
-  #   
-  #   if (isTruthy(input$compare_seasons == FALSE)) {
-  #     plot <- plot + geom_col(fill = teal)
-  #   }
-  #   
-  #   if (isTruthy(input$compare_seasons)) {
-  #     if (when_all(
-  #       isTruthy(input$compare_view == 1),
-  #       isTruthy(input$ratings_slider == 0)
-  #     )) {
-  #       plot <- plot +
-  #         geom_col(aes(fill = season)) +
-  #         scale_fill_viridis_d() +
-  #         labs(fill = "Season") +
-  #         theme(
-  #           legend.position = c(0.005, 0.995),
-  #           legend.justification = c(0, 1)
-  #         )
-  #       if (input$view_full_scale) {
-  #         plot <- plot + coord_cartesian(xlim = c(0, 10))
-  #       } else {
-  #         plot <- plot + coord_cartesian(xlim = c(min_rating(), max_rating()))
-  #       }
-  #     }
-  #     if (when_all(
-  #       isTruthy(input$compare_view == 1),
-  #       isTruthy(input$ratings_slider != 0)
-  #     )) {
-  #       plot <- plot + geom_col(fill = viridis[input$ratings_slider])
-  #       if (input$view_full_scale) {
-  #         plot <- plot + coord_cartesian(xlim = c(0, 10), ylim = c(0, 20))
-  #       } else if (input$view_full_scale == FALSE) {
-  #         plot <- plot + 
-  #           coord_cartesian(xlim = c(min_rating(), max_rating()), ylim = c(0, 20))
-  #       }
-  #     }
-  #     if (isTruthy(input$compare_view == 2)) {
-  #       strip_labels <- setNames(str_c("Season ", 1:8), as.character(1:8))
-  #       facet_cols <- if (length(input$filter_season2) %in% 2:3) 1 else NULL
-  #       plot <- plot +
-  #         geom_col(fill = teal) +
-  #         facet_wrap(
-  #           ~season,
-  #           ncol = facet_cols,
-  #           labeller = as_labeller(strip_labels),
-  #           axes = "all_x"
-  #         ) +
-  #         theme(strip.text = element_text(size = 14))
-  #     }
-  #     if (isTruthy(input$compare_view == 3)) {
-  #       plot <- ratings_dist |> 
-  #         ggplot(aes(season, rating, fill = season)) + 
-  #         geom_violin() +
-  #         scale_fill_viridis_d(guide = NULL) +
-  #         labs(x = "Season", y = "Rating") +
-  #         gg_theme
-  #     }
-  #   }
-  #   if (when_all(
-  #     input$view_full_scale,
-  #     when_any(
-  #       isTruthy(input$compare_seasons == FALSE),
-  #       isTruthy(input$compare_view == 2)
-  #     )
-  #   )) {
-  #     plot <- plot + coord_cartesian(xlim = c(0, 10))
-  #   }
-  #   if (isTruthy(input$compare_view == 2)) {
-  #     plot <- plot + 
-  #       scale_y_continuous(
-  #         expand = expansion(c(0, 0.05)),
-  #         minor_breaks = NULL
-  #       )
-  #   } else if (!isTruthy(input$compare_view == 3)) {
-  #     plot <- plot + scale_y_continuous(expand = expansion(c(0, 0.05)))
-  #   }
-  #   plot
-  # })
-  # 
-  # observeEvent(input$reset_plot_ratings_dist, {
-  #   reset("view_full_scale")
-  #   reset("filter_season2")
-  #   reset("compare_seasons")
-  #   updateRadioButtons(session, "compare_view", selected = character(0))
-  #   updateSliderInput(session, "ratings_slider", value = 0)
-  # })
+  source("ratings_animation.R", local = TRUE)
   
   output$best_worst_eps_speakers <- renderPlot({
-    
-    word_count <- data()$tokens1_raw |>
-      filter(type == "dialogue") |>
-      group_by(season, episode) |>
-      count() |>
-      rename(total_words = n)
-
-    data <- data()$tokens1_raw |>
-      filter(type == "dialogue") |>
-      filter_characters("top6") |>
-      left_join(ratings(), join_by(season, episode))
-
-    highest <- data |>
-      slice_max(rating)
-
-    lowest <- data |>
-      slice_min(rating)
-
-    draw_plot <- function(data) {
-      data |>
-        group_by(sp4, season, episode) |>
-        count() |>
-        left_join(word_count, join_by(season, episode)) |>
-        mutate(
-          prop = n / total_words,
-          episode = str_c(season, "x", episode),
-          sp4 = sp4 |> str_to_title()
-        ) |>
-        ggplot(aes(episode, prop)) +
-        geom_col(aes(fill = sp4), position = "dodge") +
-        scale_y_continuous(expand = expansion(c(0, 0.05))) +
-        scale_fill_viridis_d(end = 0.9, direction = -1) +
-        labs(
-          x = "Episode", y = "Proportion of Total Words", fill = "Character"
-        ) +
-        gg_theme
-    }
-
-    (draw_plot(highest) + labs(title = "Highest Rated")) +
-      (draw_plot(lowest) + labs(title = "Lowest Rated")) +
-      plot_layout(
-        guides = "collect", axis_titles = "collect_y", axes = "collect_y"
-      ) &
-      coord_cartesian(ylim = c(0, 0.175)) &
-      theme(plot.title = element_text(size = 17), legend.position = "bottom")
-    
+    draw_best_worst_eps_speakers_plot(
+      data()$tokens1_raw, ratings, filter_characters
+    )
   })
   
 }

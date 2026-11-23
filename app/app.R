@@ -163,7 +163,7 @@ cards_characters <- list(
   ),
   top6_stats = card(
     card_header(
-      "Top 6 Speakers: Summary Statistics",
+      "Summary Statistics for the Top 6 Speakers",
       class = "bg-secondary",
       tooltip(
         bsicons::bs_icon("info-circle"),
@@ -171,6 +171,7 @@ cards_characters <- list(
         placement = "right"
       )
     ),
+    uiOutput("filter_top6_stats_UI"),
     gt_output("top6_stats")
   )
 )
@@ -263,7 +264,21 @@ cards_ratings <- list(
       navset_card_pill(
           nav_spacer(),
           nav_panel("Plots", plotOutput("words_rating_plot")),
-          nav_panel("Table", gt_output("words_rating_lm"))
+          nav_panel(
+            "Table",
+            toolbar(
+              "Filter Rows",
+              toolbar_input_select(
+                "filter_words_rating_lm_tbl",
+                label = "Filter Rows",
+                choices = c(
+                  "All", "Slopes" = "Slope", "Intercepts" = "Intercept"
+                ),
+                selected = "All"
+              )
+            ),
+            gt_output("words_rating_lm")
+          )
         )
     )
   )
@@ -523,6 +538,7 @@ server <- function(input, output, session) {
       gt() |> 
       fmt_number(3, decimals = 0) |> 
       fmt_number(4, decimals = 2) |> 
+      cols_align("center", 1:2) |> 
       cols_width(
         "Season" ~ px(100), "Episodes" ~ px(100), "Words" ~ px(100)
       ) |> 
@@ -545,7 +561,9 @@ server <- function(input, output, session) {
       length(input$char_type_filter) == 2,
       length(input$char_type_filter) == 0
     )) {
-      choices_vec <- chars_vec()
+      choices_vec <- list(
+        Main = main_chars_vec(), Recurring = recurring_chars_vec()
+      )
     }
     if (length(input$char_type_filter) == 1) {
       if ("main" %in% input$char_type_filter) {
@@ -687,9 +705,19 @@ server <- function(input, output, session) {
     draw_chars_gender_plot(data()$characters_long)
   })
   
-  output$top6_stats <- render_gt({
-    write_top6_summary_stats_tbl(top6_data())
+  output$filter_top6_stats_UI <- renderUI({
+    selectInput(
+      "filter_top6_stats_tbl",
+      "Filter by Character",
+      choices = top6() |> 
+        mutate(last_name = str_to_title(last_name)) |> 
+        arrange(last_name) |> 
+        pull(last_name),
+      multiple = TRUE
+    )
   })
+  
+  write_top6_summary_stats_tbl(input, output, top6_data())
   
   # output$chars_vec <- renderText(chars_vec())
 
@@ -798,9 +826,7 @@ server <- function(input, output, session) {
       left_join(ratings() |> select(-title), join_by(season, episode))
     })
   
-  output$words_rating_lm <- render_gt({
-    write_words_rating_lm_tbl(top6_word_ratings_data()) 
-  })
+  write_words_rating_lm_tbl(input, output, top6_word_ratings_data()) 
   
   output$words_rating_plot <- renderPlot({
     draw_words_rating_plot(top6_word_ratings_data())

@@ -101,9 +101,9 @@ about_methodology_cards <- list(
       - bslib
       - shinyjs
       - nanoparquet
-      - DT
-      - Plotly
       - insight
+      - reactable
+      - Plotly
     ")
   ),
   analysis = card(
@@ -121,6 +121,7 @@ about_methodology_cards <- list(
         - ggplot2
       - targets
       - arrow
+      - gt
       - patchwork
     ")
   ),

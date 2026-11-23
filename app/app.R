@@ -137,13 +137,13 @@ cards_characters <- list(
     min_height = "600px"
   ),
   top6_plot = card(
-    full_screen = TRUE,
+    full_screen = FALSE,
     card_header(
       "Words per Season for the Top 6 Speakers",
       class = "bg-secondary",
       tooltip(
         bsicons::bs_icon("info-circle"),
-        '"Count" shows total number of words spoken by each character in each season. "Proportion" shows the proportion of words spoken by each character in each season (character\'s number of words in a season divided by total words in the season).',
+        '"Count" shows total number of words spoken by each character in each season. "Proportion" shows the proportion of words spoken by each character in each season (character\'s number of words in a season divided by total words in the season) as a percent.',
         placement = "right"
       )
     ),
@@ -296,6 +296,12 @@ ratings_panel <- nav_panel(
   layout_column_wrap(
     cards_ratings$speakers_prop,
     cards_ratings$ratings_stats
+  ),
+  card(
+    card_header("Correlation", class = "bg-secondary"),
+    tableOutput("rating_words_lm"),
+    # tableOutput("prop_rating_tbl"),
+    plotOutput("prop_rating_plot")
   )
 )
 
@@ -425,6 +431,20 @@ server <- function(input, output, session) {
       filter_characters("top6")
   )
   
+  top6_count <- reactive(
+    data()$tokens1_raw |>
+      filter(type == "dialogue") |>
+      filter_characters("top6") |> 
+      group_by(sp4, season) |>
+      count()
+  )
+  
+  top6_prop <- reactive(
+    top6_count() |> 
+      left_join(n_words() |> rename(season_total = n), join_by(season)) |> 
+      mutate(prop = n / season_total)
+  )
+  
   ratings <- reactive(
     data()$ratings |> 
       left_join(data()$episodes, join_by(season, episode)) |> 
@@ -549,20 +569,6 @@ server <- function(input, output, session) {
       rename("First Name" = sp3, "Last Name" = sp4)
   })
   
-  top6_count <- reactive(
-    data()$tokens1_raw |>
-      filter(type == "dialogue") |>
-      filter_characters("top6") |> 
-      group_by(sp4, season) |>
-      count()
-  )
-  
-  top6_prop <- reactive(
-    top6_count() |> 
-      left_join(n_words() |> rename(season_total = n), join_by(season)) |> 
-      mutate(prop = n / season_total)
-  )
-  
   output$top6_plot <- renderPlotly({
     
     data <- top6_prop() |> 
@@ -575,11 +581,18 @@ server <- function(input, output, session) {
       plot <- data |>
         ggplot(aes(
           season, n, group = sp4,
-          text = str_c(sp4, "\nSeason: ", season, "\nWords: ", n))
+          text = str_c(
+            sp4,
+            "\nSeason: ", season,
+            "\nWords: ", format_value(n, digits = 0, big_mark = ","
+          )))
         ) +
         geom_line(
           aes(y = n, color = fct_reorder2(sp4, season, n)),
           linewidth = 0.625
+        ) +
+        scale_y_continuous(
+          labels = \(x) format_value(x, digits = 0, big_mark = ",")
         ) +
         labs(y = "Number of Words")
     }
@@ -614,9 +627,12 @@ server <- function(input, output, session) {
       # gg_theme
     
     plot |> 
-      ggplotly(tooltip = "text") |> 
-      config(displaylogo = FALSE, displayModeBar = FALSE) |> 
-      plotly_layout(dragmode = FALSE) |> 
+      ggplotly(tooltip = "text") |>
+      config(displaylogo = FALSE, displayModeBar = FALSE) |>
+      plotly_layout(dragmode = FALSE) |>
+      # ggplotly(tooltip = "text", width = NULL, height = NULL) |>
+      # config(displaylogo = FALSE, displayModeBar = FALSE, responsive = TRUE) |>
+      # plotly_layout(dragmode = FALSE, autosize = TRUE) |>
       htmlwidgets::onRender(
         "function(el) { Plotly.restyle(el, {'line.width': 1.5}); }"
       )
@@ -715,6 +731,73 @@ server <- function(input, output, session) {
     draw_best_worst_eps_speakers_plot(
       data()$tokens1_raw, ratings, filter_characters
     )
+  })
+  
+  output$rating_words_lm <- renderTable({
+    
+    df <- top6_data() |> 
+      group_by(sp4, season, episode) |> 
+      count() |> 
+      ungroup() |> 
+      rename(words = n) |> 
+      left_join(ratings() |> select(-title), join_by(season, episode))
+    
+    df |> 
+      lm(rating ~ sp4 + words, data = _, weights = n_votes) |> broom::tidy()
+    
+  })
+  
+  output$prop_rating_tbl <- renderTable({
+    counts <- top6_data() |> 
+      group_by(sp4, season, episode) |> 
+      count() |> 
+      ungroup()
+    
+    totals <- top6_data() |> 
+      group_by(season, episode) |> 
+      count() |> 
+      ungroup() |> 
+      rename(episode_total = n)
+    
+    counts |> 
+      left_join(totals, join_by(season, episode)) |> 
+      mutate(prop = n / episode_total) |> 
+      left_join(ratings() |> select(-title), join_by(season, episode))
+  })
+  
+  output$prop_rating_plot <- renderPlot({
+    counts <- top6_data() |> 
+      group_by(sp4, season, episode) |> 
+      count() |> 
+      ungroup()
+    
+    totals <- top6_data() |> 
+      group_by(season, episode) |> 
+      count() |> 
+      ungroup() |> 
+      rename(episode_total = n)
+    
+    counts |> 
+      left_join(totals, join_by(season, episode)) |> 
+      mutate(prop = n / episode_total) |> 
+      left_join(ratings() |> select(-title), join_by(season, episode)) |> 
+      ggplot(aes(prop, rating, color = sp4)) +
+      geom_point() + 
+      scale_x_continuous(labels = \(x) format_percent(x, digits = 0)) +
+      scale_color_viridis_d(
+        end = 0.9, direction = -1, labels = \(x) x |> str_to_title()
+      ) +
+      facet_wrap(~sp4) +
+      geom_smooth(method = "lm") +
+      labs(
+        x = "Percent of Words in an Episode", y = "Rating", color = "Character"
+      ) +
+      gg_theme +
+      theme(
+        strip.text = element_text(size = 14, color = dark_teal),
+        strip.background = element_rect(fill = teal2)
+      )
+    
   })
   
 }

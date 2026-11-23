@@ -15,7 +15,7 @@ draw_ratings_stats_plot <- function(data) {
       alpha     = 0.5
     ) +
     scale_x_continuous(breaks = 1:8, minor_breaks = NULL) +
-    scale_y_continuous(expand = expansion(c(0, 0))) +
+    scale_y_continuous(breaks = seq(0, 10, 2), expand = expansion(c(0, 0))) +
     scale_color_viridis_d(end = 0.9, labels = \(x) x |> str_to_title()) +
     scale_linetype_manual(
       values = c(

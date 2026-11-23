@@ -46,7 +46,7 @@ draw_words_rating_plot <- function(data) {
       end = 0.9, direction = -1, labels = \(x) x |> str_to_title()
     ) +
     facet_wrap(~sp4, ncol = 2) +
-    labs(x = "Percent of Words in an Episode", y = "Rating") +
+    labs(x = "Proportion of Words in an Episode", y = "Rating") +
     gg_theme +
     theme(
       legend.position = "none",

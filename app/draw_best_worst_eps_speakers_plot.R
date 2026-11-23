@@ -1,4 +1,6 @@
-draw_best_worst_eps_speakers_plot <- function(data, ratings, filter_characters) {
+draw_best_worst_eps_speakers_plot <- function(
+    data, ratings, filter_characters
+) {
   
   word_count <- data |>
     filter(type == "dialogue") |>
@@ -29,10 +31,13 @@ draw_best_worst_eps_speakers_plot <- function(data, ratings, filter_characters) 
       ) |>
       ggplot(aes(episode, prop)) +
       geom_col(aes(fill = sp4), position = "dodge") +
-      scale_y_continuous(expand = expansion(c(0, 0.05))) +
+      scale_y_continuous(
+        expand = expansion(c(0, 0.05)),
+        labels = \(x) format_percent(x, digits = 0)
+      ) +
       scale_fill_viridis_d(end = 0.9, direction = -1) +
       labs(
-        x = "Episode", y = "Proportion of Total Words", fill = "Character"
+        x = "Episode", y = "Proportion of Words", fill = "Character"
       ) +
       gg_theme
   }
@@ -40,7 +45,7 @@ draw_best_worst_eps_speakers_plot <- function(data, ratings, filter_characters) 
   (draw_plot(highest) + labs(title = "Highest Rated")) +
     (draw_plot(lowest) + labs(title = "Lowest Rated")) +
     plot_layout(
-      guides = "collect", axis_titles = "collect_y", axes = "collect_y"
+      guides = "collect", axis_titles = "collect", axes = "collect_y"
     ) &
     coord_cartesian(ylim = c(0, 0.175)) &
     theme(plot.title = element_text(size = 17), legend.position = "bottom")

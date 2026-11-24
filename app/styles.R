@@ -147,6 +147,16 @@ table_css <- glue(
   .ReactTable {
     font-family: var(--bs-body-font-family) !important;
   }
+  .sticky_gt .rt-th:first-child,
+  .sticky_gt .rt-td:first-child {
+    position: sticky !important;
+    left: 0;
+    z-index: 1;
+    background: white;
+  }
+  .sticky_gt .rt-th:first-child {
+    z-index: 2;
+  }
   ",
   .open  = "{{",
   .close = "}}"

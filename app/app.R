@@ -2,8 +2,8 @@ library(shiny)
 library(shinyjs)
 library(tidyverse)
 library(glue)
-library(DT)
 library(gt)
+library(reactable)
 library(bslib)
 library(patchwork)
 library(plotly)
@@ -235,7 +235,7 @@ cards_ratings <- list(
       plotOutput("ratings_animation")
     ),
     nav_panel(
-      "Table", gt_output("ratings")
+      "Table", reactableOutput("ratings")
     )
   ),
   ratings_stats = navset_card_pill(
@@ -243,7 +243,11 @@ cards_ratings <- list(
     title = "Summary Statistics by Season",
     nav_spacer(),
     nav_panel("Plot", plotOutput("ratings_stats_plot")),
-    nav_panel("Table", gt_output("ratings_stats_tbl"))
+    nav_panel(
+      "Table",
+      reactableOutput("ratings_stats_tbl"),
+      # tags$div(class = "sticky_gt1", gt_output("ratings_stats_tbl"))
+    )
   ),
   speakers_prop = card(
     full_screen = TRUE,
@@ -723,26 +727,23 @@ server <- function(input, output, session) {
 
 ## ratings ----------------------------------------------------------------
   
-  output$ratings <- render_gt(
+  output$ratings <- renderReactable(
     ratings() |> 
       rename(average_rating = rating, number_of_votes = n_votes) |> 
       clean_col_names() |> 
-      gt() |> 
-      fmt_number("Average Rating", decimals = 1) |> 
-      fmt_number("Number of Votes", decimals = 0) |>
-      cols_width(
-        "Season"  ~ px(95),
-        "Episode" ~ px(95),
-        "Average Rating"  ~ px(130),
-        "Number of Votes" ~ px(130)
-      ) |> 
-      cols_align("center", 1:2) |> 
-      opt_interactive(
-        use_sorting = TRUE,
-        use_search = TRUE,
-        use_pagination = TRUE,
-        use_page_size_select = TRUE,
-        page_size_values = c(5, seq(10, 40, 10))
+      reactable(
+        resizable = TRUE,
+        searchable = TRUE,
+        showPageSizeOptions = TRUE,
+        pageSizeOptions = c(5, seq(10, 40, 10)),
+        highlight = TRUE,
+        showSortIcon = TRUE,
+        columns = list(
+          "Season" = colDef(sticky = "left"),
+          "Episode" = colDef(sticky = "left"),
+          "Average Rating" = colDef(format = colFormat(digits = 1)),
+          "Number of Votes" = colDef(format = colFormat(separators = TRUE))
+        )
       )
   )
   
@@ -768,7 +769,7 @@ server <- function(input, output, session) {
     draw_ratings_stats_plot(ratings_stats())
   )
   
-  output$ratings_stats_tbl <- render_gt(
+  output$ratings_stats_tbl <- renderReactable(
     write_ratings_stats_tbl(ratings_stats())
   )
   

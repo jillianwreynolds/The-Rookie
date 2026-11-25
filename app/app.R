@@ -126,13 +126,13 @@ cards_characters <- list(
       )
     ),
     layout_column_wrap(
+      uiOutput("char_selection"),
       checkboxGroupInput(
         "char_type_filter",
         "Filter by Character Type",
         choices = char_types,
         selected = char_types
-      ),
-      uiOutput("char_selection")
+      )
     ),
     gt_output("words_by_chars")
   ),
@@ -258,27 +258,28 @@ cards_ratings <- list(
         "lm(rating ~ percent)"
       )
     ),
-    markdown("The association between proportion of words spoken in an episode (displayed as percentage in the figure) and average episode rating was not significant for any of *The Rookie*'s top six speakers."),
-    layout_column_wrap(
-      navset_card_pill(
-          nav_spacer(),
-          nav_panel("Plots", plotOutput("words_rating_plot")),
-          nav_panel(
-            "Table",
-            toolbar(
-              "Filter Rows",
-              toolbar_input_select(
-                "filter_words_rating_lm_tbl",
-                label = "Filter Rows",
-                choices = c(
-                  "All", "Slopes" = "Slope", "Intercepts" = "Intercept"
-                ),
-                selected = "All"
-              )
+    markdown("For the most part, proportion of words spoken in an episode (displayed as percentage in the figure) and average episode rating were not associated."),
+    gt_output("words_rating_1lm_tbl"),
+    gt_output("words_rating_mod_tbl"),
+    verbatimTextOutput("anova"),
+    navset_card_pill(
+      nav_spacer(),
+      nav_panel("Plots", plotOutput("words_rating_plot")),
+      nav_panel(
+        "Table",
+        toolbar(
+          "Filter Rows",
+          toolbar_input_select(
+            "filter_words_rating_lm_tbl",
+            label = "Filter Rows",
+            choices = c(
+              "All", "Slopes" = "Slope", "Intercepts" = "Intercept"
             ),
-            gt_output("words_rating_lm")
+            selected = "All"
           )
-        )
+        ),
+        gt_output("words_rating_lm")
+      )
     )
   )
 )
@@ -824,6 +825,43 @@ server <- function(input, output, session) {
       mutate(prop = n / episode_total) |> 
       left_join(ratings() |> select(-title), join_by(season, episode))
     })
+  
+  lm1 <- reactive(lm(rating ~ prop + sp4, data = top6_word_ratings_data()))
+  lm2 <- reactive(lm(rating ~ prop * sp4, data = top6_word_ratings_data()))
+  
+  output$words_rating_1lm_tbl <- render_gt(
+    lm1() |> 
+      broom::tidy() |> 
+      gt() |> 
+      fmt_number() |> 
+      opt_interactive(page_size_default = 12)
+  )
+  
+  output$words_rating_mod_tbl <- render_gt(
+    lm2() |> 
+      broom::tidy() |> 
+      gt() |> 
+      fmt_number() |> 
+      opt_interactive(page_size_default = 12)
+  )
+  
+  output$anova <- renderPrint({
+    
+    cor.test(top6_word_ratings_data()$prop, top6_word_ratings_data()$rating) |> 
+      print()
+    
+    map(top6() |> pull(last_name) |> set_names(), \(x) {
+      
+      data <- top6_word_ratings_data() |> 
+        filter(sp4 == x)
+      
+        cor.test(data$prop, data$rating) |> 
+          broom::tidy()
+      
+    }) |> 
+      list_rbind(names_to = "sp4")
+    
+  })
   
   write_words_rating_lm_tbl(input, output, top6_word_ratings_data()) 
   

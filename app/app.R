@@ -66,6 +66,12 @@ cards_home <- list(
   series_stats = card(
     card_header("Series Statistics", class = "bg-secondary"),
     gt_output("series_stats")
+  ),
+  rookie_boot = card(
+    card_header(
+      'Usage of the Terms "Rookie" and "Boot"', class = "bg-secondary"
+    ),
+    gt_output("rookie_boot_tbl")
   )
 )
 
@@ -104,7 +110,8 @@ home_panel <- nav_panel(
     card(class = "empty-card"),
     cards_home$directory,
     style = css(grid_template_columns = "1fr 2fr 1fr")
-  )
+  )#,
+  # cards_home$rookie_boot
 )
 
 
@@ -330,11 +337,11 @@ ratings_panel <- nav_panel(
   layout_column_wrap(
     cards_ratings$speakers_prop,
     cards_ratings$ratings_stats
-  ),
-  layout_column_wrap(
-    width = 1/2,
-    cards_ratings$words_rating
-  )
+  )#,
+  # layout_column_wrap(
+  #   width = 1/2,
+  #   cards_ratings$words_rating
+  # )
 )
 
 # UI ----------------------------------------------------------------------
@@ -552,6 +559,21 @@ server <- function(input, output, session) {
   output$n_episodes <- renderText(
     data()$episodes |> nrow()
   )
+  
+  output$rookie_boot_tbl <- render_gt({
+    
+    data()$tokens1_raw |> 
+      select(season, word) |> 
+      filter(when_any(
+        str_detect(word, "rookie\'?s?\'?"),
+        str_detect(word, "^boot\'?s?\'?$")
+      )) |> 
+      group_by(season, word) |> 
+      count() |> 
+      ungroup() |> 
+      gt()
+    
+  })
   
 # characters -------------------------------------------------------------
   

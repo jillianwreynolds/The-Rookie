@@ -2,6 +2,7 @@ library(targets)
 library(tarchetypes)
 library(arrow)
 library(gt)
+library(spacyr)
 
 tar_option_set(
   packages = c("tidyverse"),
@@ -219,5 +220,18 @@ list(
       },
       format = "file"
     )
+  ),
+  tar_target(
+    spacy,
+    {
+      df_raw |> 
+        read_parquet() |> 
+        use_spacy_parse() |> 
+        write_parquet("data/spacy.parquet")
+      file.copy("data/spacy.parquet", "spacy.parquet", overwrite = TRUE)
+      file.copy("data/spacy.parquet", "app/spacy.parquet", overwrite = TRUE)
+      "data/spacy.parquet"
+    },
+    format = "file"
   )
 )

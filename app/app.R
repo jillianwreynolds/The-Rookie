@@ -67,11 +67,32 @@ cards_home <- list(
     card_header("Series Statistics", class = "bg-secondary"),
     gt_output("series_stats")
   ),
-  rookie_boot = card(
-    card_header(
-      'Usage of the Terms "Rookie" and "Boot"', class = "bg-secondary"
+  rookie_boot = navset_card_pill(
+    title = span('Usage of the Terms "Rookie" and "Boot"', tooltip(
+      bsicons::bs_icon("info-circle"),
+      '"Rookie" and "boot" include plural, possessive, and plural possessive forms. One instance of "#RookieHeroes" is not shown on the plot or in the table.'
+    )),
+    nav_spacer(),
+    nav_panel(
+      "Plot",
+      radioButtons(
+        "rookie_boot_plot_stat",
+        label = "Statistic",
+        choices = c("Count" = "n", "Average" = "mean"),
+        selected = "mean"
+      ),
+      plotOutput("rookie_boot_plot")
     ),
-    gt_output("rookie_boot_tbl")
+    nav_panel(
+      "Table",
+      radioButtons(
+        "rookie_boot_tbl_filter",
+        label = "Filter Rows",
+        choices = c("All", '"Boot"' = "boot", '"Rookie"' = "rookie"),
+        selected = "All"
+      ),
+      gt_output("rookie_boot_tbl")
+    )
   )
 )
 
@@ -106,12 +127,11 @@ home_panel <- nav_panel(
     fillable = FALSE
   ),
   layout_column_wrap(
-    width = 1/3,
-    card(class = "empty-card"),
+    width = 1/2,
+    cards_home$rookie_boot,
     cards_home$directory,
-    style = css(grid_template_columns = "1fr 2fr 1fr")
-  )#,
-  # cards_home$rookie_boot
+    # style = css(grid_template_columns = "1fr 2fr 1fr")
+  )
 )
 
 
@@ -158,7 +178,7 @@ cards_characters <- list(
       "word_stat",
       label = "Statistic",
       choices = c("Count" = "n", "Proportion" = "prop"),
-      selected = "n"
+      selected = "prop"
     ),
     plotlyOutput("top6_plot")
   ),
@@ -560,18 +580,84 @@ server <- function(input, output, session) {
     data()$episodes |> nrow()
   )
   
-  output$rookie_boot_tbl <- render_gt({
-    
+  rookie_boot_data <- reactive(
     data()$tokens1_raw |> 
       select(season, word) |> 
       filter(when_any(
         str_detect(word, "rookie\'?s?\'?"),
         str_detect(word, "^boot\'?s?\'?$")
       )) |> 
+      mutate(word = fct_collapse(
+        word,
+        boot = c("boot", "boot's", "boots"),
+        rookie = c("rookie", "rookie's", "rookies"),
+        other_level = "other"
+      )) |> 
       group_by(season, word) |> 
       count() |> 
+      left_join(
+        n_episodes() |> rename(number_of_episodes = n), join_by(season)
+      ) |> 
       ungroup() |> 
-      gt()
+      filter_out(word == "other") |> 
+      mutate(mean = n / number_of_episodes)
+  )
+  
+  output$rookie_boot_plot <- renderPlot({
+    
+    plot <- rookie_boot_data() |> 
+      ggplot(aes(x = season,fill = word)) +
+      scale_x_continuous(breaks = 1:n_seasons) +
+      scale_y_continuous(expand = expansion(c(0, 0.05))) +
+      scale_fill_viridis_d(
+        end = 0.6, labels = \(x) str_c('"', str_to_title(x), '"')
+      ) +
+      labs(x = "Season", fill = "Term")
+    
+    if (input$rookie_boot_plot_stat == "n") {
+      plot <- plot + 
+        geom_col(aes(y = n), position = "dodge") +
+        geom_text(
+          aes(y = n, label = n),
+          position = position_dodge(0.9),
+          vjust = -0.3,
+          size = 13, size.unit = "pt"
+        ) +
+        labs(y = "Number of Uses")
+    } else {
+      plot <- plot + 
+        geom_col(aes(y = mean), position = "dodge") +
+        geom_text(
+          aes(y = mean, label = mean |> fmt_value()),
+          position = position_dodge(0.9),
+          vjust = -0.3,
+          size = 13, size.unit = "pt"
+        ) +
+        labs(y = "Average Uses per Episode")
+    }
+    
+    plot + gg_theme + theme(legend.position = "bottom")
+    
+  })
+  
+  output$rookie_boot_tbl <- render_gt({
+    
+    tbl <- rookie_boot_data() |> 
+      select(-number_of_episodes) |> 
+      
+    if (input$rookie_boot_tbl_filter == "boot") {
+      tbl <- tbl |> filter(word == "boot")
+    }
+      
+    tbl |> 
+      clean_col_names() |> 
+      rename(number_of_uses = n, average_uses_per_episode = mean) |> 
+      gt() |> 
+      fmt_number("Average Uses per Episode") |> 
+      cols_align("center", "Season") |> 
+      opt_interactive(
+        use_sorting = TRUE
+      )
     
   })
   

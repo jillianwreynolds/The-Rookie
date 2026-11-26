@@ -26,3 +26,178 @@ df_raw |>
   collect()
 ```
 
+```{r}
+
+tokens1_raw |> 
+  select(season, episode, word) |> 
+  group_by(season, word) |> 
+  collect() |> 
+  filter(when_any(
+    str_detect(word, "rookie\'?s?\'?"),
+    str_detect(word, "^boot\'?s?\'?$"),
+    str_detect(word, "^p(1|i)$")
+  )) |> 
+  count() |> 
+  ggplot(aes(season, n, fill = word)) +
+  geom_col() +
+  facet_wrap(~word) +
+  scale_fill_viridis_d() +
+  theme_light()
+
+```
+
+```{r}
+
+tokens1_raw |> 
+  select(season, episode, sp4, word) |> 
+  # group_by(season, word) |> 
+  collect() |> 
+  filter(season %in% 4:5, str_detect(word, "friend"))
+
+```
+
+```{r}
+tokens1_raw |> 
+  select(season, episode, sp4, word) |> 
+  collect() |> 
+  filter(sp4 == "THORSEN", str_detect(word, "^p1"))
+```
+
+```{r}
+
+tokens1_raw |> 
+  select(season, episode, word) |> 
+  collect() |> 
+  filter(when_any(
+    str_detect(word, "rookie\'?s?\'?"),
+    str_detect(word, "^boot\'?s?\'?$")
+  )) |> 
+  mutate(word = fct_collapse(
+    word,
+    boot = c("boot", "boot's", "boots"),
+    rookie = c("rookie", "rookie's", "rookies"),
+    other_level = "other"
+  )) |> 
+  group_by(season) |> 
+  count(word) |> 
+  filter_out(word == "other") |> 
+  # mutate(season = as_factor(season)) |> 
+  ggplot(aes(season, n, fill = word)) +
+  geom_col(position = "dodge") +
+  geom_text(aes(label = n), position = position_dodge(1), vjust = -0.25) +
+  scale_y_continuous(expand = expansion(c(0, 0.05))) +
+  scale_fill_viridis_d(end = 0.6, labels = ~str_c('"', str_to_title(.), '"')) +
+  labs(x = "Season", y = "Number of Uses", fill = "Term") +
+  gg_theme
+
+```
+
+```{r}
+
+tokens1_raw |> 
+  rename(doc_id = ep_ID, token = word) |> 
+  collect() |> 
+  spacy_parse(
+    nounphrase = TRUE
+  )
+
+```
+
+```{r}
+
+df_raw |> 
+  select(ep_ID:type, sp4, transcript) |> 
+  filter(type == "dialogue") |> 
+  head(n = 300) |> 
+  collect() |> 
+  mutate(
+    row = row_number(),
+    doc_id = str_c(ep_ID, "_line", line, "_row", row)
+  ) |> 
+  rename(text = transcript) |> 
+  spacy_parse(dependency = TRUE, nounphrase = TRUE)
+
+```
+
+```{r}
+
+df_raw |> 
+  select(ep_ID:type, sp4, transcript) |> 
+  filter(type == "dialogue") |> 
+  collect() |> 
+  mutate(
+    row = row_number(),
+    doc_id = str_c(ep_ID, "_line", line, "_row", row)
+  ) |> 
+  rename(text = transcript) |> 
+  spacy_parse(dependency = TRUE, nounphrase = TRUE) |> 
+  filter(pos != "PUNCT") |> 
+  separate_wider_delim(
+    doc_id, "_", names = c("ep_ID", "line", "row"), cols_remove = FALSE
+  ) |> 
+  count(ep_ID, token) |> 
+  bind_tf_idf(token, ep_ID, n) |> 
+  separate_wider_delim(ep_ID, "x", names = c("season", "episode"), cols_remove = FALSE)
+
+```
+
+```{r}
+
+df_raw |> collect() |> use_spacy_parse()
+
+```
+
+```{r}
+
+spacy |> 
+  select(season, episode, token:pos, entity) |> 
+  # group_by(season, episode) |> 
+  # count(entity) |>
+  filter_out(entity == "") |> 
+  filter(str_detect(entity, "PERSON")) |> 
+  arrange(entity) |> 
+  collect()
+  
+
+```
+
+```{r}
+
+spacy |> 
+  select(ep_ID, token:pos, entity) |> 
+  filter_out(entity == "") |> 
+  filter_out(str_detect(entity, "PERSON")) |> 
+  group_by(ep_ID) |> 
+  count(token) |> 
+  collect() |> 
+  bind_tf_idf(token, ep_ID, n) |> 
+  arrange(desc(idf)) |> 
+  separate_wider_delim(
+      ep_ID, "x", names = c("season", "episode"), cols_remove = FALSE
+    ) |> 
+  slice_head(n = 15) |> 
+  filter(season == 5, episode %in% 1:4)
+
+```
+
+```{r}
+
+tokens1_raw |> 
+  select(ep_ID, type, word) |> 
+  filter(type == "dialogue") |> 
+  group_by(ep_ID) |> 
+  count(word) |> 
+  collect() |> 
+  bind_tf_idf(word, ep_ID, n) |> 
+  arrange(desc(idf)) |> 
+  slice_head(n = 30) |> 
+  ungroup() |> 
+  separate_ep_ID_col() |> 
+  filter(season == 1, episode %in% 1:4) |> 
+  ggplot(aes(word, idf)) +
+  geom_col() +
+  facet_wrap(~ ep_ID, scales = "free") +
+  coord_flip()
+
+```
+

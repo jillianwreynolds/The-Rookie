@@ -19,9 +19,12 @@ df_raw           <- open_dataset(df_raw)
 df_clean         <- open_dataset(df_clean)
 
 
+
 tar_load(matches("^tokens_"))
 tokens1_raw <- open_dataset(tokens_1_raw)
 
+tar_load(spacy)
+spacy <- open_dataset(spacy)
 
 
 # old ---------------------------------------------------------------------

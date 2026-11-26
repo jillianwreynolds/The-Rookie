@@ -60,6 +60,12 @@ tokens_3_clean|stem|f14cadd2eea4f05d|ce2059e24b103719|f3c008c0739bd890|-16909371
 tokens_2_raw|stem|cb8b9a7838d39006|d650d4b82803cfdb|7abae6a78c59ec8b|-997768465|data/tokens2_raw.parquet|t20773.0148368806s|s10093271b|10093271|file|local|vector|||2.336||
 tokens_3_raw|stem|a338f7272b9a8887|464957f7758223ad|7abae6a78c59ec8b|1663824085|data/tokens3_raw.parquet|t20773.0148692309s|s12892164b|12892164|file|local|vector|||2.788||
 tokens_1_raw|stem|68cb59b75062265a|b913af7bf31f164f|7abae6a78c59ec8b|-1640023396|data/tokens1_raw.parquet|t20773.0148861644s|s4954333b|4954333|file|local|vector|||1.441||
+characters_long|stem|5dd9bc153495f4b7|61abc8082636700d|fc94cf1c0cfcb965|344352030||t20773.1798945951s|s3578b|3578|rds|local|vector|||0.01||
+characters|stem|645f5a4041776cfa|655342354d58641e|56ef6eb51241a889|1325240192||t20773.1798948622s|s2938b|2938|rds|local|vector|||0.002||
+characters_long_parquet|stem|2850c29a80d78d3d|2f1650807521fcd8|bd2ece0fb7349a48|254781725|data/characters_long.parquet|t20773.1798952794s|s6965b|6965|file|local|vector|||0.015||
+characters_wide|stem|edebec2787117bfd|83ce0940fd074579|c651308b11ea33b8|-335834238||t20773.1798954965s|s3323b|3323|rds|local|vector|||0.01||
+lookup_chars|stem|c8916b77aaa186b5|bf927f0ec647027d|46090e6458c0df4c|1558419889||t20773.1798957129s|s878b|878|rds|local|vector|||0.011||
+characters_parquet|stem|e693918e60436a22|d3c05ffc2430d98c|557c4d3506f88050|1788989132|data/characters_parquet.parquet|t20773.1798958211s|s5869b|5869|file|local|vector|||0.003||
 split_italics_dialogue|function|77dfdb8581d52b52
 men|object|1ed4d2746da52b6d
 create_main_chars_long|function|b7256d57d368f4d2
@@ -103,10 +109,11 @@ peek_rows|function|6651c0755c3e236f
 symbols_tbl|object|9ae302499a01c3e9
 clean_other|function|b2b604508ee21e05
 create_characters_long|function|26f6ed44d250e270
-.Random.seed|object|7ac518aff38f8fd6
+.Random.seed|object|903a2087cf598984
 red_square|object|03ce8402a6b40ab6
 clean_speaker_name_parts|function|822ee6ad8a99cb14
 blue_square|object|2f4fc6a47762d725
+use_spacy_parse|function|e2128e340e0b237d
 brown_circle|object|65d786bdb3e09fe7
 clean_previously|function|0aed38a5fec728ec
 join_pdf_html|function|95520a2911007b92
@@ -164,9 +171,4 @@ replace_italics2|function|cfc5575ecb099b0f
 insert_sentinels|function|781d592e7eb8e9b8
 unify_sentinels|function|19e7db5b888a919c
 run_cleaning_pipe|function|717857d243725ab5
-characters_long|stem|5dd9bc153495f4b7|61abc8082636700d|fc94cf1c0cfcb965|344352030||t20773.1798945951s|s3578b|3578|rds|local|vector|||0.01||
-characters|stem|645f5a4041776cfa|655342354d58641e|56ef6eb51241a889|1325240192||t20773.1798948622s|s2938b|2938|rds|local|vector|||0.002||
-characters_long_parquet|stem|2850c29a80d78d3d|2f1650807521fcd8|bd2ece0fb7349a48|254781725|data/characters_long.parquet|t20773.1798952794s|s6965b|6965|file|local|vector|||0.015||
-characters_wide|stem|edebec2787117bfd|83ce0940fd074579|c651308b11ea33b8|-335834238||t20773.1798954965s|s3323b|3323|rds|local|vector|||0.01||
-lookup_chars|stem|c8916b77aaa186b5|bf927f0ec647027d|46090e6458c0df4c|1558419889||t20773.1798957129s|s878b|878|rds|local|vector|||0.011||
-characters_parquet|stem|e693918e60436a22|d3c05ffc2430d98c|557c4d3506f88050|1788989132|data/characters_parquet.parquet|t20773.1798958211s|s5869b|5869|file|local|vector|||0.003||
+spacy|stem|a2700e254ff219de|c7c5d636dd36f33e|dead02e921f21270|1403625753|data/spacy.parquet|t20782.9872027652s|s9929226b|9929226|file|local|vector|||103.359||

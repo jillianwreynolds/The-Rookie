@@ -49,7 +49,13 @@ list(
     format = "file"
   ),
   tar_target(
-    episodes_table, "data/Wikipedia/episodes_table.parquet", format = "file"
+    episodes_table_parquet,
+    "data/Wikipedia/episodes_table.parquet",
+    format = "file"
+  ),
+  tar_target(
+    episodes_table,
+    episodes_table_parquet |> read_parquet() |> clean_episodes_table()
   ),
   tar_target(
     episode_ratings_data, "data/episode_ratings_data.parquet", format = "file"

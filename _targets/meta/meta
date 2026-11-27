@@ -67,6 +67,7 @@ characters_wide|stem|edebec2787117bfd|83ce0940fd074579|c651308b11ea33b8|-3358342
 lookup_chars|stem|c8916b77aaa186b5|bf927f0ec647027d|46090e6458c0df4c|1558419889||t20773.1798957129s|s878b|878|rds|local|vector|||0.011||
 characters_parquet|stem|e693918e60436a22|d3c05ffc2430d98c|557c4d3506f88050|1788989132|data/characters_parquet.parquet|t20773.1798958211s|s5869b|5869|file|local|vector|||0.003||
 spacy|stem|a2700e254ff219de|c7c5d636dd36f33e|dead02e921f21270|1403625753|data/spacy.parquet|t20782.9872027652s|s9929226b|9929226|file|local|vector|||103.359||
+episodes_table_parquet|stem|7b52b55473c449aa|213b6bbe4004255f|2c530c1562a7fbd1|-1425117746|data/Wikipedia/episodes_table.parquet|t20784.9919845217s|s11261b|11261|file|local|vector|||0||
 split_italics_dialogue|function|77dfdb8581d52b52
 men|object|1ed4d2746da52b6d
 create_main_chars_long|function|b7256d57d368f4d2
@@ -110,7 +111,7 @@ peek_rows|function|6651c0755c3e236f
 symbols_tbl|object|9ae302499a01c3e9
 clean_other|function|b2b604508ee21e05
 create_characters_long|function|26f6ed44d250e270
-.Random.seed|object|c4a5f641d2ed987b
+.Random.seed|object|97e60dc2286b2751
 red_square|object|03ce8402a6b40ab6
 clean_speaker_name_parts|function|822ee6ad8a99cb14
 blue_square|object|2f4fc6a47762d725
@@ -151,6 +152,7 @@ additional_chars|object|37e99216c70cf34f
 create_characters|function|1838000a50b2fbaf
 peek_match|function|5c2a9c6a968f734d
 move_first_add_last_tbl|object|fb55d1f0b0b8c8c8
+clean_episodes_table|function|228f3dbcf42f95ed
 create_notable_guest_chars|function|3a31bb6bf4bc318c
 black_circle|object|eb1e5699b65dff51
 make_single_words|function|30d4de49a9b2d880
@@ -173,4 +175,4 @@ replace_italics2|function|cfc5575ecb099b0f
 insert_sentinels|function|781d592e7eb8e9b8
 unify_sentinels|function|19e7db5b888a919c
 run_cleaning_pipe|function|717857d243725ab5
-episodes_table|stem|45d0dcc3510081ec|213b6bbe4004255f|2c530c1562a7fbd1|735107240|data/Wikipedia/episodes_table.parquet|t20784.9808324101s|s9813b|9813|file|local|vector|||0.001||
+episodes_table|stem|2bb43c2df3d02135|7c9a33c43de00f59|edc490c576e5ca7b|735107240||t20784.9932804012s|s4773b|4773|rds|local|vector|||0.038||

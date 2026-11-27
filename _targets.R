@@ -27,6 +27,9 @@ token_values <- expand_grid(
   )
 
 list(
+  
+  # Data files
+  
   tar_target(
     main_chars_parquet, "data/Wikipedia/characters.parquet", format = "file"
   ),
@@ -44,6 +47,9 @@ list(
     notable_guests_txt,
     "data/Wikipedia/notable_guests.txt",
     format = "file"
+  ),
+  tar_target(
+    episodes_table, "data/Wikipedia/episodes_table.parquet", format = "file"
   ),
   tar_target(
     episode_ratings_data, "data/episode_ratings_data.parquet", format = "file"

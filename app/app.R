@@ -93,6 +93,26 @@ cards_home <- list(
       ),
       gt_output("rookie_boot_tbl")
     )
+  ),
+  US_viewers = navset_card_pill(
+    title = span("Number of US Viewers (in Millions)", tooltip(
+        bsicons::bs_icon("info-circle"),
+        "Viewer data for Season 8 was not available at the time the data was downloaded."
+      )),
+    nav_spacer(),
+    nav_panel("Plot", plotOutput("viewers_stats_plot")),
+    nav_panel("Table", gt_output("viewers_stats_tbl"))
+  ),
+  viewers_ratings = card(
+    card_header(
+      "Correlations between Number of US Viewers, Number of Votes, and Episode Ratings",
+      class = "bg-secondary",
+      tooltip(
+        bsicons::bs_icon("info-circle"),
+        "p-values will not sort correctly because values less than .001 begin with \"<\"."
+      )
+    ),
+    gt_output("cor_viewers_ratings")
   )
 )
 
@@ -129,8 +149,13 @@ home_panel <- nav_panel(
   layout_column_wrap(
     width = 1/2,
     cards_home$rookie_boot,
-    cards_home$directory,
+    cards_home$US_viewers,
     # style = css(grid_template_columns = "1fr 2fr 1fr")
+  ),
+  layout_column_wrap(
+    width = 1/2,
+    cards_home$directory,
+    cards_home$viewers_ratings
   )
 )
 
@@ -390,20 +415,23 @@ server <- function(input, output, session) {
     withProgress(
       {
         tbl_episodes = nanoparquet::read_parquet("transcripts_parquet.parquet")
-        incProgress(1 / 11)
+        incProgress(1 / 12)
         tbl_chars = nanoparquet::read_parquet("characters_parquet.parquet")
-        incProgress(1 / 11)
+        incProgress(1 / 12)
         tbl_chars_long = nanoparquet::read_parquet("characters_long.parquet")
-        incProgress(1 / 11)
+        incProgress(1 / 12)
         tbl_ratings = nanoparquet::read_parquet("episode_ratings.parquet")
-        incProgress(1 / 11)
+        incProgress(1 / 12)
+        tbl_episodes2 = nanoparquet::read_parquet("episodes_table.parquet")
+        incProgress(1/ 12)
         tbl_tokens1_raw = nanoparquet::read_parquet("tokens1_raw.parquet")
-        incProgress(7 / 11)
+        incProgress(7 / 12)
         list(
           episodes        = tbl_episodes,
           characters      = tbl_chars,
           characters_long = tbl_chars_long,
           ratings         = tbl_ratings,
+          episodes2       = tbl_episodes2,
           tokens1_raw     = tbl_tokens1_raw
         )
       },
@@ -526,6 +554,14 @@ server <- function(input, output, session) {
       )
   )
   
+  episodes2 <- reactive({
+    data()$episodes2 |>
+      mutate(
+        release_date = release_date |> ymd(),
+        # US_viewers = US_viewers * (1 * 10^6)
+      )
+  })
+  
 ## home -------------------------------------------------------------------
   
   observeEvent(input$reset_season_filter, reset("filter_season"))
@@ -636,14 +672,14 @@ server <- function(input, output, session) {
         labs(y = "Average Uses per Episode")
     }
     
-    plot + gg_theme + theme(legend.position = "bottom")
+    plot + gg_theme + theme(legend.position = "right")
     
   })
   
   output$rookie_boot_tbl <- render_gt({
     
     tbl <- rookie_boot_data() |> 
-      select(-number_of_episodes) |> 
+      select(-number_of_episodes)
       
     if (input$rookie_boot_tbl_filter == "boot") {
       tbl <- tbl |> filter(word == "boot")
@@ -658,6 +694,99 @@ server <- function(input, output, session) {
       opt_interactive(
         use_sorting = TRUE
       )
+    
+  })
+  
+  viewers_stats <- reactive({
+    episodes2() |> 
+      filter_out(season == 8) |> 
+      group_by(season) |> 
+      summarise(
+        min = min(US_viewers, na.rm = TRUE),
+        q1 = quantile(US_viewers, 0.25, na.rm = TRUE),
+        median = median(US_viewers, na.rm = TRUE),
+        q3 = quantile(US_viewers, 0.75, na.rm = TRUE),
+        max = max(US_viewers, na.rm = TRUE),
+        mean = mean(US_viewers, na.rm = TRUE),
+        SD = sd(US_viewers, na.rm = TRUE)
+      )
+  })
+  
+  output$viewers_stats_plot <- renderPlot({
+    
+    viewers_stats() |>
+      pivot_longer(2:last_col(), names_to = "stat", values_to = "value") |> 
+      filter_out(stat == "SD") |> 
+      ggplot(aes(season, value, color = stat, group = stat)) +
+      geom_point(aes(color = fct_reorder2(stat, season, value))) +
+      geom_line(
+        aes(
+          color = fct_reorder2(stat, season, value),
+          linetype = fct_reorder2(stat, season, value)
+        ),
+        linewidth = 0.75,
+        alpha     = 0.5
+      ) +
+      scale_x_continuous(breaks = 1:8, minor_breaks = NULL) +
+      scale_color_viridis_d(end = 0.9, labels = \(x) x |> str_to_title()) +
+      scale_linetype_manual(
+        values = c(
+          "max" = "solid", "q3" = "dotdash", "median" = "dashed",
+          "mean" = "dotted", "q1" = "twodash", "min" = "longdash"
+        ),
+        labels = \(x) x |> str_to_title()
+      ) +
+      labs(
+        x = "Season", y = "Number of US Viewers (in Millions)",
+        color = "Statistic", linetype = "Statistic"
+      ) +
+      gg_theme
+    
+  })
+  
+  output$viewers_stats_tbl <- render_gt({
+    viewers_stats() |> 
+      clean_col_names() |> 
+      gt() |> 
+      fmt_number(2:last_col()) |> 
+      cols_align("center", 1) |> 
+      cols_label("Sd" ~ "SD") |> 
+      opt_interactive(
+        use_sorting = TRUE,
+        use_pagination = FALSE
+      )
+  })
+  
+  output$cor_viewers_ratings <- render_gt({
+    
+    map2(
+      list(episodes2()$US_viewers, episodes2()$US_viewers, ratings()$n_votes),
+      list(ratings()$n_votes,      ratings()$rating,       ratings()$rating),
+      \(x, y) {cor.test(x, y) |> broom::tidy()}
+    ) |> 
+      list_rbind() |> 
+      mutate(Variables = c(
+        "US viewers and number of votes",
+        "US viewers and episode ratings", 
+        "Number of votes and episode ratings"
+      )) |> 
+      relocate(Variables) |> 
+      select(Variables, estimate, p.value, starts_with("conf")) |> 
+      rename(
+        Estimate = estimate, p = p.value,
+        `95% CI LL` = conf.low, `95% CI UL` = conf.high
+      ) |> 
+      mutate(p = p |> format_p(name = NULL)) |> 
+      gt() |> 
+      fmt_number(c(Estimate, starts_with("95"))) |> 
+      cols_align("right", "p") |> 
+      opt_interactive(use_sorting = TRUE, use_pagination = FALSE)
+    
+  })
+  
+  output$exp <- renderPrint({
+    
+    "cat"
     
   })
   

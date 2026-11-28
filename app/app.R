@@ -14,6 +14,7 @@ list(
   "styles.R",
   "functions.R",
   "top6_card.R",
+  "viewers_stats.R",
   "median_season_ratings.R",
   "about.R",
   "draw_chars_gender_plot.R",
@@ -103,16 +104,22 @@ cards_home <- list(
     nav_panel("Plot", plotOutput("viewers_stats_plot")),
     nav_panel("Table", gt_output("viewers_stats_tbl"))
   ),
-  viewers_ratings = card(
-    card_header(
-      "Correlations between Number of US Viewers, Number of Votes, and Episode Ratings",
-      class = "bg-secondary",
-      tooltip(
-        bsicons::bs_icon("info-circle"),
-        "p-values will not sort correctly because values less than .001 begin with \"<\"."
-      )
+  viewers_ratings = navset_card_pill(
+    title = span(
+      "Number of US Viewers, Number of Votes, and Episode Ratings",
+      class = "bg-secondary"
     ),
-    gt_output("cor_viewers_ratings")
+    nav_spacer(),
+    nav_panel("Plot", plotOutput("viewers_ratings_plot")),
+    nav_panel(
+      title = span("Correlations", tooltip(
+        bsicons::bs_icon("info-circle"),
+        "p-values will not sort correctly because values less than .001 begin with \"<\".",
+        placement = "top"
+      )),
+      markdown('`cor.test` with `method = "pearson"`, `alternative = "two-sided"`, and 95% confidence interval'),
+      gt_output("cor_viewers_ratings")
+    )
   )
 )
 
@@ -557,8 +564,31 @@ server <- function(input, output, session) {
   episodes2 <- reactive({
     data()$episodes2 |>
       mutate(
-        release_date = release_date |> ymd(),
-        # US_viewers = US_viewers * (1 * 10^6)
+        release_date = release_date |> ymd()
+      )
+  })
+  
+  viewers_stats <- reactive({
+    episodes2() |> 
+      filter_out(season == 8) |> 
+      group_by(season) |> 
+      summarise(
+        min = min(US_viewers, na.rm = TRUE),
+        q1 = quantile(US_viewers, 0.25, na.rm = TRUE),
+        median = median(US_viewers, na.rm = TRUE),
+        q3 = quantile(US_viewers, 0.75, na.rm = TRUE),
+        max = max(US_viewers, na.rm = TRUE),
+        mean = mean(US_viewers, na.rm = TRUE),
+        SD = sd(US_viewers, na.rm = TRUE)
+      )
+  })
+  
+  viewers_ratings_data <- reactive({
+    ratings() |> 
+      select(-title) |> 
+      left_join(
+        episodes2() |> select(season, episode, US_viewers),
+        join_by(season, episode)
       )
   })
   
@@ -697,64 +727,36 @@ server <- function(input, output, session) {
     
   })
   
-  viewers_stats <- reactive({
-    episodes2() |> 
-      filter_out(season == 8) |> 
-      group_by(season) |> 
-      summarise(
-        min = min(US_viewers, na.rm = TRUE),
-        q1 = quantile(US_viewers, 0.25, na.rm = TRUE),
-        median = median(US_viewers, na.rm = TRUE),
-        q3 = quantile(US_viewers, 0.75, na.rm = TRUE),
-        max = max(US_viewers, na.rm = TRUE),
-        mean = mean(US_viewers, na.rm = TRUE),
-        SD = sd(US_viewers, na.rm = TRUE)
-      )
-  })
-  
   output$viewers_stats_plot <- renderPlot({
-    
-    viewers_stats() |>
-      pivot_longer(2:last_col(), names_to = "stat", values_to = "value") |> 
-      filter_out(stat == "SD") |> 
-      ggplot(aes(season, value, color = stat, group = stat)) +
-      geom_point(aes(color = fct_reorder2(stat, season, value))) +
-      geom_line(
-        aes(
-          color = fct_reorder2(stat, season, value),
-          linetype = fct_reorder2(stat, season, value)
-        ),
-        linewidth = 0.75,
-        alpha     = 0.5
-      ) +
-      scale_x_continuous(breaks = 1:8, minor_breaks = NULL) +
-      scale_color_viridis_d(end = 0.9, labels = \(x) x |> str_to_title()) +
-      scale_linetype_manual(
-        values = c(
-          "max" = "solid", "q3" = "dotdash", "median" = "dashed",
-          "mean" = "dotted", "q1" = "twodash", "min" = "longdash"
-        ),
-        labels = \(x) x |> str_to_title()
-      ) +
-      labs(
-        x = "Season", y = "Number of US Viewers (in Millions)",
-        color = "Statistic", linetype = "Statistic"
-      ) +
-      gg_theme
-    
+    draw_viewers_stats_plot(viewers_stats())
   })
   
   output$viewers_stats_tbl <- render_gt({
-    viewers_stats() |> 
-      clean_col_names() |> 
-      gt() |> 
-      fmt_number(2:last_col()) |> 
-      cols_align("center", 1) |> 
-      cols_label("Sd" ~ "SD") |> 
-      opt_interactive(
-        use_sorting = TRUE,
-        use_pagination = FALSE
-      )
+    write_viewers_stats_tbl(viewers_stats())
+  })
+  
+  output$viewers_ratings_plot <- renderPlot({
+    viewers_ratings_data() |> 
+      ggplot(aes(US_viewers, rating, color = n_votes)) +
+      geom_point(aes(size = n_votes)) +
+      scale_y_continuous(
+        breaks = seq(0, 10, 2), limits = c(0, 10), expand = expansion(c(0, 0))
+      ) +
+      scale_color_viridis_c(
+        direction = -1, guide = "legend", labels = ~fmt_value(., 0)
+      ) +
+      scale_size_area(labels = ~fmt_value(., 0)) +
+      guides(
+        color = guide_legend(reverse = TRUE),
+        size = guide_legend(reverse = TRUE)
+      ) +
+      labs(
+        x = "Number of US Viewers (in Millions)",
+        y = "Rating",
+        color = "Number of Votes",
+        size = "Number of Votes"
+      ) +
+      gg_theme
   })
   
   output$cor_viewers_ratings <- render_gt({
@@ -781,12 +783,6 @@ server <- function(input, output, session) {
       fmt_number(c(Estimate, starts_with("95"))) |> 
       cols_align("right", "p") |> 
       opt_interactive(use_sorting = TRUE, use_pagination = FALSE)
-    
-  })
-  
-  output$exp <- renderPrint({
-    
-    "cat"
     
   })
   

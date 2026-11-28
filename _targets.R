@@ -241,9 +241,6 @@ list(
       tokens,
       {
         read_parquet(df) |>
-          left_join(
-            episodes_table |> select(-title), join_by(season, episode)
-          ) |> 
           unnest_transcripts(token = token, n = n) |>
           write_parquet(path)
         file.copy(path, str_c("app/", base_path), overwrite = TRUE)

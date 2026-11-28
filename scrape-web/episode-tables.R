@@ -1,4 +1,4 @@
-# Originally scraped on November 27, 2026 between 3 and 4 pm
+# Originally scraped on November 27, 2026 between 4 and 5 pm
 
 url <- "https://en.wikipedia.org/wiki/List_of_The_Rookie_episodes#Episodes"
 
@@ -13,4 +13,4 @@ url |>
     "release_date", "prod_code",
     "US_viewers"
   )) |> 
-  write_parquet("data/Wikipedia/episodes_table.parquet")
+  write_parquet("data/Wikipedia/episodes_table_parquet.parquet")

@@ -13,6 +13,7 @@ clean_episodes_table <- function(data) {
         replace_when(str_detect(., "N/A") ~ NA_character_) |> 
         as.double()
     ) |> 
-    relocate(season, .after = number_in_series)
+    relocate(season, .after = number_in_series) |> 
+    mutate(across(1:3, as.integer))
   
 }

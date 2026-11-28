@@ -50,12 +50,29 @@ list(
   ),
   tar_target(
     episodes_table_parquet,
-    "data/Wikipedia/episodes_table.parquet",
+    "data/Wikipedia/episodes_table_parquet.parquet",
     format = "file"
   ),
   tar_target(
     episodes_table,
-    episodes_table_parquet |> read_parquet() |> clean_episodes_table()
+    {
+      episodes_table_parquet |> 
+        read_parquet() |> 
+        clean_episodes_table() |> 
+        write_parquet("data/Wikipedia/episodes_table.parquet")
+      file.copy(
+        "data/Wikipedia/episodes_table.parquet",
+        "app/episodes_table.parquet",
+        overwrite = TRUE
+      )
+      file.copy(
+        "data/Wikipedia/episodes_table.parquet",
+        "episodes_table.parquet",
+        overwrite = TRUE
+      )
+      "data/Wikipedia/episodes_table.parquet"
+    },
+    format = "file"
   ),
   tar_target(
     episode_ratings_data, "data/episode_ratings_data.parquet", format = "file"
@@ -224,6 +241,9 @@ list(
       tokens,
       {
         read_parquet(df) |>
+          left_join(
+            episodes_table |> select(-title), join_by(season, episode)
+          ) |> 
           unnest_transcripts(token = token, n = n) |>
           write_parquet(path)
         file.copy(path, str_c("app/", base_path), overwrite = TRUE)

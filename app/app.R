@@ -2,17 +2,26 @@ library(shiny)
 library(shinyjs)
 library(tidyverse)
 library(glue)
-library(DT)
+library(gt)
 library(bslib)
 library(patchwork)
+library(plotly)
+library(insight)
 
 list(
+  "colors.R",
   "themes.R",
   "styles.R",
   "functions.R",
+  "top6_card.R",
+  "median_season_ratings.R",
   "about.R",
   "draw_chars_gender_plot.R",
-  "draw_ratings_stats_plot.R"
+  "write_top6_summary_stats_tbl.R",
+  "draw_ratings_stats_plot.R",
+  "write_ratings_stats_tbl.R",
+  "draw_best_worst_eps_speakers_plot.R",
+  "words_rating.R"
 ) |> 
   walk(\(x) source(x))
 
@@ -47,22 +56,80 @@ cards_home <- list(
         ),
         actionButton(
           "reset_season_filter", "Reset Filter", class = "btn-reset"
-        )
+        ),
+        placement = "right"
       )
     ),
-    DTOutput("episodes"),
+    gt_output("episodes"),
     min_height = "600px"
   ),
   series_stats = card(
     card_header("Series Statistics", class = "bg-secondary"),
-    tableOutput("series_stats")
+    gt_output("series_stats")
   ),
-  top6 = card(
-    card_header("Top 6 Speakers of the Series", class = "bg-secondary"),
-    htmlOutput("series_T6")
+  rookie_boot = navset_card_pill(
+    title = span('Usage of the Terms "Rookie" and "Boot"', tooltip(
+      bsicons::bs_icon("info-circle"),
+      '"Rookie" and "boot" include plural, possessive, and plural possessive forms. One instance of "#RookieHeroes" is not shown on the plot or in the table.'
+    )),
+    nav_spacer(),
+    nav_panel(
+      "Plot",
+      radioButtons(
+        "rookie_boot_plot_stat",
+        label = "Statistic",
+        choices = c("Count" = "n", "Average" = "mean"),
+        selected = "mean"
+      ),
+      plotOutput("rookie_boot_plot")
+    ),
+    nav_panel(
+      "Table",
+      radioButtons(
+        "rookie_boot_tbl_filter",
+        label = "Filter Rows",
+        choices = c("All", '"Boot"' = "boot", '"Rookie"' = "rookie"),
+        selected = "All"
+      ),
+      gt_output("rookie_boot_tbl")
+    )
+  ),
+  US_viewers = navset_card_pill(
+    title = span("Number of US Viewers (in Millions)", tooltip(
+        bsicons::bs_icon("info-circle"),
+        "Viewer data for Season 8 was not available at the time the data was downloaded."
+      )),
+    nav_spacer(),
+    nav_panel("Plot", plotOutput("viewers_stats_plot")),
+    nav_panel("Table", gt_output("viewers_stats_tbl"))
+  ),
+  viewers_ratings = card(
+    card_header(
+      "Correlations between Number of US Viewers, Number of Votes, and Episode Ratings",
+      class = "bg-secondary",
+      tooltip(
+        bsicons::bs_icon("info-circle"),
+        "p-values will not sort correctly because values less than .001 begin with \"<\"."
+      )
+    ),
+    gt_output("cor_viewers_ratings")
   )
 )
 
+
+### value boxes -----------------------------------------------------------
+
+home_vbs <- list(
+  n_episodes = value_box(
+    id = "n_episodes_vb",
+    glue("episodes across {n_seasons} seasons"),
+    textOutput("n_episodes"),
+    showcase = bsicons::bs_icon("camera-reels"),
+    # showcase_layout = "top right",
+    class = "value-first"
+  ),
+  ratings = median_season_ratings_UI("msr_home")
+)
 
 ### nav_panel -------------------------------------------------------------
 
@@ -71,11 +138,24 @@ home_panel <- nav_panel(
   title = "Home",
   p("By Jillian W. Reynolds", style = "font-size:22px"),
   layout_column_wrap(
-    cards_home$series_stats,
-    cards_home$top6,
-    cards_home$directory,
-    style = css(grid_template_columns = "2fr 1fr 3fr"),
+    layout_column_wrap(
+      cards_home$series_stats,
+      layout_column_wrap(width = 1, home_vbs$n_episodes, home_vbs$ratings),
+      top6_UI("top6_home"),
+      # style = css(grid_template_columns = "4fr 1fr 1fr")
+    ),
     fillable = FALSE
+  ),
+  layout_column_wrap(
+    width = 1/2,
+    cards_home$rookie_boot,
+    cards_home$US_viewers,
+    # style = css(grid_template_columns = "1fr 2fr 1fr")
+  ),
+  layout_column_wrap(
+    width = 1/2,
+    cards_home$directory,
+    cards_home$viewers_ratings
   )
 )
 
@@ -98,25 +178,24 @@ cards_characters <- list(
       )
     ),
     layout_column_wrap(
+      uiOutput("char_selection"),
       checkboxGroupInput(
         "char_type_filter",
         "Filter by Character Type",
         choices = char_types,
         selected = char_types
-      ),
-      uiOutput("char_selection")
+      )
     ),
-    DTOutput("words_by_chars"),
-    min_height = "600px"
+    gt_output("words_by_chars")
   ),
   top6_plot = card(
-    full_screen = TRUE,
+    full_screen = FALSE,
     card_header(
-      "Top 6 Speakers",
+      "Words per Season for the Top 6 Speakers",
       class = "bg-secondary",
       tooltip(
         bsicons::bs_icon("info-circle"),
-        '"Count" shows total number of words spoken by each character in each season. "Proportion" shows the proportion of words spoken by each character in each season (character\'s number of words in a season divided by total words in the season).',
+        '"Count" shows total number of words spoken by each character in each season. "Proportion" shows the proportion of words spoken by each character in each season (character\'s number of words in a season divided by total words in the season) as a percent.',
         placement = "right"
       )
     ),
@@ -124,14 +203,27 @@ cards_characters <- list(
       "word_stat",
       label = "Statistic",
       choices = c("Count" = "n", "Proportion" = "prop"),
-      selected = "n"
+      selected = "prop"
     ),
-    plotOutput("T6_plot")
+    plotlyOutput("top6_plot")
   ),
   gender_plot = card(
     full_screen = TRUE,
     card_header("Character Genders by Character Type", class = "bg-secondary"),
     plotOutput("chars_gender_plot")
+  ),
+  top6_stats = card(
+    card_header(
+      "Summary Statistics for the Top 6 Speakers",
+      class = "bg-secondary",
+      tooltip(
+        bsicons::bs_icon("info-circle"),
+        "Click column headings to sort values in ascending or descending order.",
+        placement = "right"
+      )
+    ),
+    uiOutput("filter_top6_stats_UI"),
+    gt_output("top6_stats")
   )
 )
 
@@ -140,19 +232,28 @@ cards_characters <- list(
 characters_panel <- nav_panel(
   title = "Characters",
   layout_column_wrap(
+    fillable = FALSE,
+    top6_UI("top6_chars_panel"),
+    cards_characters$top6_plot,
+    cards_characters$gender_plot,
+    style = css(grid_template_columns = "3fr 7fr 7fr")
+  ),
+  layout_column_wrap(
     width = 1/2,
     # cards_characters$table,
     cards_characters$words_by_character,
-    cards_characters$top6_plot,
-    heights_equal = "row"
+    cards_characters$top6_stats,
+    heights_equal = "row",
+    style = css(grid_template_columns = "5fr 7fr")
   ),
-  layout_columns(
+  layout_column_wrap(
     fillable = FALSE,
+    width = 1/2,
     # card(tableOutput("characters")),
     # card(tableOutput("chars_long")),
-    cards_characters$gender_plot,
-    col_widths = c(6)
-  )#,
+    # cards_characters$top6_stats,
+    style = css(grid_template_columns = "3fr 4fr")
+  ),#,
   # textOutput("chars_vec")
 )
 
@@ -161,64 +262,84 @@ characters_panel <- nav_panel(
 ### cards ------------------------------------------------------------------
 
 cards_ratings <- list(
-  note = card(
-    p(
-      "Episodes rating data was downloaded from ",
-      a(
-        "IMDb",
-        href = "https://data.imdb.com/non-commercial-datasets/",
-        target = "_blank"
-      ),
-      "on July 31, 2026"
+  ratings = navset_card_pill(
+    title = "Episode Ratings",
+    full_screen = TRUE,
+    nav_spacer(),
+    nav_panel(
+      "Plot",
+      checkboxInput("full_rating_scale", "View full rating scale?"),
+      plotOutput("ratings_plot")
+    ),
+    nav_panel(
+      "Animation",
+      checkboxInput("full_rating_scale2", "View full rating scale?"),
+      tags$div(class = "rookie-slider", sliderInput(
+        "ratings_slider",
+        "Season",
+        value = 0,
+        min = 0,
+        max = 8,
+        step = 1,
+        animate = animationOptions(interval = 1500, loop = TRUE)
+      )),
+      plotOutput("ratings_animation")
+    ),
+    nav_panel(
+      "Table", gt_output("ratings")
     )
   ),
-  ratings = card(
-    card_header("Episode Ratings", class = "bg-secondary"),
-    DTOutput("ratings")
-  ),
-  plot_stats = card(
+  ratings_stats = navset_card_pill(
     full_screen = TRUE,
-    card_header("Summary Statistics by Season", class = "bg-secondary"),
-    plotOutput("ratings_stats_plot")
-  ),
-  plot_counts = card(
-    full_screen = TRUE,
-    card_header(
-      "Distribution of Ratings",
-      class = "bg-secondary d-flex align-items-center gap-1",
-      tooltip(
-        bsicons::bs_icon("info-circle"),
-        "To filter by season, compare seasons, or change plot settings, click the gear icon to the right."
-      ),
-      popover(
-        bsicons::bs_icon("gear", title = "Settings", class = "ms-auto"),
-        title = "View Options",
-        checkboxInput("view_full_scale", "View full rating scale (0 to 10)?"),
-        selectInput(
-          "filter_season2",
-          "Filter by Season",
-          choices = 1:n_seasons,
-          multiple = TRUE
-        ),
-        checkboxInput("compare_seasons", "Compare seasons?"),
-        uiOutput("compare_options"),
-        actionButton("reset_plot_ratings_dist", "Reset", class = "btn-reset")
-      )
-    ),
-    uiOutput("ratings_slider_ui"),
-    plotOutput("plot_ratings_dist"),
-    min_height = "640px"
+    title = "Summary Statistics by Season",
+    nav_spacer(),
+    nav_panel("Plot", plotOutput("ratings_stats_plot")),
+    nav_panel("Table", gt_output("ratings_stats_tbl"))
   ),
   speakers_prop = card(
     full_screen = TRUE,
     card_header("Proportions of Words in Highest and Lowest Rated Episodes for the Top 6 Speakers of the Series", class = "bg-secondary"),
     plotOutput("best_worst_eps_speakers")
+  ),
+  words_rating = card(
+    card_header(
+      "Proportion of Words vs. Episode Ratings",
+      class = "bg-secondary",
+      tooltip(
+        bsicons::bs_icon("info-circle"),
+        "lm(rating ~ percent)"
+      )
+    ),
+    markdown("For the most part, proportion of words spoken in an episode (displayed as percentage in the figure) and average episode rating were not associated."),
+    gt_output("words_rating_1lm_tbl"),
+    gt_output("words_rating_mod_tbl"),
+    verbatimTextOutput("anova"),
+    navset_card_pill(
+      nav_spacer(),
+      nav_panel("Plots", plotOutput("words_rating_plot")),
+      nav_panel(
+        "Table",
+        toolbar(
+          "Filter Rows",
+          toolbar_input_select(
+            "filter_words_rating_lm_tbl",
+            label = "Filter Rows",
+            choices = c(
+              "All", "Slopes" = "Slope", "Intercepts" = "Intercept"
+            ),
+            selected = "All"
+          )
+        ),
+        gt_output("words_rating_lm")
+      )
+    )
   )
 )
 
 ### value boxes -----------------------------------------------------------
 
-vbs <- list(
+ratings_vbs <- list(
+  median_season_ratings = median_season_ratings_UI("msr_ratings"),
   highest = value_box(
     "Highest Rating",
     value = textOutput("highest_rating"),
@@ -250,29 +371,29 @@ ratings_panel <- nav_panel(
     width = 1/2,
     heights_equal = "row",
     layout_column_wrap(
-      cards_ratings$note,
-      vbs$highest,
-      vbs$average,
-      vbs$lowest,
-      width = 1/2
+      width = 1/2,
+      ratings_vbs$median_season_ratings,
+      ratings_vbs$highest,
+      ratings_vbs$average,
+      ratings_vbs$lowest
     ),
-    cards_ratings$plot_stats
+    cards_ratings$ratings
   ),
   layout_column_wrap(
-    cards_ratings$ratings,
-    cards_ratings$plot_counts
-  ),
-  layout_column_wrap(
-    width = 1/2,
-    cards_ratings$speakers_prop
-  )
+    cards_ratings$speakers_prop,
+    cards_ratings$ratings_stats
+  )#,
+  # layout_column_wrap(
+  #   width = 1/2,
+  #   cards_ratings$words_rating
+  # )
 )
 
 # UI ----------------------------------------------------------------------
 
 ui <- page_navbar(
   theme = rookie_theme,
-  tags$style(type = "text/css", rookie_slider_css),
+  tags$style(type = "text/css", css),
   fillable = FALSE,
   navbar_options = navbar_options(bg = dark_teal),
   title = h1(
@@ -281,7 +402,7 @@ ui <- page_navbar(
   ),
   nav_spacer(),
   home_panel,
-  about_menu,
+  about_panel,
   characters_panel,
   ratings_panel
 )
@@ -294,20 +415,23 @@ server <- function(input, output, session) {
     withProgress(
       {
         tbl_episodes = nanoparquet::read_parquet("transcripts_parquet.parquet")
-        incProgress(1 / 11)
+        incProgress(1 / 12)
         tbl_chars = nanoparquet::read_parquet("characters_parquet.parquet")
-        incProgress(1 / 11)
+        incProgress(1 / 12)
         tbl_chars_long = nanoparquet::read_parquet("characters_long.parquet")
-        incProgress(1 / 11)
+        incProgress(1 / 12)
         tbl_ratings = nanoparquet::read_parquet("episode_ratings.parquet")
-        incProgress(1 / 11)
+        incProgress(1 / 12)
+        tbl_episodes2 = nanoparquet::read_parquet("episodes_table.parquet")
+        incProgress(1/ 12)
         tbl_tokens1_raw = nanoparquet::read_parquet("tokens1_raw.parquet")
-        incProgress(7 / 11)
+        incProgress(7 / 12)
         list(
           episodes        = tbl_episodes,
           characters      = tbl_chars,
           characters_long = tbl_chars_long,
           ratings         = tbl_ratings,
+          episodes2       = tbl_episodes2,
           tokens1_raw     = tbl_tokens1_raw
         )
       },
@@ -317,6 +441,18 @@ server <- function(input, output, session) {
     )
   })
   
+  n_episodes <- reactive(
+    data()$episodes |>
+      select(season, episode) |>
+      count(season)
+  )
+  
+  n_words <- reactive(
+    data()$tokens1_raw |> 
+      filter(type == "dialogue") |> 
+      group_by(season) |> 
+      count()
+  )  
   characters <- reactive(
     data()$characters |> 
       select(ends_with("name"), type) |> 
@@ -350,6 +486,9 @@ server <- function(input, output, session) {
       rename(first_name = sp3, last_name = sp4)
   )
   
+  top6_server("top6_home", top6)
+  top6_server("top6_chars_panel", top6)
+  
   filter_characters <- function(
     data,
     filter = c("top6", "main", "recurring", "all")
@@ -373,6 +512,26 @@ server <- function(input, output, session) {
     
   }
   
+  top6_data <- reactive(
+    data()$tokens1_raw |>
+      filter(type == "dialogue") |>
+      filter_characters("top6")
+  )
+  
+  top6_count <- reactive(
+    data()$tokens1_raw |>
+      filter(type == "dialogue") |>
+      filter_characters("top6") |> 
+      group_by(sp4, season) |>
+      count()
+  )
+  
+  top6_prop <- reactive(
+    top6_count() |> 
+      left_join(n_words() |> rename(season_total = n), join_by(season)) |> 
+      mutate(prop = n / season_total)
+  )
+  
   ratings <- reactive(
     data()$ratings |> 
       left_join(data()$episodes, join_by(season, episode)) |> 
@@ -381,63 +540,256 @@ server <- function(input, output, session) {
       arrange(season, episode)
   )
   
+  ratings_stats <- reactive(
+    data()$ratings |> 
+      group_by(season) |> 
+      summarise(
+        min = min(rating),
+        q1 = quantile(rating, 0.25),
+        median = median(rating),
+        q3 = quantile(rating, 0.75),
+        max = max(rating),
+        mean = mean(rating),
+        sd = sd(rating)
+      )
+  )
+  
+  episodes2 <- reactive({
+    data()$episodes2 |>
+      mutate(
+        release_date = release_date |> ymd(),
+        # US_viewers = US_viewers * (1 * 10^6)
+      )
+  })
+  
 ## home -------------------------------------------------------------------
   
   observeEvent(input$reset_season_filter, reset("filter_season"))
   
-  output$episodes <- renderDT(
-    {
-      tbl <- data()$episodes |> 
-        select(ep_number, season, episode, title)
-      if (length(input$filter_season) > 0) {
-        tbl <- tbl |> filter(season %in% input$filter_season)
-      }
-      tbl |> 
-        rename(number = ep_number) |> 
-        rename_with(str_to_title)
-      
-    },
-    server = FALSE,
-    options = list(
-      pageLength = 10,
-      lengthMenu = c(5, 10, seq(20, 40, 10))
-    )
-  )
+  output$episodes <- render_gt({
+    
+    tbl <- data()$episodes |> 
+      select(season, episode, title)
+    
+    if (length(input$filter_season) > 0) {
+      tbl <- tbl |> filter(season %in% input$filter_season)
+    }
+    
+    tbl |> 
+      rename_with(str_to_title) |> 
+      gt() |> 
+      cols_width("Season" ~ px(100), "Episode" ~ px(100)) |> 
+      cols_align("center", 1:2) |> 
+      opt_interactive(
+        use_sorting = TRUE,
+        use_search = TRUE,
+        use_page_size_select = TRUE,
+        page_size_values = c(5, seq(10, 40, 10))
+      )
+    
+  })
   
-  n_episodes <- reactive(
-    data()$episodes |>
-      select(season, episode) |>
-      count(season)
-  )
-  
-  n_words <- reactive(
-    data()$tokens1_raw |> 
-      filter(type == "dialogue") |> 
-      group_by(season) |> 
-      count()
-  )
-  
-  output$series_stats <- renderTable({
+  output$series_stats <- render_gt({
     
     n_episodes <- n_episodes() |> rename(episodes = n)
     n_words    <- n_words()    |> rename(words = n)
     
     left_join(n_episodes, n_words, join_by(season)) |> 
-      mutate(average = (words / episodes) |> round(2)) |> 
+      mutate(average = (words / episodes)) |> 
       rename(`Average Words per Episode` = average) |> 
-      clean_col_names()
+      clean_col_names() |> 
+      gt() |> 
+      fmt_number(3, decimals = 0) |> 
+      fmt_number(4, decimals = 2) |> 
+      cols_align("center", 1:2) |> 
+      cols_width(
+        "Season" ~ px(100), "Episodes" ~ px(100), "Words" ~ px(100)
+      ) |> 
+      opt_interactive(use_sorting = TRUE, use_pagination = FALSE)
     
   })
   
-  output$series_T6 <- renderText({
-    top6() |> 
-      unite(character, first_name, last_name) |> 
-      clean_chars_col() |> 
-      pull(character) %>%
-      str_c(1:6, ". ", ., collapse = "\n") |> 
-      markdown()
+  median_season_ratings_server("msr_home", ratings_stats)
+  median_season_ratings_server("msr_ratings", ratings_stats)
+  
+  output$n_episodes <- renderText(
+    data()$episodes |> nrow()
+  )
+  
+  rookie_boot_data <- reactive(
+    data()$tokens1_raw |> 
+      select(season, word) |> 
+      filter(when_any(
+        str_detect(word, "rookie\'?s?\'?"),
+        str_detect(word, "^boot\'?s?\'?$")
+      )) |> 
+      mutate(word = fct_collapse(
+        word,
+        boot = c("boot", "boot's", "boots"),
+        rookie = c("rookie", "rookie's", "rookies"),
+        other_level = "other"
+      )) |> 
+      group_by(season, word) |> 
+      count() |> 
+      left_join(
+        n_episodes() |> rename(number_of_episodes = n), join_by(season)
+      ) |> 
+      ungroup() |> 
+      filter_out(word == "other") |> 
+      mutate(mean = n / number_of_episodes)
+  )
+  
+  output$rookie_boot_plot <- renderPlot({
+    
+    plot <- rookie_boot_data() |> 
+      ggplot(aes(x = season,fill = word)) +
+      scale_x_continuous(breaks = 1:n_seasons) +
+      scale_y_continuous(expand = expansion(c(0, 0.05))) +
+      scale_fill_viridis_d(
+        end = 0.6, labels = \(x) str_c('"', str_to_title(x), '"')
+      ) +
+      labs(x = "Season", fill = "Term")
+    
+    if (input$rookie_boot_plot_stat == "n") {
+      plot <- plot + 
+        geom_col(aes(y = n), position = "dodge") +
+        geom_text(
+          aes(y = n, label = n),
+          position = position_dodge(0.9),
+          vjust = -0.3,
+          size = 13, size.unit = "pt"
+        ) +
+        labs(y = "Number of Uses")
+    } else {
+      plot <- plot + 
+        geom_col(aes(y = mean), position = "dodge") +
+        geom_text(
+          aes(y = mean, label = mean |> fmt_value()),
+          position = position_dodge(0.9),
+          vjust = -0.3,
+          size = 13, size.unit = "pt"
+        ) +
+        labs(y = "Average Uses per Episode")
+    }
+    
+    plot + gg_theme + theme(legend.position = "right")
+    
   })
-
+  
+  output$rookie_boot_tbl <- render_gt({
+    
+    tbl <- rookie_boot_data() |> 
+      select(-number_of_episodes)
+      
+    if (input$rookie_boot_tbl_filter == "boot") {
+      tbl <- tbl |> filter(word == "boot")
+    }
+      
+    tbl |> 
+      clean_col_names() |> 
+      rename(number_of_uses = n, average_uses_per_episode = mean) |> 
+      gt() |> 
+      fmt_number("Average Uses per Episode") |> 
+      cols_align("center", "Season") |> 
+      opt_interactive(
+        use_sorting = TRUE
+      )
+    
+  })
+  
+  viewers_stats <- reactive({
+    episodes2() |> 
+      filter_out(season == 8) |> 
+      group_by(season) |> 
+      summarise(
+        min = min(US_viewers, na.rm = TRUE),
+        q1 = quantile(US_viewers, 0.25, na.rm = TRUE),
+        median = median(US_viewers, na.rm = TRUE),
+        q3 = quantile(US_viewers, 0.75, na.rm = TRUE),
+        max = max(US_viewers, na.rm = TRUE),
+        mean = mean(US_viewers, na.rm = TRUE),
+        SD = sd(US_viewers, na.rm = TRUE)
+      )
+  })
+  
+  output$viewers_stats_plot <- renderPlot({
+    
+    viewers_stats() |>
+      pivot_longer(2:last_col(), names_to = "stat", values_to = "value") |> 
+      filter_out(stat == "SD") |> 
+      ggplot(aes(season, value, color = stat, group = stat)) +
+      geom_point(aes(color = fct_reorder2(stat, season, value))) +
+      geom_line(
+        aes(
+          color = fct_reorder2(stat, season, value),
+          linetype = fct_reorder2(stat, season, value)
+        ),
+        linewidth = 0.75,
+        alpha     = 0.5
+      ) +
+      scale_x_continuous(breaks = 1:8, minor_breaks = NULL) +
+      scale_color_viridis_d(end = 0.9, labels = \(x) x |> str_to_title()) +
+      scale_linetype_manual(
+        values = c(
+          "max" = "solid", "q3" = "dotdash", "median" = "dashed",
+          "mean" = "dotted", "q1" = "twodash", "min" = "longdash"
+        ),
+        labels = \(x) x |> str_to_title()
+      ) +
+      labs(
+        x = "Season", y = "Number of US Viewers (in Millions)",
+        color = "Statistic", linetype = "Statistic"
+      ) +
+      gg_theme
+    
+  })
+  
+  output$viewers_stats_tbl <- render_gt({
+    viewers_stats() |> 
+      clean_col_names() |> 
+      gt() |> 
+      fmt_number(2:last_col()) |> 
+      cols_align("center", 1) |> 
+      cols_label("Sd" ~ "SD") |> 
+      opt_interactive(
+        use_sorting = TRUE,
+        use_pagination = FALSE
+      )
+  })
+  
+  output$cor_viewers_ratings <- render_gt({
+    
+    map2(
+      list(episodes2()$US_viewers, episodes2()$US_viewers, ratings()$n_votes),
+      list(ratings()$n_votes,      ratings()$rating,       ratings()$rating),
+      \(x, y) {cor.test(x, y) |> broom::tidy()}
+    ) |> 
+      list_rbind() |> 
+      mutate(Variables = c(
+        "US viewers and number of votes",
+        "US viewers and episode ratings", 
+        "Number of votes and episode ratings"
+      )) |> 
+      relocate(Variables) |> 
+      select(Variables, estimate, p.value, starts_with("conf")) |> 
+      rename(
+        Estimate = estimate, p = p.value,
+        `95% CI LL` = conf.low, `95% CI UL` = conf.high
+      ) |> 
+      mutate(p = p |> format_p(name = NULL)) |> 
+      gt() |> 
+      fmt_number(c(Estimate, starts_with("95"))) |> 
+      cols_align("right", "p") |> 
+      opt_interactive(use_sorting = TRUE, use_pagination = FALSE)
+    
+  })
+  
+  output$exp <- renderPrint({
+    
+    "cat"
+    
+  })
+  
 # characters -------------------------------------------------------------
   
   output$char_selection <- renderUI({
@@ -446,7 +798,9 @@ server <- function(input, output, session) {
       length(input$char_type_filter) == 2,
       length(input$char_type_filter) == 0
     )) {
-      choices_vec <- chars_vec()
+      choices_vec <- list(
+        Main = main_chars_vec(), Recurring = recurring_chars_vec()
+      )
     }
     if (length(input$char_type_filter) == 1) {
       if ("main" %in% input$char_type_filter) {
@@ -464,7 +818,7 @@ server <- function(input, output, session) {
     )
   })
   
-  output$words_by_chars <- renderDT({
+  output$words_by_chars <- render_gt({
     
     tbl <- data()$tokens1_raw |> 
       filter(type == "dialogue") |> 
@@ -487,7 +841,7 @@ server <- function(input, output, session) {
       }
     }
     
-    tbl |> 
+    tbl <- tbl |> 
       group_by(sp3, sp4) |> 
       count(sort = TRUE) |> 
       ungroup() |> 
@@ -495,56 +849,84 @@ server <- function(input, output, session) {
         where(is.character),
         \(x) x |> str_replace_all("_", " ") |> str_to_title()
       )) |> 
-      rename("First Name" = sp3, "Last Name" = sp4)
+      rename("First Name" = sp3, "Last Name" = sp4, Words = n)
+    
+    tbl |> 
+      gt() |> 
+      fmt_number("Words", decimals = 0) |> 
+      opt_interactive(
+        use_sorting = TRUE,
+        use_search = TRUE,
+        use_page_size_select = TRUE,
+        page_size_values = c(seq(10, 40, 10), 54)
+      )
+    
   })
   
-  top6_count <- reactive(
-    data()$tokens1_raw |>
-      filter(type == "dialogue") |>
-      filter_characters("top6") |> 
-      group_by(sp4, season) |>
-      count()
-  )
-  
-  top6_prop <- reactive(
-    top6_count() |> 
-      left_join(n_words() |> rename(season_total = n), join_by(season)) |> 
-      mutate(prop = n / season_total)
-  )
-  
-  output$T6_plot <- renderPlot({
+  output$top6_plot <- renderPlotly({
     
-    data <- top6_prop() |> mutate(season = season |> as_factor())
+    data <- top6_prop() |> 
+      mutate(
+        season = season |> as_factor(),
+        sp4 = sp4 |> str_to_title()
+      )
 
     if (input$word_stat == "n") {
       plot <- data |>
-        ggplot(aes(season, n, group = sp4)) +
+        ggplot(aes(
+          season, n, group = sp4,
+          text = str_c(
+            sp4,
+            "\nSeason: ", season,
+            "\nWords: ", fmt_value(n, 0)
+          )
+        )) +
         geom_line(
           aes(y = n, color = fct_reorder2(sp4, season, n)),
           linewidth = 0.625
+        ) +
+        scale_y_continuous(
+          labels = \(x) fmt_value(x, 0)
         ) +
         labs(y = "Number of Words")
     }
 
     if (input$word_stat == "prop") {
       plot <- data |>
-        ggplot(aes(season, prop, group = sp4)) +
+        ggplot(aes(
+          season, prop, group = sp4,
+          text = str_c(
+            sp4,
+            "\nSeason ", season, 
+            "\n", format_percent(prop)
+          ))) +
         geom_line(
           aes(color = fct_reorder2(sp4, season, prop)),
           linewidth = 0.625
         ) +
         labs(y = "Proportion of Words") +
         coord_cartesian(ylim = c(0, NA)) +
-        scale_y_continuous(expand = expansion(c(0, 0.05)))
+        scale_y_continuous(
+          expand = expansion(c(0, 0.05)), labels = \(x) format_percent(x, 0)
+        )
     }
 
-    plot +
-      scale_color_viridis_d(end = 0.85, labels = \(x) x |> str_to_title()) +
+    plot <- plot +
+      scale_color_viridis_d(end = 0.9) +
       labs(
         x = "Season",
         color = "Character"
       ) +
-      gg_theme
+      theme_light()
+      # gg_theme
+    
+    plot |> 
+      ggplotly(tooltip = "text") |>
+      config(displaylogo = FALSE, displayModeBar = FALSE) |>
+      plotly_layout(dragmode = FALSE) |>
+      htmlwidgets::onRender(
+        "function(el) { Plotly.restyle(el, {'line.width': 1.5}); }"
+      )
     
   })
   
@@ -560,18 +942,45 @@ server <- function(input, output, session) {
     draw_chars_gender_plot(data()$characters_long)
   })
   
+  output$filter_top6_stats_UI <- renderUI({
+    selectInput(
+      "filter_top6_stats_tbl",
+      "Filter by Character",
+      choices = top6() |> 
+        mutate(last_name = str_to_title(last_name)) |> 
+        arrange(last_name) |> 
+        pull(last_name),
+      multiple = TRUE
+    )
+  })
+  
+  write_top6_summary_stats_tbl(input, output, top6_data())
+  
   # output$chars_vec <- renderText(chars_vec())
 
 ## ratings ----------------------------------------------------------------
   
-  output$ratings <- renderDT(
+  output$ratings <- render_gt(
     ratings() |> 
-      rename(number_of_votes = n_votes) |> 
-      clean_col_names(),
-    options = list(
-      pageLength = 10,
-      lengthMenu = c(5, 10, seq(20, 40, 10))
-    )
+      rename(average_rating = rating, number_of_votes = n_votes) |> 
+      clean_col_names() |> 
+      gt() |> 
+      fmt_number("Average Rating", decimals = 1) |> 
+      fmt_number("Number of Votes", decimals = 0) |>
+      cols_width(
+        "Season"  ~ px(95),
+        "Episode" ~ px(95),
+        "Average Rating"  ~ px(135),
+        "Number of Votes" ~ px(145)
+      ) |> 
+      cols_align("center", 1:2) |> 
+      opt_interactive(
+        use_sorting = TRUE,
+        use_search = TRUE,
+        use_pagination = TRUE,
+        use_page_size_select = TRUE,
+        page_size_values = c(5, seq(10, 40, 10))
+      )
   )
   
   min_rating  <- reactive(ratings()$rating |> min())
@@ -591,217 +1000,110 @@ server <- function(input, output, session) {
   output$average_rating_eps <- renderText(
     ratings() |> filter(rating == round(mean(rating), 1)) |> titles_to_string()
   )
+  
   output$ratings_stats_plot <- renderPlot(
-    draw_ratings_stats_plot(data()$ratings)
+    draw_ratings_stats_plot(ratings_stats())
   )
   
-  output$compare_options <- renderUI({
-    if (input$compare_seasons) {
-      radioButtons(
-        "compare_view",
-        "Compare seasons with",
-        c(
-          "Colored bar chart(s)" = 1,
-          "Multiple bar charts"  = 2,
-          "Violin plot"          = 3
-        )
-      )
-    }
-  })
+  output$ratings_stats_tbl <- render_gt(
+    write_ratings_stats_tbl(ratings_stats())
+  )
   
-  output$ratings_slider_ui <- renderUI({
-    req(input$compare_seasons)
-    req(input$compare_view)
-    if (input$compare_view == 1) {
-      tags$div(class = "rookie-slider", sliderInput(
-        "ratings_slider",
-        "Season",
-        value = 0,
-        min = 0,
-        max = 8,
-        step = 1,
-        animate = animationOptions(interval = 1500, loop = TRUE)
-      )) 
-    }
-  })
-  
-  output$plot_ratings_dist <- renderPlot({
-    
-    ratings_dist <- data()$ratings |> 
+  ratings_dist <- reactive(
+    data()$ratings |> 
       group_by(season) |> 
-      count(rating) |> 
+      count(rating)
+  )
+  
+  output$ratings_plot <- renderPlot({
+    tbl <- ratings_dist() |> 
       mutate(season = season |> as_factor())
-    
-    if (when_any(
-      when_all(
-        when_any(
-          isTruthy(input$compare_seasons == FALSE),
-          isTruthy(input$compare_view == 2)
-        ),
-        length(input$filter_season2) > 0
-      ),
-      when_all(
-        isTruthy(input$compare_view == 1),
-        length(input$filter_season2) > 0,
-        isTruthy(input$ratings_slider == 0)
-      )
-    )) {
-      ratings_dist <- ratings_dist |> filter(season %in% input$filter_season2)
-    }
-    if (when_all(
-      isTruthy(input$compare_view == 1), isTruthy(input$ratings_slider != 0)
-    )) {
-      ratings_dist <- ratings_dist |> filter(season == input$ratings_slider)
-    }
-    
-    break_skip <- if (when_any(
-      input$view_full_scale,
-      isTruthy(input$compare_view == 2)
-    )) {
-      1
-    } else {
-      0.5
-    }
-    
-    plot <- ratings_dist |> 
-      ggplot(aes(rating, n)) +
-      labs(x = "Rating", y = "Number of Episodes") +
-      scale_x_continuous(breaks = seq(0, 10, break_skip)) +
+      
+    plot <- tbl |>   
+      ggplot(aes(season, rating, fill = season)) +
+      geom_violin() +
+      scale_fill_viridis_d() +
+      labs(x = "Season", y = "Rating", fill = "Season") +
       gg_theme
     
-    if (isTruthy(input$compare_seasons == FALSE)) {
-      plot <- plot + geom_col(fill = teal)
+    if (input$full_rating_scale) {
+      plot + scale_y_continuous(
+        breaks = seq(0, 10, 1),
+        minor_breaks = NULL,
+        limits = c(0, 10),
+        expand = expansion(c(0, 0))
+      )
+    } else {
+      plot
     }
     
-    if (isTruthy(input$compare_seasons)) {
-      if (when_all(
-        isTruthy(input$compare_view == 1),
-        isTruthy(input$ratings_slider == 0)
-      )) {
-        plot <- plot +
-          geom_col(aes(fill = season)) +
-          scale_fill_viridis_d() +
-          labs(fill = "Season") +
-          theme(
-            legend.position = c(0.005, 0.995),
-            legend.justification = c(0, 1)
-          )
-        if (input$view_full_scale) {
-          plot <- plot + coord_cartesian(xlim = c(0, 10))
-        } else {
-          plot <- plot + coord_cartesian(xlim = c(min_rating(), max_rating()))
-        }
-      }
-      if (when_all(
-        isTruthy(input$compare_view == 1),
-        isTruthy(input$ratings_slider != 0)
-      )) {
-        plot <- plot + geom_col(fill = viridis[input$ratings_slider])
-        if (input$view_full_scale) {
-          plot <- plot + coord_cartesian(xlim = c(0, 10), ylim = c(0, 20))
-        } else if (input$view_full_scale == FALSE) {
-          plot <- plot + 
-            coord_cartesian(xlim = c(min_rating(), max_rating()), ylim = c(0, 20))
-        }
-      }
-      if (isTruthy(input$compare_view == 2)) {
-        strip_labels <- setNames(str_c("Season ", 1:8), as.character(1:8))
-        facet_cols <- if (length(input$filter_season2) %in% 2:3) 1 else NULL
-        plot <- plot +
-          geom_col(fill = teal) +
-          facet_wrap(
-            ~season,
-            ncol = facet_cols,
-            labeller = as_labeller(strip_labels),
-            axes = "all_x"
-          ) +
-          theme(strip.text = element_text(size = 14))
-      }
-      if (isTruthy(input$compare_view == 3)) {
-        plot <- ratings_dist |> 
-          ggplot(aes(season, rating, fill = season)) + 
-          geom_violin() +
-          scale_fill_viridis_d(guide = NULL) +
-          labs(x = "Season", y = "Rating") +
-          gg_theme
-      }
-    }
-    if (when_all(
-      input$view_full_scale,
-      when_any(
-        isTruthy(input$compare_seasons == FALSE),
-        isTruthy(input$compare_view == 2)
-      )
-    )) {
-      plot <- plot + coord_cartesian(xlim = c(0, 10))
-    }
-    if (isTruthy(input$compare_view == 2)) {
-      plot <- plot + 
-        scale_y_continuous(
-          expand = expansion(c(0, 0.05)),
-          minor_breaks = NULL
-        )
-    } else if (!isTruthy(input$compare_view == 3)) {
-      plot <- plot + scale_y_continuous(expand = expansion(c(0, 0.05)))
-    }
-    plot
   })
   
-  observeEvent(input$reset_plot_ratings_dist, {
-    reset("view_full_scale")
-    reset("filter_season2")
-    reset("compare_seasons")
-    updateRadioButtons(session, "compare_view", selected = character(0))
-    updateSliderInput(session, "ratings_slider", value = 0)
-  })
+  source("ratings_animation.R", local = TRUE)
   
   output$best_worst_eps_speakers <- renderPlot({
+    draw_best_worst_eps_speakers_plot(
+      data()$tokens1_raw, ratings, filter_characters
+    )
+  })
+  
+  top6_word_ratings_data <- reactive({
+    counts <- top6_data() |> 
+      group_by(sp4, season, episode) |> 
+      count() |> 
+      ungroup()
+    totals <- top6_data() |> 
+      group_by(season, episode) |> 
+      count() |> 
+      ungroup() |> 
+      rename(episode_total = n)
+    counts |> 
+      left_join(totals, join_by(season, episode)) |> 
+      mutate(prop = n / episode_total) |> 
+      left_join(ratings() |> select(-title), join_by(season, episode))
+    })
+  
+  lm1 <- reactive(lm(rating ~ prop + sp4, data = top6_word_ratings_data()))
+  lm2 <- reactive(lm(rating ~ prop * sp4, data = top6_word_ratings_data()))
+  
+  output$words_rating_1lm_tbl <- render_gt(
+    lm1() |> 
+      broom::tidy() |> 
+      gt() |> 
+      fmt_number() |> 
+      opt_interactive(page_size_default = 12)
+  )
+  
+  output$words_rating_mod_tbl <- render_gt(
+    lm2() |> 
+      broom::tidy() |> 
+      gt() |> 
+      fmt_number() |> 
+      opt_interactive(page_size_default = 12)
+  )
+  
+  output$anova <- renderPrint({
     
-    word_count <- data()$tokens1_raw |>
-      filter(type == "dialogue") |>
-      group_by(season, episode) |>
-      count() |>
-      rename(total_words = n)
-
-    data <- data()$tokens1_raw |>
-      filter(type == "dialogue") |>
-      filter_characters("top6") |>
-      left_join(ratings(), join_by(season, episode))
-
-    highest <- data |>
-      slice_max(rating)
-
-    lowest <- data |>
-      slice_min(rating)
-
-    draw_plot <- function(data) {
-      data |>
-        group_by(sp4, season, episode) |>
-        count() |>
-        left_join(word_count, join_by(season, episode)) |>
-        mutate(
-          prop = n / total_words,
-          episode = str_c(season, "x", episode),
-          sp4 = sp4 |> str_to_title()
-        ) |>
-        ggplot(aes(episode, prop)) +
-        geom_col(aes(fill = sp4), position = "dodge") +
-        scale_y_continuous(expand = expansion(c(0, 0.05))) +
-        scale_fill_viridis_d(end = 0.9, direction = -1) +
-        labs(
-          x = "Episode", y = "Proportion of Total Words", fill = "Character"
-        ) +
-        gg_theme
-    }
-
-    (draw_plot(highest) + labs(title = "Highest Rated")) +
-      (draw_plot(lowest) + labs(title = "Lowest Rated")) +
-      plot_layout(
-        guides = "collect", axis_titles = "collect_y", axes = "collect_y"
-      ) &
-      coord_cartesian(ylim = c(0, 0.175)) &
-      theme(plot.title = element_text(size = 17), legend.position = "bottom")
+    cor.test(top6_word_ratings_data()$prop, top6_word_ratings_data()$rating) |> 
+      print()
     
+    map(top6() |> pull(last_name) |> set_names(), \(x) {
+      
+      data <- top6_word_ratings_data() |> 
+        filter(sp4 == x)
+      
+        cor.test(data$prop, data$rating) |> 
+          broom::tidy()
+      
+    }) |> 
+      list_rbind(names_to = "sp4")
+    
+  })
+  
+  write_words_rating_lm_tbl(input, output, top6_word_ratings_data()) 
+  
+  output$words_rating_plot <- renderPlot({
+    draw_words_rating_plot(top6_word_ratings_data())
   })
   
 }

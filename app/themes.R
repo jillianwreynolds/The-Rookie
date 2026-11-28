@@ -1,16 +1,3 @@
-# colors ------------------------------------------------------------------
-
-dark_teal   <- "#0a333f"
-dark_teal2  <- "#0a333f30"
-teal        <- "#2f8b9d"
-teal2       <- "#2f8b9d30"
-yellow      <- "#facf21"
-yellow2     <- "#facf2125"
-light_green <- "#b9d4bd"
-code_color  <- "#7c13ba"
-viridis <- c("#440154FF", "#46337EFF", "#365C8DFF", "#277F8EFF",
-             "#1FA187FF", "#4AC16DFF", "#9FDA3AFF", "#FDE725FF")
-
 # bs ----------------------------------------------------------------------
 
 rookie_theme <- bs_theme(
@@ -22,39 +9,8 @@ rookie_theme <- bs_theme(
   bs_add_variables(
     "headings-color"     = dark_teal,
     "link-color"         = teal,
-    "code-color"         = code_color,
-    "card-title-color"   = teal
-  ) |> 
-  bs_add_rules(
-    glue(
-      "
-    .card {
-      border-radius: var(--bs-border-radius-lg);
-    }
-    .accordion {
-      --bs-accordion-btn-bg: {{teal2}};
-      --bs-accordion-active-bg: {{light_green}};
-    }
-    .btn-reset {
-      background-color: {{teal2}};
-      border-color: var(--bs-border-color);
-      color: {{dark_teal}};
-    }
-    .btn-reset:hover {
-      background-color: {{yellow}};
-      border-color: {{dark_teal}};
-      color: {{dark_teal}};
-    }
-    .vb-yellow {
-      background-color: {{yellow2}} !important;
-      color: {{dark_teal}}!important;
-    }
-    ",
-      .open = "{{",
-      .close = "}}"
-    )
+    "code-color"         = code_color
   )
-
 
 # ggplot ------------------------------------------------------------------
 
@@ -65,3 +21,24 @@ gg_theme <- theme_light() +
     legend.title = element_text(size = 14),
     legend.text  = element_text(size = 13)
   )
+
+## plotly
+
+plotly_layout <- function(p, ...) {
+  
+  defaults <- list(
+    xaxis  = list(
+      title = list(font = list(size = 14)), tickfont = list(size = 12)
+    ),
+    yaxis  = list(
+      title = list(font = list(size = 14)), tickfont = list(size = 12)
+    ),
+    legend = list(
+      title = list(font = list(size = 13)), font = list(size = 12.5)
+    )
+  )
+  
+  args <- modifyList(defaults, list(...))
+  do.call(layout, c(list(p), args))
+  
+}

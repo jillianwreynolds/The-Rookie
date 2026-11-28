@@ -1,4 +1,93 @@
-rookie_slider_css <- glue(
+# card --------------------------------------------------------------------
+
+card_css <- glue(
+  "
+  .card {
+      border-radius: var(--bs-border-radius-lg);
+  }
+  .empty-card {
+    --bs-border-color-translucent: white
+  }
+  ",
+  .open = "{{",
+  .close = "}}"
+)
+
+
+# nav card ----------------------------------------------------------------
+
+nav_card_css <- glue(
+  "
+  .bslib-navs-card-title {
+    background: {{teal}};
+    color: white;
+  }
+  .card-header-pills .nav-link {
+    --bs-nav-link-color: {{dark_teal}};
+    --bs-nav-link-hover-color: {{teal}};
+    background-color: {{light_green}};
+  }
+  .card-header-pills .nav-link.active {
+    background-color: {{dark_teal}};
+    --bs-nav-pills-link-active-color: white;
+  }
+  ",
+  .open = "{{",
+  .close = "}}"
+)
+
+# value box ---------------------------------------------------------------
+
+value_box_css <- glue(
+  "
+  .vb-yellow {
+    background-color: {{yellow2}} !important;
+    color: {{dark_teal}}!important;
+  }
+  .value-first .value-box-area {
+    display: flex;
+    flex-direction: column;
+  }
+  .value-first .value-box-value {
+    order: -1;
+    font-size: 3rem;
+  }
+  .value-first .value-box-title {
+    order: 0;
+  }
+  .median_season_ratings .value-box-grid {
+    background-color: {{teal2}};
+  }
+  #n_episodes_vb .value-box-grid {
+    background-color: {{yellow2}};
+  }
+  ",
+  .open = "{{",
+  .close = "}}"
+)
+
+# button ------------------------------------------------------------------
+
+button_css <- glue(
+  "
+  .btn-reset {
+    background-color: {{teal2}};
+    border-color: var(--bs-border-color);
+    color: {{dark_teal}};
+  }
+  .btn-reset:hover {
+    background-color: {{yellow}};
+    border-color: {{dark_teal}};
+    color: {{dark_teal}};
+  }
+  ",
+  .open = "{{",
+  .close = "}}"
+)
+
+# slider ------------------------------------------------------------------
+
+slider_css <- glue(
   "
   .irs-grid-pol.small { height: 0px; }
   .slider-animate-button {
@@ -45,4 +134,58 @@ rookie_slider_css <- glue(
   ",
   .open = "{{",
   .close = "}}"
+)
+
+
+# table -------------------------------------------------------------------
+
+table_css <- glue(
+  "
+  .gt_table {
+    font-family: var(--bs-body-font-family) !important;
+  }
+  .ReactTable {
+    font-family: var(--bs-body-font-family) !important;
+  }
+  .sticky_gt .rt-th:first-child,
+  .sticky_gt .rt-td:first-child {
+    position: sticky !important;
+    left: 0;
+    z-index: 1;
+    background: white;
+  }
+  .sticky_gt .rt-th:first-child {
+    z-index: 2;
+  }
+  ",
+  .open  = "{{",
+  .close = "}}"
+)
+
+# other -------------------------------------------------------------------
+
+other_css <- glue(
+  "
+  .accordion {
+    --bs-accordion-btn-bg: {{teal2}};
+    --bs-accordion-active-bg: {{light_green}};
+    --bs-accordion-active-color: {{dark_teal}};
+    --bs-accordion-btn-color: {{dark_teal}};
+  }
+  ",
+  .open  = "{{",
+  .close = "}}"
+)
+
+# CSS ---------------------------------------------------------------------
+
+css <- str_c(
+  card_css,
+  nav_card_css,
+  value_box_css,
+  button_css,
+  slider_css,
+  table_css,
+  other_css,
+  sep = "\n"
 )

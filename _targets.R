@@ -2,6 +2,7 @@ library(targets)
 library(tarchetypes)
 library(arrow)
 library(gt)
+library(spacyr)
 
 tar_option_set(
   packages = c("tidyverse"),
@@ -26,6 +27,9 @@ token_values <- expand_grid(
   )
 
 list(
+  
+  # Data files
+  
   tar_target(
     main_chars_parquet, "data/Wikipedia/characters.parquet", format = "file"
   ),
@@ -42,6 +46,32 @@ list(
   tar_target(
     notable_guests_txt,
     "data/Wikipedia/notable_guests.txt",
+    format = "file"
+  ),
+  tar_target(
+    episodes_table_parquet,
+    "data/Wikipedia/episodes_table_parquet.parquet",
+    format = "file"
+  ),
+  tar_target(
+    episodes_table,
+    {
+      episodes_table_parquet |> 
+        read_parquet() |> 
+        clean_episodes_table() |> 
+        write_parquet("data/Wikipedia/episodes_table.parquet")
+      file.copy(
+        "data/Wikipedia/episodes_table.parquet",
+        "app/episodes_table.parquet",
+        overwrite = TRUE
+      )
+      file.copy(
+        "data/Wikipedia/episodes_table.parquet",
+        "episodes_table.parquet",
+        overwrite = TRUE
+      )
+      "data/Wikipedia/episodes_table.parquet"
+    },
     format = "file"
   ),
   tar_target(
@@ -219,5 +249,18 @@ list(
       },
       format = "file"
     )
+  ),
+  tar_target(
+    spacy,
+    {
+      df_raw |> 
+        read_parquet() |> 
+        use_spacy_parse() |> 
+        write_parquet("data/spacy.parquet")
+      file.copy("data/spacy.parquet", "spacy.parquet", overwrite = TRUE)
+      file.copy("data/spacy.parquet", "app/spacy.parquet", overwrite = TRUE)
+      "data/spacy.parquet"
+    },
+    format = "file"
   )
 )

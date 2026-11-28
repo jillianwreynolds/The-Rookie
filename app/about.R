@@ -11,14 +11,34 @@ about_project_cards <- list(
   status = card(
     card_header("Project Status", class = "bg-secondary"),
     "This project is still in progress."
+  ),
+  objectives = card(
+    card_header("Objectives", class = "bg-secondary"),
+    markdown("
+    Explore *The Rookie* with data
+    - Exploratory data analysis
+    - Text analysis
+    - ...
+    
+    Practice/learn skills
+      - Strings and regular expressions
+      - Working with large data sets
+      - Web development
+        - `Shiny`
+        - `Shinylive`
+        - HTML
+        - CSS
+        - Bootstrap 5
+    ")
   )
 )
 
-about_project <- nav_panel(
+about_project <- accordion_panel(
   title = "Project",
   layout_column_wrap(
     about_project_cards$project,
-    about_project_cards$status
+    about_project_cards$status,
+    about_project_cards$objectives
   )
 )
 
@@ -28,7 +48,7 @@ about_data_cards <- list(
   transcripts = card(
     card_header("Transcripts", class = "bg-secondary"),
     p(
-      "Episode transcripts were downloaded as page source (HTML) from ", tags$a(href="https://the-rookie.fandom.com/", "the-rookie.fandom.com", .noWS = "after", target = "_blank"), "."
+      "Episode transcripts were downloaded as page source (HTML) from ", tags$a(href="https://the-rookie.fandom.com/", "the-rookie.fandom.com", .noWS = "after", target = "_blank"), " on August 6, 2026."
     )
   ),
   characters = card(
@@ -41,7 +61,7 @@ about_data_cards <- list(
   )
 )
 
-about_data <- nav_panel(
+about_data <- accordion_panel(
   title = "Data",
   layout_column_wrap(
     about_data_cards$transcripts,
@@ -62,7 +82,7 @@ packages_tooltip <- tooltip(
 about_methodology_cards <- list(
   R = card(
     card_header("R", class = "bg-secondary"),
-    markdown("I use `R`, `RStudio`, and `Quarto` to plan the project and explore and analyze the data. I use the former two for analyzing the data and publishing the results. I use `renv` for package version control. The project combines R, markdown, HTML and CSS.")
+    markdown("I use `R`, `RStudio`, and `Quarto` to plan the project and explore and analyze the data. I use the former two for analyzing the data and publishing the results. I use `renv` for package version control. The project combines R, markdown, HTML, CSS, and Bootstrap 5.")
   ),
   github = card(
     card_header("GitHub", class = "bg-secondary"),
@@ -81,8 +101,9 @@ about_methodology_cards <- list(
       - bslib
       - shinyjs
       - nanoparquet
-      - glue
-      - DT
+      - insight
+      - reactable
+      - Plotly
     ")
   ),
   analysis = card(
@@ -92,9 +113,16 @@ about_methodology_cards <- list(
       packages_tooltip
     ),
     markdown("
-      - tidyverse
+      - tidyverse, primarily:
+        - tidyr
+        - dplyr
+        - purrr
+        - glue
+        - ggplot2
       - targets
       - arrow
+      - gt
+      - patchwork
     ")
   ),
   notes = card(
@@ -106,7 +134,7 @@ about_methodology_cards <- list(
   )
 )
 
-about_methodology <- nav_panel(
+about_methodology <- accordion_panel(
   title = "Methodology",
   layout_column_wrap(
     about_methodology_cards$R,
@@ -117,9 +145,11 @@ about_methodology <- nav_panel(
   about_methodology_cards$notes
 )
 
-about_menu <- nav_menu(
+about_panel <- nav_panel(
   "About",
-  about_project,
-  about_data,
-  about_methodology
+  accordion(
+    about_project,
+    about_data,
+    about_methodology
+  )
 )
